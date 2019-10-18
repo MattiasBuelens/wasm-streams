@@ -25,4 +25,5 @@ async fn test_readable_stream_new() {
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("world!")));
     assert_eq!(reader.read().await.unwrap(), None);
+    reader.closed().await.unwrap();
 }

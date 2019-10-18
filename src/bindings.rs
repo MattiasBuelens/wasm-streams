@@ -17,13 +17,27 @@ extern "C" {
     pub fn locked(this: &ReadableStream) -> bool;
 
     #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel(this: &ReadableStream) -> Promise;
+    fn _cancel(this: &ReadableStream) -> Promise;
 
     #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel_with_reason(this: &ReadableStream, reason: &JsValue) -> Promise;
+    fn _cancel_with_reason(this: &ReadableStream, reason: &JsValue) -> Promise;
 
     #[wasm_bindgen(method, catch, js_name = getReader)]
     pub fn get_reader(this: &ReadableStream) -> Result<ReadableStreamDefaultReader, JsValue>;
+}
+
+impl ReadableStream {
+    pub async fn cancel(&self) -> Result<(), JsValue> {
+        let js_value = JsFuture::from(self._cancel()).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
+    }
+
+    pub async fn cancel_with_reason(&self, reason: &JsValue) -> Result<(), JsValue> {
+        let js_value = JsFuture::from(self._cancel_with_reason(reason)).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
+    }
 }
 
 #[wasm_bindgen]
@@ -71,16 +85,16 @@ extern "C" {
     pub type ReadableStreamDefaultReader;
 
     #[wasm_bindgen(method, getter, js_name = closed)]
-    pub fn closed(this: &ReadableStreamDefaultReader) -> Promise;
+    fn _closed(this: &ReadableStreamDefaultReader) -> Promise;
 
     #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel(this: &ReadableStreamDefaultReader) -> Promise;
+    fn _cancel(this: &ReadableStreamDefaultReader) -> Promise;
 
     #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel_with_reason(this: &ReadableStreamDefaultReader, reason: &JsValue) -> Promise;
+    fn _cancel_with_reason(this: &ReadableStreamDefaultReader, reason: &JsValue) -> Promise;
 
     #[wasm_bindgen(method, js_name = read)]
-    fn read_raw(this: &ReadableStreamDefaultReader) -> Promise;
+    fn _read(this: &ReadableStreamDefaultReader) -> Promise;
 
     #[wasm_bindgen(method, catch, js_name = releaseLock)]
     pub fn release_lock(this: &ReadableStreamDefaultReader) -> Result<(), JsValue>;
@@ -99,8 +113,26 @@ extern "C" {
 }
 
 impl ReadableStreamDefaultReader {
+    pub async fn closed(&self) -> Result<(), JsValue> {
+        let js_value = JsFuture::from(self._closed()).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
+    }
+
+    pub async fn cancel(&self) -> Result<(), JsValue> {
+        let js_value = JsFuture::from(self._cancel()).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
+    }
+
+    pub async fn cancel_with_reason(&self, reason: &JsValue) -> Result<(), JsValue> {
+        let js_value = JsFuture::from(self._cancel_with_reason(reason)).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
+    }
+
     pub async fn read(&self) -> Result<Option<JsValue>, JsValue> {
-        let js_value = JsFuture::from(self.read_raw()).await?;
+        let js_value = JsFuture::from(self._read()).await?;
         let result = ReadableStreamReadResult::from(js_value);
         if result.done() {
             Ok(None)
