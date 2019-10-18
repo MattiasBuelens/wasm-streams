@@ -1,5 +1,6 @@
 use js_sys::{Object, Promise};
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
 
 #[wasm_bindgen]
 extern "C" {
@@ -79,8 +80,32 @@ extern "C" {
     pub fn cancel_with_reason(this: &ReadableStreamDefaultReader, reason: &JsValue) -> Promise;
 
     #[wasm_bindgen(method, js_name = read)]
-    fn read(this: &ReadableStreamDefaultReader) -> Promise;
+    fn read_raw(this: &ReadableStreamDefaultReader) -> Promise;
 
     #[wasm_bindgen(method, catch, js_name = releaseLock)]
     pub fn release_lock(this: &ReadableStreamDefaultReader) -> Result<(), JsValue>;
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[derive(Clone, Debug)]
+    type ReadableStreamReadResult;
+
+    #[wasm_bindgen(method, getter, js_name = done)]
+    fn done(this: &ReadableStreamReadResult) -> bool;
+
+    #[wasm_bindgen(method, getter, js_name = value)]
+    fn value(this: &ReadableStreamReadResult) -> JsValue;
+}
+
+impl ReadableStreamDefaultReader {
+    pub async fn read(&self) -> Result<Option<JsValue>, JsValue> {
+        let js_value = JsFuture::from(self.read_raw()).await?;
+        let result = ReadableStreamReadResult::from(js_value);
+        if result.done() {
+            Ok(None)
+        } else {
+            Ok(Some(result.value()))
+        }
+    }
 }
