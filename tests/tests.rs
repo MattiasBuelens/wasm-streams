@@ -5,22 +5,22 @@ extern crate wasm_bindgen_test;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use wasm_streams::sys::*;
+use wasm_streams::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_new() {
-    let start_cb = Closure::once(move |controller: &ReadableStreamDefaultController| {
-        controller.enqueue(&JsValue::from("Hello"));
-        controller.enqueue(&JsValue::from("world!"));
-        controller.close();
-    });
-    let source = UnderlyingSource::new();
-    source.set_start(&start_cb);
-
-    let readable = ReadableStream::new_with_source(&source);
-
+    let mut readable = ReadableStream::new(UnderlyingSource::new(
+        Some(Box::new(|controller: &ReadableStreamDefaultController| {
+            controller.enqueue(&JsValue::from("Hello"));
+            controller.enqueue(&JsValue::from("world!"));
+            controller.close();
+        })),
+        None,
+        None,
+    ));
+    assert!(!readable.is_locked());
     let reader = readable.get_reader().unwrap();
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("world!")));
