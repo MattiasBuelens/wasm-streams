@@ -5,7 +5,7 @@ extern crate wasm_bindgen_test;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use wasm_streams::bindings::*;
+use wasm_streams::sys::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
