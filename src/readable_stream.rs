@@ -111,19 +111,19 @@ impl ReadableStreamDefaultReader {
         Ok(())
     }
 
-    pub async fn cancel(&self) -> Result<(), JsValue> {
+    pub async fn cancel(&mut self) -> Result<(), JsValue> {
         let js_value = JsFuture::from(self.inner.cancel()).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
-    pub async fn cancel_with_reason(&self, reason: &JsValue) -> Result<(), JsValue> {
+    pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
         let js_value = JsFuture::from(self.inner.cancel_with_reason(reason)).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
-    pub async fn read(&self) -> Result<Option<JsValue>, JsValue> {
+    pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
         let js_value = JsFuture::from(self.inner.read()).await?;
         let result = ReadableStreamReadResult::from(js_value);
         if result.is_done() {
