@@ -1,3 +1,5 @@
+use futures::{Stream, TryFutureExt, TryStreamExt};
+use futures::stream::unfold;
 use js_sys::Object;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsValue;
@@ -136,5 +138,23 @@ impl ReadableStreamDefaultReader {
     pub fn release_lock(&mut self) -> Result<(), JsValue> {
         self.inner.release_lock()?;
         Ok(())
+    }
+}
+
+impl ReadableStream {
+    pub fn into_stream(self) -> impl Stream<Item=Result<JsValue, JsValue>> {
+        self.into_stream_fut().try_flatten_stream().into_stream()
+    }
+
+    async fn into_stream_fut(mut self) -> Result<impl Stream<Item=Result<JsValue, JsValue>>, JsValue> {
+        let reader = self.get_reader()?;
+        let stream = unfold(reader, |mut reader| async move {
+            match reader.read().await {
+                Ok(Some(value)) => Some((Ok(value), reader)),
+                Ok(None) => None,
+                Err(error) => Some((Err(error), reader))
+            }
+        });
+        Ok(stream)
     }
 }
