@@ -132,4 +132,9 @@ impl ReadableStreamDefaultReader {
             Ok(Some(result.value()))
         }
     }
+
+    pub fn release_lock(&mut self) -> Result<(), JsValue> {
+        self.inner.release_lock()?;
+        Ok(())
+    }
 }
