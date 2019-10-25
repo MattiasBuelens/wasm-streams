@@ -23,6 +23,7 @@ async fn test_readable_stream_new() {
         None,
     ));
     assert!(!readable.is_locked());
+
     let mut reader = readable.get_reader().unwrap();
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("world!")));
@@ -48,4 +49,18 @@ async fn test_readable_stream_into_stream() {
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
     assert_eq!(stream.next().await, None);
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_multiple_release_lock() {
+    let mut readable = ReadableStream::new(UnderlyingSource::new(
+        None,
+        None,
+        None,
+    ));
+
+    let mut reader = readable.get_reader().unwrap();
+    reader.release_lock().unwrap();
+    reader.release_lock().unwrap();
+    reader.release_lock().unwrap();
 }

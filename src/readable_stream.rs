@@ -47,7 +47,7 @@ impl ReadableStream {
 
     pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader, JsValue> {
         Ok(ReadableStreamDefaultReader {
-            inner: self.inner.get_reader()?
+            inner: Some(self.inner.get_reader()?)
         })
     }
 }
@@ -103,30 +103,34 @@ impl UnderlyingSource {
 }
 
 pub struct ReadableStreamDefaultReader {
-    inner: RawReadableStreamDefaultReader
+    inner: Option<RawReadableStreamDefaultReader>
 }
 
 impl ReadableStreamDefaultReader {
+    pub fn as_raw(&self) -> &RawReadableStreamDefaultReader {
+        self.inner.as_ref().unwrap()
+    }
+
     pub async fn closed(&self) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.inner.closed()).await?;
+        let js_value = JsFuture::from(self.as_raw().closed()).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
     pub async fn cancel(&mut self) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.inner.cancel()).await?;
+        let js_value = JsFuture::from(self.as_raw().cancel()).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
     pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.inner.cancel_with_reason(reason)).await?;
+        let js_value = JsFuture::from(self.as_raw().cancel_with_reason(reason)).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
     pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
-        let js_value = JsFuture::from(self.inner.read()).await?;
+        let js_value = JsFuture::from(self.as_raw().read()).await?;
         let result = ReadableStreamReadResult::from(js_value);
         if result.is_done() {
             Ok(None)
@@ -134,12 +138,20 @@ impl ReadableStreamDefaultReader {
             Ok(Some(result.value()))
         }
     }
+
+    pub fn release_lock(&mut self) -> Result<(), JsValue> {
+        if let Some(inner) = self.inner.as_ref() {
+            inner.release_lock()?;
+            self.inner.take();
+        }
+        Ok(())
+    }
 }
 
 impl Drop for ReadableStreamDefaultReader {
     fn drop(&mut self) {
         // TODO Error handling?
-        self.inner.release_lock().unwrap();
+        self.release_lock().unwrap();
     }
 }
 
