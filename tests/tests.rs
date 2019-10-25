@@ -2,6 +2,7 @@
 
 extern crate wasm_bindgen_test;
 
+use futures::future::{abortable, Aborted, join};
 use futures::stream::StreamExt;
 use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
@@ -63,4 +64,26 @@ async fn test_readable_stream_multiple_release_lock() {
     reader.release_lock().unwrap();
     reader.release_lock().unwrap();
     reader.release_lock().unwrap();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_abort_read() {
+    let mut readable = ReadableStream::new(UnderlyingSource::new(
+        None,
+        None,
+        None,
+    ));
+
+    let mut reader = readable.get_reader().unwrap();
+
+    // Start reading, but abort the future immediately
+    // Use `join` to poll the future at least once
+    let (fut, handle) = abortable(reader.read());
+    let (result, _) = join(fut, async {
+        handle.abort();
+    }).await;
+    assert_eq!(result, Err(Aborted));
+
+    // Must cancel any pending reads before releasing the reader's lock
+    reader.cancel().await.unwrap();
 }
