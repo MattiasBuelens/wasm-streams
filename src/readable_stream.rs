@@ -25,6 +25,7 @@ impl ReadableStream {
         }
     }
 
+    #[inline]
     pub fn as_raw(&self) -> &RawReadableStream {
         &self.inner
     }
@@ -91,6 +92,7 @@ impl UnderlyingSource {
         }
     }
 
+    #[inline]
     pub fn as_raw(&self) -> &RawUnderlyingSource {
         &self.inner
     }
@@ -107,6 +109,7 @@ pub struct ReadableStreamDefaultReader {
 }
 
 impl ReadableStreamDefaultReader {
+    #[inline]
     pub fn as_raw(&self) -> &RawReadableStreamDefaultReader {
         self.inner.as_ref().unwrap()
     }
