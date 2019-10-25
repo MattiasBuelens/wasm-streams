@@ -148,11 +148,12 @@ impl ReadableStream {
 
     async fn into_stream_fut(mut self) -> Result<impl Stream<Item=Result<JsValue, JsValue>>, JsValue> {
         let reader = self.get_reader()?;
-        let stream = unfold(reader, |mut reader| async move {
+        let stream = unfold(Some(reader), |state| async move {
+            let mut reader = state?;
             match reader.read().await {
-                Ok(Some(value)) => Some((Ok(value), reader)),
+                Ok(Some(value)) => Some((Ok(value), Some(reader))),
                 Ok(None) => None,
-                Err(error) => Some((Err(error), reader))
+                Err(error) => Some((Err(error), None))
             }
         });
         Ok(stream)
