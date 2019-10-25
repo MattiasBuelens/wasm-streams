@@ -49,13 +49,13 @@ extern "C" {
     pub type UnderlyingSource;
 
     #[wasm_bindgen(method, structural, setter, js_name = start)]
-    pub fn set_start(this: &UnderlyingSource, cb: &Closure<dyn FnMut(&ReadableStreamDefaultController)>);
+    pub fn set_start(this: &UnderlyingSource, cb: &Closure<dyn FnMut(&ReadableStreamDefaultController) -> Promise>);
 
     #[wasm_bindgen(method, structural, setter, js_name = pull)]
-    pub fn set_pull(this: &UnderlyingSource, cb: &Closure<dyn FnMut(&ReadableStreamDefaultController)>);
+    pub fn set_pull(this: &UnderlyingSource, cb: &Closure<dyn FnMut(&ReadableStreamDefaultController) -> Promise>);
 
     #[wasm_bindgen(method, structural, setter, js_name = cancel)]
-    pub fn set_cancel(this: &UnderlyingSource, cb: &Closure<dyn FnMut(&JsValue)>);
+    pub fn set_cancel(this: &UnderlyingSource, cb: &Closure<dyn FnMut(&JsValue) -> Promise>);
 }
 
 #[wasm_bindgen]

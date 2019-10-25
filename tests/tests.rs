@@ -2,10 +2,11 @@
 
 extern crate wasm_bindgen_test;
 
-use futures::future::{abortable, Aborted, join};
+use futures::future::{abortable, Aborted, join, ready};
 use futures::stream::StreamExt;
 use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::future_to_promise;
 use wasm_bindgen_test::*;
 
 use wasm_streams::*;
@@ -19,6 +20,7 @@ async fn test_readable_stream_new() {
             controller.enqueue(&JsValue::from("Hello"));
             controller.enqueue(&JsValue::from("world!"));
             controller.close();
+            future_to_promise(ready(Ok(JsValue::undefined())))
         })),
         None,
         None,
@@ -39,6 +41,7 @@ async fn test_readable_stream_into_stream() {
             controller.enqueue(&JsValue::from("Hello"));
             controller.enqueue(&JsValue::from("world!"));
             controller.close();
+            future_to_promise(ready(Ok(JsValue::undefined())))
         })),
         None,
         None,

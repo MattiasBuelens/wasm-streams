@@ -1,6 +1,6 @@
 use futures::{Stream, TryFutureExt, TryStreamExt};
 use futures::stream::unfold;
-use js_sys::Object;
+use js_sys::{Object, Promise};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
@@ -55,16 +55,16 @@ impl ReadableStream {
 
 pub struct UnderlyingSource {
     inner: RawUnderlyingSource,
-    start_closure: Option<Closure<dyn FnMut(&ReadableStreamDefaultController)>>,
-    pull_closure: Option<Closure<dyn FnMut(&ReadableStreamDefaultController)>>,
-    cancel_closure: Option<Closure<dyn FnMut(&JsValue)>>,
+    start_closure: Option<Closure<dyn FnMut(&ReadableStreamDefaultController) -> Promise>>,
+    pull_closure: Option<Closure<dyn FnMut(&ReadableStreamDefaultController) -> Promise>>,
+    cancel_closure: Option<Closure<dyn FnMut(&JsValue) -> Promise>>,
 }
 
 impl UnderlyingSource {
     pub fn new(
-        start_cb: Option<Box<dyn FnMut(&ReadableStreamDefaultController)>>,
-        pull_cb: Option<Box<dyn FnMut(&ReadableStreamDefaultController)>>,
-        cancel_cb: Option<Box<dyn FnMut(&JsValue)>>,
+        start_cb: Option<Box<dyn FnMut(&ReadableStreamDefaultController) -> Promise>>,
+        pull_cb: Option<Box<dyn FnMut(&ReadableStreamDefaultController) -> Promise>>,
+        cancel_cb: Option<Box<dyn FnMut(&JsValue) -> Promise>>,
     ) -> UnderlyingSource {
         let inner = RawUnderlyingSource::from(JsValue::from(Object::new()));
 
