@@ -1,7 +1,7 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use futures::{Stream, TryFutureExt, TryStreamExt};
-use futures::lock::Mutex;
 use futures::stream::unfold;
 use js_sys::{Object, Promise};
 use wasm_bindgen::closure::Closure;
@@ -78,7 +78,6 @@ pub trait UnderlyingSource {
 
 pub struct JsUnderlyingSource {
     inner: RawUnderlyingSource,
-    source: Rc<Mutex<Box<dyn UnderlyingSource>>>,
     start_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
     pull_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
     cancel_closure: Closure<dyn FnMut(JsValue) -> Promise>,
@@ -86,14 +85,16 @@ pub struct JsUnderlyingSource {
 
 impl JsUnderlyingSource {
     pub fn new<S: UnderlyingSource + 'static>(source: S) -> JsUnderlyingSource {
-        let source = Rc::new(Mutex::new(Box::new(source) as Box<dyn UnderlyingSource>));
+        let source = Rc::new(RefCell::new(Box::new(source) as Box<dyn UnderlyingSource>));
 
         let start_closure = {
             let source = source.clone();
             Closure::wrap(Box::new(move |controller: ReadableStreamDefaultController| {
-                let mut source = source.clone();
+                let source = source.clone();
                 future_to_promise(async move {
-                    let mut source = source.lock().await;
+                    // This mutable borrow can never panic, since the ReadableStream always
+                    // queues each operation on the underlying source.
+                    let mut source = source.borrow_mut();
                     source.start(&controller).await?;
                     Ok(JsValue::undefined())
                 })
@@ -102,9 +103,9 @@ impl JsUnderlyingSource {
         let pull_closure = {
             let source = source.clone();
             Closure::wrap(Box::new(move |controller: ReadableStreamDefaultController| {
-                let mut source = source.clone();
+                let source = source.clone();
                 future_to_promise(async move {
-                    let mut source = source.lock().await;
+                    let mut source = source.borrow_mut();
                     source.pull(&controller).await?;
                     Ok(JsValue::undefined())
                 })
@@ -113,9 +114,9 @@ impl JsUnderlyingSource {
         let cancel_closure = {
             let source = source.clone();
             Closure::wrap(Box::new(move |reason: JsValue| {
-                let mut source = source.clone();
+                let source = source.clone();
                 future_to_promise(async move {
-                    let mut source = source.lock().await;
+                    let mut source = source.borrow_mut();
                     source.cancel(&reason).await?;
                     Ok(JsValue::undefined())
                 })
@@ -129,7 +130,6 @@ impl JsUnderlyingSource {
 
         JsUnderlyingSource {
             inner,
-            source,
             start_closure,
             pull_closure,
             cancel_closure,
