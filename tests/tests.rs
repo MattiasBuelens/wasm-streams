@@ -32,7 +32,7 @@ impl UnderlyingSource for HelloWorldSource {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_new() {
-    let mut readable = ReadableStream::new(HelloWorldSource);
+    let mut readable = ReadableStream::new(Box::new(HelloWorldSource));
     assert!(!readable.is_locked());
 
     let mut reader = readable.get_reader().unwrap();
@@ -44,7 +44,7 @@ async fn test_readable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_into_stream() {
-    let readable = ReadableStream::new(HelloWorldSource);
+    let readable = ReadableStream::new(Box::new(HelloWorldSource));
     assert!(!readable.is_locked());
 
     let stream = readable.into_stream();
@@ -56,7 +56,7 @@ async fn test_readable_stream_into_stream() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_multiple_release_lock() {
-    let mut readable = ReadableStream::new(NoopSource);
+    let mut readable = ReadableStream::new(Box::new(NoopSource));
 
     let mut reader = readable.get_reader().unwrap();
     reader.release_lock().unwrap();
@@ -66,7 +66,7 @@ async fn test_readable_stream_multiple_release_lock() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_abort_read() {
-    let mut readable = ReadableStream::new(NoopSource);
+    let mut readable = ReadableStream::new(Box::new(NoopSource));
 
     let mut reader = readable.get_reader().unwrap();
 

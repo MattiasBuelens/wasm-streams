@@ -24,7 +24,7 @@ pub struct ReadableStream {
 }
 
 impl ReadableStream {
-    pub fn new<S: UnderlyingSource + 'static>(source: S) -> ReadableStream {
+    pub fn new(source: Box<dyn UnderlyingSource + 'static>) -> ReadableStream {
         let source = JsUnderlyingSource::new(source);
         let inner = RawReadableStream::new_with_source(source.as_raw());
         ReadableStream {
@@ -84,8 +84,8 @@ pub struct JsUnderlyingSource {
 }
 
 impl JsUnderlyingSource {
-    pub fn new<S: UnderlyingSource + 'static>(source: S) -> JsUnderlyingSource {
-        let source = Rc::new(RefCell::new(Box::new(source) as Box<dyn UnderlyingSource>));
+    pub fn new(source: Box<dyn UnderlyingSource + 'static>) -> JsUnderlyingSource {
+        let source = Rc::new(RefCell::new(source));
 
         let start_closure = {
             let source = source.clone();
