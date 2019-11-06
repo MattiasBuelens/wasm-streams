@@ -60,6 +60,11 @@ impl ReadableStream {
             inner: Some(self.inner.get_reader()?)
         })
     }
+
+    pub fn forget(self) -> RawReadableStream {
+        self._source.forget();
+        self.inner
+    }
 }
 
 #[async_trait(? Send)]
@@ -145,10 +150,11 @@ impl JsUnderlyingSource {
         &self.inner
     }
 
-    pub fn forget(self) {
+    pub fn forget(self) -> RawUnderlyingSource {
         self.start_closure.forget();
         self.pull_closure.forget();
         self.cancel_closure.forget();
+        self.inner
     }
 }
 
