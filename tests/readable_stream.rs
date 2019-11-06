@@ -1,7 +1,3 @@
-#![cfg(target_arch = "wasm32")]
-
-extern crate wasm_bindgen_test;
-
 use futures::future::{abortable, Aborted, join};
 use futures::stream::StreamExt;
 use pin_utils::pin_mut;
@@ -10,8 +6,6 @@ use wasm_bindgen_test::*;
 
 use async_trait::async_trait;
 use wasm_streams::readable_stream::*;
-
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 struct NoopSource;
 
