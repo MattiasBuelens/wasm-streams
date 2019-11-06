@@ -1,9 +1,14 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use futures::{Stream, TryFutureExt, TryStreamExt};
 use futures::stream::unfold;
 use js_sys::{Object, Promise};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsValue;
-use wasm_bindgen_futures::JsFuture;
+use wasm_bindgen_futures::{future_to_promise, JsFuture};
+
+use async_trait::async_trait;
 
 use crate::sys::{
     ReadableStream as RawReadableStream,
@@ -14,14 +19,17 @@ use crate::sys::{
 };
 
 pub struct ReadableStream {
-    inner: RawReadableStream
+    inner: RawReadableStream,
+    _source: JsUnderlyingSource,
 }
 
 impl ReadableStream {
-    pub fn new(source: UnderlyingSource) -> ReadableStream {
+    pub fn new(source: Box<dyn UnderlyingSource + 'static>) -> ReadableStream {
+        let source = JsUnderlyingSource::new(source);
         let inner = RawReadableStream::new_with_source(source.as_raw());
         ReadableStream {
-            inner
+            inner,
+            _source: source,
         }
     }
 
@@ -53,38 +61,77 @@ impl ReadableStream {
     }
 }
 
-pub struct UnderlyingSource {
-    inner: RawUnderlyingSource,
-    start_closure: Option<Closure<dyn FnMut(&ReadableStreamDefaultController) -> Promise>>,
-    pull_closure: Option<Closure<dyn FnMut(&ReadableStreamDefaultController) -> Promise>>,
-    cancel_closure: Option<Closure<dyn FnMut(&JsValue) -> Promise>>,
+#[async_trait(? Send)]
+pub trait UnderlyingSource {
+    async fn start(&mut self, controller: &ReadableStreamDefaultController) -> Result<(), JsValue> {
+        let _ = controller;
+        Ok(())
+    }
+
+    async fn pull(&mut self, controller: &ReadableStreamDefaultController) -> Result<(), JsValue> {
+        let _ = controller;
+        Ok(())
+    }
+
+    async fn cancel(&mut self, controller: &JsValue) -> Result<(), JsValue> {
+        let _ = controller;
+        Ok(())
+    }
 }
 
-impl UnderlyingSource {
-    pub fn new(
-        start_cb: Option<Box<dyn FnMut(&ReadableStreamDefaultController) -> Promise>>,
-        pull_cb: Option<Box<dyn FnMut(&ReadableStreamDefaultController) -> Promise>>,
-        cancel_cb: Option<Box<dyn FnMut(&JsValue) -> Promise>>,
-    ) -> UnderlyingSource {
+pub struct JsUnderlyingSource {
+    inner: RawUnderlyingSource,
+    start_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
+    pull_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
+    cancel_closure: Closure<dyn FnMut(JsValue) -> Promise>,
+}
+
+impl JsUnderlyingSource {
+    pub fn new(source: Box<dyn UnderlyingSource + 'static>) -> JsUnderlyingSource {
+        let source = Rc::new(RefCell::new(source));
+
+        let start_closure = {
+            let source = source.clone();
+            Closure::wrap(Box::new(move |controller: ReadableStreamDefaultController| {
+                let source = source.clone();
+                future_to_promise(async move {
+                    // This mutable borrow can never panic, since the ReadableStream always
+                    // queues each operation on the underlying source.
+                    let mut source = source.borrow_mut();
+                    source.start(&controller).await?;
+                    Ok(JsValue::undefined())
+                })
+            }) as Box<dyn FnMut(ReadableStreamDefaultController) -> Promise>)
+        };
+        let pull_closure = {
+            let source = source.clone();
+            Closure::wrap(Box::new(move |controller: ReadableStreamDefaultController| {
+                let source = source.clone();
+                future_to_promise(async move {
+                    let mut source = source.borrow_mut();
+                    source.pull(&controller).await?;
+                    Ok(JsValue::undefined())
+                })
+            }) as Box<dyn FnMut(ReadableStreamDefaultController) -> Promise>)
+        };
+        let cancel_closure = {
+            let source = source.clone();
+            Closure::wrap(Box::new(move |reason: JsValue| {
+                let source = source.clone();
+                future_to_promise(async move {
+                    let mut source = source.borrow_mut();
+                    source.cancel(&reason).await?;
+                    Ok(JsValue::undefined())
+                })
+            }) as Box<dyn FnMut(JsValue) -> Promise>)
+        };
+
         let inner = RawUnderlyingSource::from(JsValue::from(Object::new()));
+        inner.set_start(&start_closure);
+        inner.set_pull(&pull_closure);
+        inner.set_cancel(&cancel_closure);
 
-        let start_closure = start_cb.map(|cb| {
-            let closure = Closure::wrap(cb);
-            inner.set_start(&closure);
-            closure
-        });
-        let pull_closure = pull_cb.map(|cb| {
-            let closure = Closure::wrap(cb);
-            inner.set_pull(&closure);
-            closure
-        });
-        let cancel_closure = cancel_cb.map(|cb| {
-            let closure = Closure::wrap(cb);
-            inner.set_cancel(&closure);
-            closure
-        });
-
-        UnderlyingSource {
+        JsUnderlyingSource {
             inner,
             start_closure,
             pull_closure,
@@ -97,10 +144,10 @@ impl UnderlyingSource {
         &self.inner
     }
 
-    pub fn forget(mut self) {
-        self.start_closure.take().map(|closure| closure.forget());
-        self.pull_closure.take().map(|closure| closure.forget());
-        self.cancel_closure.take().map(|closure| closure.forget());
+    pub fn forget(self) {
+        self.start_closure.forget();
+        self.pull_closure.forget();
+        self.cancel_closure.forget();
     }
 }
 

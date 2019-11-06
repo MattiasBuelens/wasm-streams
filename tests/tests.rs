@@ -2,29 +2,37 @@
 
 extern crate wasm_bindgen_test;
 
-use futures::future::{abortable, Aborted, join, ready};
+use futures::future::{abortable, Aborted, join};
 use futures::stream::StreamExt;
 use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::future_to_promise;
 use wasm_bindgen_test::*;
 
+use async_trait::async_trait;
 use wasm_streams::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
+struct NoopSource;
+
+struct HelloWorldSource;
+
+#[async_trait(?Send)]
+impl UnderlyingSource for NoopSource {}
+
+#[async_trait(?Send)]
+impl UnderlyingSource for HelloWorldSource {
+    async fn start(&mut self, controller: &ReadableStreamDefaultController) -> Result<(), JsValue> {
+        controller.enqueue(&JsValue::from("Hello"));
+        controller.enqueue(&JsValue::from("world!"));
+        controller.close();
+        Ok(())
+    }
+}
+
 #[wasm_bindgen_test]
 async fn test_readable_stream_new() {
-    let mut readable = ReadableStream::new(UnderlyingSource::new(
-        Some(Box::new(|controller: &ReadableStreamDefaultController| {
-            controller.enqueue(&JsValue::from("Hello"));
-            controller.enqueue(&JsValue::from("world!"));
-            controller.close();
-            future_to_promise(ready(Ok(JsValue::undefined())))
-        })),
-        None,
-        None,
-    ));
+    let mut readable = ReadableStream::new(Box::new(HelloWorldSource));
     assert!(!readable.is_locked());
 
     let mut reader = readable.get_reader().unwrap();
@@ -36,16 +44,7 @@ async fn test_readable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_into_stream() {
-    let readable = ReadableStream::new(UnderlyingSource::new(
-        Some(Box::new(|controller: &ReadableStreamDefaultController| {
-            controller.enqueue(&JsValue::from("Hello"));
-            controller.enqueue(&JsValue::from("world!"));
-            controller.close();
-            future_to_promise(ready(Ok(JsValue::undefined())))
-        })),
-        None,
-        None,
-    ));
+    let readable = ReadableStream::new(Box::new(HelloWorldSource));
     assert!(!readable.is_locked());
 
     let stream = readable.into_stream();
@@ -57,11 +56,7 @@ async fn test_readable_stream_into_stream() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_multiple_release_lock() {
-    let mut readable = ReadableStream::new(UnderlyingSource::new(
-        None,
-        None,
-        None,
-    ));
+    let mut readable = ReadableStream::new(Box::new(NoopSource));
 
     let mut reader = readable.get_reader().unwrap();
     reader.release_lock().unwrap();
@@ -71,11 +66,7 @@ async fn test_readable_stream_multiple_release_lock() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_abort_read() {
-    let mut readable = ReadableStream::new(UnderlyingSource::new(
-        None,
-        None,
-        None,
-    ));
+    let mut readable = ReadableStream::new(Box::new(NoopSource));
 
     let mut reader = readable.get_reader().unwrap();
 
