@@ -79,8 +79,8 @@ pub trait UnderlyingSource {
         Ok(())
     }
 
-    async fn cancel(&mut self, controller: &JsValue) -> Result<(), JsValue> {
-        let _ = controller;
+    async fn cancel(&mut self, reason: &JsValue) -> Result<(), JsValue> {
+        let _ = reason;
         Ok(())
     }
 }
