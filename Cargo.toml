@@ -10,7 +10,7 @@ edition = "2018"
 js-sys = "0.3.28"
 wasm-bindgen = "0.2.51"
 wasm-bindgen-futures = "0.4.1"
-futures-preview = "0.3.0-alpha.19"
+futures = "0.3.0"
 pin-utils = "0.1.0-alpha.4"
 
 [dev-dependencies]
