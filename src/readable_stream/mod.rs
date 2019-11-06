@@ -80,7 +80,7 @@ pub trait UnderlyingSource {
     }
 }
 
-pub struct JsUnderlyingSource {
+struct JsUnderlyingSource {
     inner: RawUnderlyingSource,
     start_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
     pull_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
