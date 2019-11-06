@@ -20,7 +20,7 @@ use crate::sys::{
 
 pub struct ReadableStream {
     inner: RawReadableStream,
-    source: JsUnderlyingSource,
+    _source: JsUnderlyingSource,
 }
 
 impl ReadableStream {
@@ -29,7 +29,7 @@ impl ReadableStream {
         let inner = RawReadableStream::new_with_source(source.as_raw());
         ReadableStream {
             inner,
-            source,
+            _source: source,
         }
     }
 
@@ -64,14 +64,17 @@ impl ReadableStream {
 #[async_trait(? Send)]
 pub trait UnderlyingSource {
     async fn start(&mut self, controller: &ReadableStreamDefaultController) -> Result<(), JsValue> {
+        let _ = controller;
         Ok(())
     }
 
     async fn pull(&mut self, controller: &ReadableStreamDefaultController) -> Result<(), JsValue> {
+        let _ = controller;
         Ok(())
     }
 
     async fn cancel(&mut self, controller: &JsValue) -> Result<(), JsValue> {
+        let _ = controller;
         Ok(())
     }
 }
