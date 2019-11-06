@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
 use async_trait::async_trait;
-use wasm_streams::*;
+use wasm_streams::readable_stream::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

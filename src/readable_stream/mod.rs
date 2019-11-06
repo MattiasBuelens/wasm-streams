@@ -9,14 +9,15 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::{future_to_promise, JsFuture};
 
 use async_trait::async_trait;
-
-use crate::sys::{
+use sys::{
     ReadableStream as RawReadableStream,
-    ReadableStreamDefaultController,
     ReadableStreamDefaultReader as RawReadableStreamDefaultReader,
     ReadableStreamReadResult,
     UnderlyingSource as RawUnderlyingSource,
 };
+pub use sys::ReadableStreamDefaultController;
+
+pub mod sys;
 
 pub struct ReadableStream {
     inner: RawReadableStream,
