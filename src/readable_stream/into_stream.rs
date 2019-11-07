@@ -7,7 +7,7 @@ use futures::stream::{FusedStream, Stream};
 use futures::task::{Context, Poll};
 use pin_utils::{unsafe_pinned, unsafe_unpinned};
 
-pub fn unfold<T, F, Fut, Item>(init: T, f: F) -> Unfold<T, F, Fut>
+pub fn into_stream<T, F, Fut, Item>(init: T, f: F) -> Unfold<T, F, Fut>
     where F: FnMut(T) -> Fut,
           Fut: Future<Output=Option<(Item, T)>>,
 {

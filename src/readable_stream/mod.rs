@@ -15,9 +15,9 @@ use sys::{
     UnderlyingSource as RawUnderlyingSource,
 };
 pub use sys::ReadableStreamDefaultController;
-use unfold::unfold;
+use into_stream::into_stream;
 
-mod unfold;
+mod into_stream;
 pub mod sys;
 
 pub struct ReadableStream {
@@ -220,7 +220,7 @@ impl ReadableStream {
 
     async fn into_stream_fut(mut self) -> Result<impl Stream<Item=Result<JsValue, JsValue>>, JsValue> {
         let reader = self.get_reader()?;
-        let stream = unfold(Some(reader), |state| async move {
+        let stream = into_stream(Some(reader), |state| async move {
             let mut reader = state?;
             match reader.read().await {
                 Ok(Some(value)) => Some((Ok(value), Some(reader))),
