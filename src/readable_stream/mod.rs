@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use futures::{Stream, TryFutureExt, TryStreamExt};
-use futures::stream::unfold;
 use js_sys::{Object, Promise};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsValue;
@@ -16,7 +15,9 @@ use sys::{
     UnderlyingSource as RawUnderlyingSource,
 };
 pub use sys::ReadableStreamDefaultController;
+use unfold::unfold;
 
+mod unfold;
 pub mod sys;
 
 pub struct ReadableStream {
