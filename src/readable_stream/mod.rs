@@ -9,26 +9,20 @@ use wasm_bindgen_futures::{future_to_promise, JsFuture};
 
 use async_trait::async_trait;
 pub use into_stream::IntoStream;
-use sys::{
-    ReadableStream as RawReadableStream,
-    ReadableStreamDefaultReader as RawReadableStreamDefaultReader,
-    ReadableStreamReadResult,
-    UnderlyingSource as RawUnderlyingSource,
-};
 pub use sys::ReadableStreamDefaultController;
 
 mod into_stream;
 pub mod sys;
 
 pub struct ReadableStream {
-    inner: RawReadableStream,
+    inner: sys::ReadableStream,
     _source: JsUnderlyingSource,
 }
 
 impl ReadableStream {
     pub fn new(source: Box<dyn UnderlyingSource + 'static>) -> ReadableStream {
         let source = JsUnderlyingSource::new(source);
-        let inner = RawReadableStream::new_with_source(source.as_raw());
+        let inner = sys::ReadableStream::new_with_source(source.as_raw());
         ReadableStream {
             inner,
             _source: source,
@@ -36,7 +30,7 @@ impl ReadableStream {
     }
 
     #[inline]
-    pub fn as_raw(&self) -> &RawReadableStream {
+    pub fn as_raw(&self) -> &sys::ReadableStream {
         &self.inner
     }
 
@@ -63,7 +57,7 @@ impl ReadableStream {
         })
     }
 
-    pub fn forget(self) -> RawReadableStream {
+    pub fn forget(self) -> sys::ReadableStream {
         self._source.forget();
         self.inner
     }
@@ -88,7 +82,7 @@ pub trait UnderlyingSource {
 }
 
 struct JsUnderlyingSource {
-    inner: RawUnderlyingSource,
+    inner: sys::UnderlyingSource,
     start_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
     pull_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
     cancel_closure: Closure<dyn FnMut(JsValue) -> Promise>,
@@ -134,7 +128,7 @@ impl JsUnderlyingSource {
             }) as Box<dyn FnMut(JsValue) -> Promise>)
         };
 
-        let inner = RawUnderlyingSource::from(JsValue::from(Object::new()));
+        let inner = sys::UnderlyingSource::from(JsValue::from(Object::new()));
         inner.set_start(&start_closure);
         inner.set_pull(&pull_closure);
         inner.set_cancel(&cancel_closure);
@@ -148,11 +142,11 @@ impl JsUnderlyingSource {
     }
 
     #[inline]
-    pub fn as_raw(&self) -> &RawUnderlyingSource {
+    pub fn as_raw(&self) -> &sys::UnderlyingSource {
         &self.inner
     }
 
-    pub fn forget(self) -> RawUnderlyingSource {
+    pub fn forget(self) -> sys::UnderlyingSource {
         self.start_closure.forget();
         self.pull_closure.forget();
         self.cancel_closure.forget();
@@ -161,13 +155,13 @@ impl JsUnderlyingSource {
 }
 
 pub struct ReadableStreamDefaultReader<'stream> {
-    inner: Option<RawReadableStreamDefaultReader>,
+    inner: Option<sys::ReadableStreamDefaultReader>,
     _stream: PhantomData<&'stream mut ReadableStream>,
 }
 
 impl<'stream> ReadableStreamDefaultReader<'stream> {
     #[inline]
-    pub fn as_raw(&self) -> &RawReadableStreamDefaultReader {
+    pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {
         self.inner.as_ref().unwrap()
     }
 
@@ -191,7 +185,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
 
     pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
         let js_value = JsFuture::from(self.as_raw().read()).await?;
-        let result = ReadableStreamReadResult::from(js_value);
+        let result = sys::ReadableStreamReadResult::from(js_value);
         if result.is_done() {
             Ok(None)
         } else {

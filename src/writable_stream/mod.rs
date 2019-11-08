@@ -9,25 +9,20 @@ use wasm_bindgen_futures::{future_to_promise, JsFuture};
 
 use async_trait::async_trait;
 pub use into_sink::IntoSink;
-use sys::{
-    UnderlyingSink as RawUnderlyingSink,
-    WritableStream as RawWritableStream,
-    WritableStreamDefaultWriter as RawWritableStreamDefaultWriter,
-};
 pub use sys::WritableStreamDefaultController;
 
 mod into_sink;
 pub mod sys;
 
 pub struct WritableStream {
-    inner: RawWritableStream,
+    inner: sys::WritableStream,
     _sink: JsUnderlyingSink,
 }
 
 impl WritableStream {
     pub fn new(sink: Box<dyn UnderlyingSink + 'static>) -> WritableStream {
         let sink = JsUnderlyingSink::new(sink);
-        let inner = RawWritableStream::new_with_sink(sink.as_raw());
+        let inner = sys::WritableStream::new_with_sink(sink.as_raw());
         WritableStream {
             inner,
             _sink: sink,
@@ -35,7 +30,7 @@ impl WritableStream {
     }
 
     #[inline]
-    pub fn as_raw(&self) -> &RawWritableStream {
+    pub fn as_raw(&self) -> &sys::WritableStream {
         &self.inner
     }
 
@@ -62,7 +57,7 @@ impl WritableStream {
         })
     }
 
-    pub fn forget(self) -> RawWritableStream {
+    pub fn forget(self) -> sys::WritableStream {
         self._sink.forget();
         self.inner
     }
@@ -91,7 +86,7 @@ pub trait UnderlyingSink {
 }
 
 struct JsUnderlyingSink {
-    inner: RawUnderlyingSink,
+    inner: sys::UnderlyingSink,
     start_closure: Closure<dyn FnMut(WritableStreamDefaultController) -> Promise>,
     write_closure: Closure<dyn FnMut(JsValue, WritableStreamDefaultController) -> Promise>,
     close_closure: Closure<dyn FnMut() -> Promise>,
@@ -149,7 +144,7 @@ impl JsUnderlyingSink {
             }) as Box<dyn FnMut(JsValue) -> Promise>)
         };
 
-        let inner = RawUnderlyingSink::from(JsValue::from(Object::new()));
+        let inner = sys::UnderlyingSink::from(JsValue::from(Object::new()));
         inner.set_start(&start_closure);
         inner.set_write(&write_closure);
         inner.set_close(&close_closure);
@@ -165,11 +160,11 @@ impl JsUnderlyingSink {
     }
 
     #[inline]
-    pub fn as_raw(&self) -> &RawUnderlyingSink {
+    pub fn as_raw(&self) -> &sys::UnderlyingSink {
         &self.inner
     }
 
-    pub fn forget(self) -> RawUnderlyingSink {
+    pub fn forget(self) -> sys::UnderlyingSink {
         self.start_closure.forget();
         self.write_closure.forget();
         self.close_closure.forget();
@@ -179,13 +174,13 @@ impl JsUnderlyingSink {
 }
 
 pub struct WritableStreamDefaultWriter<'stream> {
-    inner: Option<RawWritableStreamDefaultWriter>,
+    inner: Option<sys::WritableStreamDefaultWriter>,
     _stream: PhantomData<&'stream mut WritableStream>,
 }
 
 impl<'stream> WritableStreamDefaultWriter<'stream> {
     #[inline]
-    pub fn as_raw(&self) -> &RawWritableStreamDefaultWriter {
+    pub fn as_raw(&self) -> &sys::WritableStreamDefaultWriter {
         self.inner.as_ref().unwrap()
     }
 
