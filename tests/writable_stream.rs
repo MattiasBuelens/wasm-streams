@@ -13,12 +13,12 @@ impl UnderlyingSink for NoopSink {}
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_new() {
-    let mut readable = WritableStream::new(Box::new(NoopSink));
-    assert!(!readable.is_locked());
+    let mut writable = WritableStream::new(Box::new(NoopSink));
+    assert!(!writable.is_locked());
 
-    let mut reader = readable.get_writer().unwrap();
-    assert_eq!(reader.write(JsValue::from("Hello")).await.unwrap(), ());
-    assert_eq!(reader.write(JsValue::from("world!")).await.unwrap(), ());
-    assert_eq!(reader.close().await.unwrap(), ());
-    reader.closed().await.unwrap();
+    let mut writer = writable.get_writer().unwrap();
+    assert_eq!(writer.write(JsValue::from("Hello")).await.unwrap(), ());
+    assert_eq!(writer.write(JsValue::from("world!")).await.unwrap(), ());
+    assert_eq!(writer.close().await.unwrap(), ());
+    writer.closed().await.unwrap();
 }
