@@ -2,14 +2,13 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use futures::Sink;
 use js_sys::{Object, Promise};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::{future_to_promise, JsFuture};
 
 use async_trait::async_trait;
-use into_sink::into_sink;
+pub use into_sink::IntoSink;
 use sys::{
     UnderlyingSink as RawUnderlyingSink,
     WritableStream as RawWritableStream,
@@ -238,8 +237,8 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
         Ok(())
     }
 
-    pub fn into_sink(self) -> impl Sink<JsValue, Error = JsValue> + 'stream {
-        into_sink(self)
+    pub fn into_sink(self) -> IntoSink<'stream> {
+        IntoSink::new(self)
     }
 }
 

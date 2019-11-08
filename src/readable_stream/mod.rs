@@ -2,14 +2,13 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use futures::Stream;
 use js_sys::{Object, Promise};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::{future_to_promise, JsFuture};
 
 use async_trait::async_trait;
-use into_stream::into_stream;
+pub use into_stream::IntoStream;
 use sys::{
     ReadableStream as RawReadableStream,
     ReadableStreamDefaultReader as RawReadableStreamDefaultReader,
@@ -208,8 +207,8 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
         Ok(())
     }
 
-    pub fn into_stream(self) -> impl Stream<Item = Result<JsValue, JsValue>> + 'stream {
-        into_stream(self)
+    pub fn into_stream(self) -> IntoStream<'stream> {
+        IntoStream::new(self)
     }
 }
 

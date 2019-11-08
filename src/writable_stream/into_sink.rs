@@ -10,15 +10,6 @@ use wasm_bindgen_futures::JsFuture;
 
 use super::WritableStreamDefaultWriter;
 
-pub fn into_sink(writer: WritableStreamDefaultWriter) -> IntoSink {
-    IntoSink {
-        writer: Some(writer),
-        ready_fut: None,
-        write_fut: None,
-        close_fut: None,
-    }
-}
-
 pub struct IntoSink<'writer> {
     writer: Option<WritableStreamDefaultWriter<'writer>>,
     ready_fut: Option<JsFuture>,
@@ -31,6 +22,16 @@ impl<'writer> IntoSink<'writer> {
     unsafe_pinned!(ready_fut: Option<JsFuture>);
     unsafe_pinned!(write_fut: Option<JsFuture>);
     unsafe_pinned!(close_fut: Option<JsFuture>);
+
+    #[inline]
+    pub(super) fn new(writer: WritableStreamDefaultWriter) -> IntoSink {
+        IntoSink {
+            writer: Some(writer),
+            ready_fut: None,
+            write_fut: None,
+            close_fut: None,
+        }
+    }
 }
 
 impl<'writer> Sink<JsValue> for IntoSink<'writer> {

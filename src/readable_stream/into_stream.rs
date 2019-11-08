@@ -11,13 +11,6 @@ use wasm_bindgen_futures::JsFuture;
 use super::ReadableStreamDefaultReader;
 use super::sys::ReadableStreamReadResult;
 
-pub fn into_stream(reader: ReadableStreamDefaultReader) -> IntoStream {
-    IntoStream {
-        reader: Some(reader),
-        fut: None,
-    }
-}
-
 #[must_use = "streams do nothing unless polled"]
 pub struct IntoStream<'reader> {
     reader: Option<ReadableStreamDefaultReader<'reader>>,
@@ -27,6 +20,14 @@ pub struct IntoStream<'reader> {
 impl<'reader> IntoStream<'reader> {
     unsafe_unpinned!(reader: Option<ReadableStreamDefaultReader<'reader>>);
     unsafe_pinned!(fut: Option<JsFuture>);
+
+    #[inline]
+    pub(super) fn new(reader: ReadableStreamDefaultReader) -> IntoStream {
+        IntoStream {
+            reader: Some(reader),
+            fut: None,
+        }
+    }
 }
 
 impl FusedStream for IntoStream<'_> {
