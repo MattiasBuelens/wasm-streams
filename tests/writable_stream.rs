@@ -10,8 +10,22 @@ use wasm_streams::writable_stream::*;
 
 struct NoopSink;
 
+struct ConsoleSink;
+
 #[async_trait(? Send)]
 impl UnderlyingSink for NoopSink {}
+
+#[async_trait(? Send)]
+impl UnderlyingSink for ConsoleSink {
+    async fn write(&mut self, chunk: JsValue, _: &WritableStreamDefaultController) -> Result<(), JsValue> {
+        console_log!("wrote chunk: {}", chunk.as_string().unwrap());
+        Ok(())
+    }
+    async fn close(&mut self) -> Result<(), JsValue> {
+        console_log!("close");
+        Ok(())
+    }
+}
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_new() {
@@ -27,7 +41,7 @@ async fn test_writable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_into_sink() {
-    let mut writable = WritableStream::new(Box::new(NoopSink));
+    let mut writable = WritableStream::new(Box::new(ConsoleSink));
     assert!(!writable.is_locked());
 
     let writer = writable.get_writer().unwrap();
