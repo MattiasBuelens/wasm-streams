@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use futures::{Stream, TryFutureExt, TryStreamExt};
+use futures::Stream;
 use js_sys::{Object, Promise};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsValue;
@@ -56,9 +56,10 @@ impl ReadableStream {
         Ok(())
     }
 
-    pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader, JsValue> {
+    pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader<'_>, JsValue> {
         Ok(ReadableStreamDefaultReader {
-            inner: Some(self.inner.get_reader()?)
+            inner: Some(self.inner.get_reader()?),
+            _stream: self,
         })
     }
 
@@ -159,11 +160,12 @@ impl JsUnderlyingSource {
     }
 }
 
-pub struct ReadableStreamDefaultReader {
-    inner: Option<RawReadableStreamDefaultReader>
+pub struct ReadableStreamDefaultReader<'stream> {
+    inner: Option<RawReadableStreamDefaultReader>,
+    _stream: &'stream mut ReadableStream,
 }
 
-impl ReadableStreamDefaultReader {
+impl<'stream> ReadableStreamDefaultReader<'stream> {
     #[inline]
     pub fn as_raw(&self) -> &RawReadableStreamDefaultReader {
         self.inner.as_ref().unwrap()
@@ -204,22 +206,15 @@ impl ReadableStreamDefaultReader {
         }
         Ok(())
     }
+
+    pub fn into_stream(self) -> impl Stream<Item=Result<JsValue, JsValue>> + 'stream {
+        into_stream(self)
+    }
 }
 
-impl Drop for ReadableStreamDefaultReader {
+impl Drop for ReadableStreamDefaultReader<'_> {
     fn drop(&mut self) {
         // TODO Error handling?
         self.release_lock().unwrap();
-    }
-}
-
-impl ReadableStream {
-    pub fn into_stream(self) -> impl Stream<Item=Result<JsValue, JsValue>> {
-        self.into_stream_fut().try_flatten_stream().into_stream()
-    }
-
-    async fn into_stream_fut(mut self) -> Result<impl Stream<Item=Result<JsValue, JsValue>>, JsValue> {
-        let reader = self.get_reader()?;
-        Ok(into_stream(reader))
     }
 }

@@ -19,23 +19,23 @@ pub fn into_stream(reader: ReadableStreamDefaultReader) -> IntoStream {
 }
 
 #[must_use = "streams do nothing unless polled"]
-pub struct IntoStream {
-    reader: Option<ReadableStreamDefaultReader>,
+pub struct IntoStream<'reader> {
+    reader: Option<ReadableStreamDefaultReader<'reader>>,
     fut: Option<JsFuture>,
 }
 
-impl IntoStream {
-    unsafe_unpinned!(reader: Option<ReadableStreamDefaultReader>);
+impl<'reader> IntoStream<'reader> {
+    unsafe_unpinned!(reader: Option<ReadableStreamDefaultReader<'reader>>);
     unsafe_pinned!(fut: Option<JsFuture>);
 }
 
-impl FusedStream for IntoStream {
+impl FusedStream for IntoStream<'_> {
     fn is_terminated(&self) -> bool {
         self.reader.is_none() && self.fut.is_none()
     }
 }
 
-impl Stream for IntoStream {
+impl<'reader> Stream for IntoStream<'reader> {
     type Item = Result<JsValue, JsValue>;
 
     fn poll_next(

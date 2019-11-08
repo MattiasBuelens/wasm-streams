@@ -38,11 +38,13 @@ async fn test_readable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_into_stream() {
-    let readable = ReadableStream::new(Box::new(HelloWorldSource));
+    let mut readable = ReadableStream::new(Box::new(HelloWorldSource));
     assert!(!readable.is_locked());
 
-    let stream = readable.into_stream();
+    let reader = readable.get_reader().unwrap();
+    let stream = reader.into_stream();
     pin_mut!(stream);
+
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
     assert_eq!(stream.next().await, None);
