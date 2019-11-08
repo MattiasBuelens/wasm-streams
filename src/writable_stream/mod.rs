@@ -52,9 +52,10 @@ impl WritableStream {
         Ok(())
     }
 
-    pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter, JsValue> {
+    pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter<'_>, JsValue> {
         Ok(WritableStreamDefaultWriter {
-            inner: Some(self.inner.get_writer()?)
+            inner: Some(self.inner.get_writer()?),
+            _stream: self,
         })
     }
 
@@ -174,11 +175,12 @@ impl JsUnderlyingSink {
     }
 }
 
-pub struct WritableStreamDefaultWriter {
-    inner: Option<RawWritableStreamDefaultWriter>
+pub struct WritableStreamDefaultWriter<'stream> {
+    inner: Option<RawWritableStreamDefaultWriter>,
+    _stream: &'stream mut WritableStream,
 }
 
-impl WritableStreamDefaultWriter {
+impl<'stream> WritableStreamDefaultWriter<'stream> {
     #[inline]
     pub fn as_raw(&self) -> &RawWritableStreamDefaultWriter {
         self.inner.as_ref().unwrap()
@@ -233,7 +235,7 @@ impl WritableStreamDefaultWriter {
     }
 }
 
-impl Drop for WritableStreamDefaultWriter {
+impl Drop for WritableStreamDefaultWriter<'_> {
     fn drop(&mut self) {
         // TODO Error handling?
         self.release_lock().unwrap();
