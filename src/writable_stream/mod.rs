@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 use futures::Sink;
@@ -58,7 +59,7 @@ impl WritableStream {
     pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter<'_>, JsValue> {
         Ok(WritableStreamDefaultWriter {
             inner: Some(self.inner.get_writer()?),
-            _stream: self,
+            _stream: PhantomData,
         })
     }
 
@@ -180,7 +181,7 @@ impl JsUnderlyingSink {
 
 pub struct WritableStreamDefaultWriter<'stream> {
     inner: Option<RawWritableStreamDefaultWriter>,
-    _stream: &'stream mut WritableStream,
+    _stream: PhantomData<&'stream mut WritableStream>,
 }
 
 impl<'stream> WritableStreamDefaultWriter<'stream> {

@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 use futures::Stream;
@@ -59,7 +60,7 @@ impl ReadableStream {
     pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader<'_>, JsValue> {
         Ok(ReadableStreamDefaultReader {
             inner: Some(self.inner.get_reader()?),
-            _stream: self,
+            _stream: PhantomData,
         })
     }
 
@@ -162,7 +163,7 @@ impl JsUnderlyingSource {
 
 pub struct ReadableStreamDefaultReader<'stream> {
     inner: Option<RawReadableStreamDefaultReader>,
-    _stream: &'stream mut ReadableStream,
+    _stream: PhantomData<&'stream mut ReadableStream>,
 }
 
 impl<'stream> ReadableStreamDefaultReader<'stream> {
