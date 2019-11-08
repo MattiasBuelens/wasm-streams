@@ -1,4 +1,3 @@
-use core::fmt;
 use core::pin::Pin;
 
 use futures::future::Future;
@@ -6,78 +5,79 @@ use futures::ready;
 use futures::stream::{FusedStream, Stream};
 use futures::task::{Context, Poll};
 use pin_utils::{unsafe_pinned, unsafe_unpinned};
+use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::JsFuture;
 
-pub fn into_stream<T, F, Fut, Item>(init: T, f: F) -> Unfold<T, F, Fut>
-    where F: FnMut(T) -> Fut,
-          Fut: Future<Output=Option<(Item, T)>>,
-{
-    Unfold {
-        f,
-        state: Some(init),
+use super::ReadableStreamDefaultReader;
+use super::sys::ReadableStreamReadResult;
+
+pub fn into_stream(reader: ReadableStreamDefaultReader) -> IntoStream {
+    IntoStream {
+        reader: Some(reader),
         fut: None,
     }
 }
 
 #[must_use = "streams do nothing unless polled"]
-pub struct Unfold<T, F, Fut> {
-    f: F,
-    state: Option<T>,
-    fut: Option<Fut>,
+pub struct IntoStream {
+    reader: Option<ReadableStreamDefaultReader>,
+    fut: Option<JsFuture>,
 }
 
-impl<T, F, Fut: Unpin> Unpin for Unfold<T, F, Fut> {}
-
-impl<T, F, Fut> fmt::Debug for Unfold<T, F, Fut>
-    where
-        T: fmt::Debug,
-        Fut: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Unfold")
-            .field("state", &self.state)
-            .field("fut", &self.fut)
-            .finish()
-    }
+impl IntoStream {
+    unsafe_unpinned!(reader: Option<ReadableStreamDefaultReader>);
+    unsafe_pinned!(fut: Option<JsFuture>);
 }
 
-impl<T, F, Fut> Unfold<T, F, Fut> {
-    unsafe_unpinned!(f: F);
-    unsafe_unpinned!(state: Option<T>);
-    unsafe_pinned!(fut: Option<Fut>);
-}
-
-impl<T, F, Fut, Item> FusedStream for Unfold<T, F, Fut>
-    where F: FnMut(T) -> Fut,
-          Fut: Future<Output=Option<(Item, T)>>,
-{
+impl FusedStream for IntoStream {
     fn is_terminated(&self) -> bool {
-        self.state.is_none() && self.fut.is_none()
+        self.reader.is_none() && self.fut.is_none()
     }
 }
 
-impl<T, F, Fut, Item> Stream for Unfold<T, F, Fut>
-    where F: FnMut(T) -> Fut,
-          Fut: Future<Output=Option<(Item, T)>>,
-{
-    type Item = Item;
+impl Stream for IntoStream {
+    type Item = Result<JsValue, JsValue>;
 
     fn poll_next(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        if let Some(state) = self.as_mut().state().take() {
-            let fut = (self.as_mut().f())(state);
-            self.as_mut().fut().set(Some(fut));
+        if self.as_ref().fut.is_none() {
+            // No pending read, start reading the next chunk
+            match self.as_ref().reader.as_ref() {
+                Some(reader) => {
+                    // Read a chunk and store its future
+                    let fut = JsFuture::from(reader.as_raw().read());
+                    self.as_mut().fut().set(Some(fut));
+                }
+                None => {
+                    // Reader was already dropped
+                    return Poll::Ready(None);
+                }
+            }
         }
 
-        let step = ready!(self.as_mut().fut().as_pin_mut().unwrap().poll(cx));
+        // Poll the future for the pending read
+        let js_result = ready!(self.as_mut().fut().as_pin_mut().unwrap().poll(cx));
         self.as_mut().fut().set(None);
 
-        if let Some((item, next_state)) = step {
-            *self.as_mut().state() = Some(next_state);
-            Poll::Ready(Some(item))
-        } else {
-            Poll::Ready(None)
-        }
+        // Read completed
+        Poll::Ready(match js_result {
+            Ok(js_value) => {
+                let result = ReadableStreamReadResult::from(js_value);
+                if result.is_done() {
+                    // End of stream, drop reader
+                    *self.as_mut().reader() = None;
+                    None
+                } else {
+                    Some(Ok(result.value()))
+                }
+            }
+            Err(js_value) => {
+                // Error, drop reader
+                *self.as_mut().reader() = None;
+                Some(Err(js_value))
+            }
+        })
     }
 }
