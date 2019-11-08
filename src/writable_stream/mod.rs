@@ -237,7 +237,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
         Ok(())
     }
 
-    pub fn into_sink(self) -> impl Sink<JsValue, Error=JsValue> + 'stream {
+    pub fn into_sink(self) -> impl Sink<JsValue, Error = JsValue> + 'stream {
         into_sink(self)
     }
 }

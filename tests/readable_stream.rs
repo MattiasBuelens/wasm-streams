@@ -11,10 +11,10 @@ struct NoopSource;
 
 struct HelloWorldSource;
 
-#[async_trait(?Send)]
+#[async_trait(? Send)]
 impl UnderlyingSource for NoopSource {}
 
-#[async_trait(?Send)]
+#[async_trait(? Send)]
 impl UnderlyingSource for HelloWorldSource {
     async fn start(&mut self, controller: &ReadableStreamDefaultController) -> Result<(), JsValue> {
         controller.enqueue(&JsValue::from("Hello"));

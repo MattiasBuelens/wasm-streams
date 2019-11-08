@@ -207,7 +207,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
         Ok(())
     }
 
-    pub fn into_stream(self) -> impl Stream<Item=Result<JsValue, JsValue>> + 'stream {
+    pub fn into_stream(self) -> impl Stream<Item = Result<JsValue, JsValue>> + 'stream {
         into_stream(self)
     }
 }
