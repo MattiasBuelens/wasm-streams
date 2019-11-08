@@ -2,13 +2,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use futures::{Stream, TryFutureExt, TryStreamExt};
-use futures::stream::unfold;
 use js_sys::{Object, Promise};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::{future_to_promise, JsFuture};
 
 use async_trait::async_trait;
+use into_stream::into_stream;
 use sys::{
     ReadableStream as RawReadableStream,
     ReadableStreamDefaultReader as RawReadableStreamDefaultReader,
@@ -17,6 +17,7 @@ use sys::{
 };
 pub use sys::ReadableStreamDefaultController;
 
+mod into_stream;
 pub mod sys;
 
 pub struct ReadableStream {
@@ -219,14 +220,6 @@ impl ReadableStream {
 
     async fn into_stream_fut(mut self) -> Result<impl Stream<Item=Result<JsValue, JsValue>>, JsValue> {
         let reader = self.get_reader()?;
-        let stream = unfold(Some(reader), |state| async move {
-            let mut reader = state?;
-            match reader.read().await {
-                Ok(Some(value)) => Some((Ok(value), Some(reader))),
-                Ok(None) => None,
-                Err(error) => Some((Err(error), None))
-            }
-        });
-        Ok(stream)
+        Ok(into_stream(reader))
     }
 }
