@@ -5,7 +5,7 @@ use futures::ready;
 use futures::sink::Sink;
 use futures::task::{Context, Poll};
 use pin_utils::{unsafe_pinned, unsafe_unpinned};
-use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
 use super::WritableStreamDefaultWriter;

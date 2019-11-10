@@ -2,8 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use js_sys::{Object, Promise};
-use wasm_bindgen::closure::Closure;
-use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
 use async_trait::async_trait;
