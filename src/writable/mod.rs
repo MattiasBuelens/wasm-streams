@@ -16,7 +16,7 @@ pub mod sys;
 
 pub struct WritableStream {
     inner: sys::WritableStream,
-    _sink: JsUnderlyingSink,
+    _sink: Option<JsUnderlyingSink>,
 }
 
 impl WritableStream {
@@ -25,7 +25,7 @@ impl WritableStream {
         let inner = sys::WritableStream::new_with_sink(sink.as_raw());
         WritableStream {
             inner,
-            _sink: sink,
+            _sink: Some(sink),
         }
     }
 
@@ -58,8 +58,19 @@ impl WritableStream {
     }
 
     pub fn forget(self) -> sys::WritableStream {
-        self._sink.forget();
+        if let Some(sink) = self._sink {
+            sink.forget();
+        }
         self.inner
+    }
+}
+
+impl From<sys::WritableStream> for WritableStream {
+    fn from(raw: sys::WritableStream) -> WritableStream {
+        WritableStream {
+            inner: raw,
+            _sink: None,
+        }
     }
 }
 

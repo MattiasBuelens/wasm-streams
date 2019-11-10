@@ -16,7 +16,7 @@ pub mod sys;
 
 pub struct ReadableStream {
     inner: sys::ReadableStream,
-    _source: JsUnderlyingSource,
+    _source: Option<JsUnderlyingSource>,
 }
 
 impl ReadableStream {
@@ -25,7 +25,7 @@ impl ReadableStream {
         let inner = sys::ReadableStream::new_with_source(source.as_raw());
         ReadableStream {
             inner,
-            _source: source,
+            _source: Some(source),
         }
     }
 
@@ -58,8 +58,19 @@ impl ReadableStream {
     }
 
     pub fn forget(self) -> sys::ReadableStream {
-        self._source.forget();
+        if let Some(source) = self._source {
+            source.forget();
+        }
         self.inner
+    }
+}
+
+impl From<sys::ReadableStream> for ReadableStream {
+    fn from(raw: sys::ReadableStream) -> ReadableStream {
+        ReadableStream {
+            inner: raw,
+            _source: None,
+        }
     }
 }
 
