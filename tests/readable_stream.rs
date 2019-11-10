@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
 use async_trait::async_trait;
-use wasm_streams::readable_stream::*;
+use wasm_streams::readable::*;
 
 struct NoopSource;
 

@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
 use async_trait::async_trait;
-use wasm_streams::writable_stream::*;
+use wasm_streams::writable::*;
 
 struct NoopSink;
 
