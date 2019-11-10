@@ -8,7 +8,6 @@ use wasm_bindgen_futures::{future_to_promise, JsFuture};
 
 use async_trait::async_trait;
 pub use into_stream::IntoStream;
-pub use sys::ReadableStreamDefaultController;
 
 mod into_stream;
 pub mod sys;
@@ -73,6 +72,41 @@ impl From<sys::ReadableStream> for ReadableStream {
     }
 }
 
+pub struct ReadableStreamDefaultController {
+    inner: sys::ReadableStreamDefaultController
+}
+
+impl ReadableStreamDefaultController {
+    #[inline]
+    pub fn as_raw(&self) -> &sys::ReadableStreamDefaultController {
+        &self.inner
+    }
+
+    pub fn desired_size(&self) -> Option<f64> {
+        self.inner.desired_size()
+    }
+
+    pub fn close(&self) {
+        self.inner.close()
+    }
+
+    pub fn enqueue(&self, chunk: &JsValue) {
+        self.inner.enqueue(chunk)
+    }
+
+    pub fn error(&self, error: &JsValue) {
+        self.inner.error(error)
+    }
+}
+
+impl From<sys::ReadableStreamDefaultController> for ReadableStreamDefaultController {
+    fn from(raw: sys::ReadableStreamDefaultController) -> ReadableStreamDefaultController {
+        ReadableStreamDefaultController {
+            inner: raw
+        }
+    }
+}
+
 #[async_trait(? Send)]
 pub trait UnderlyingSource {
     async fn start(&mut self, controller: &ReadableStreamDefaultController) -> Result<(), JsValue> {
@@ -93,8 +127,8 @@ pub trait UnderlyingSource {
 
 struct JsUnderlyingSource {
     inner: sys::UnderlyingSource,
-    start_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
-    pull_closure: Closure<dyn FnMut(ReadableStreamDefaultController) -> Promise>,
+    start_closure: Closure<dyn FnMut(sys::ReadableStreamDefaultController) -> Promise>,
+    pull_closure: Closure<dyn FnMut(sys::ReadableStreamDefaultController) -> Promise>,
     cancel_closure: Closure<dyn FnMut(JsValue) -> Promise>,
 }
 
@@ -104,27 +138,27 @@ impl JsUnderlyingSource {
 
         let start_closure = {
             let source = source.clone();
-            Closure::wrap(Box::new(move |controller: ReadableStreamDefaultController| {
+            Closure::wrap(Box::new(move |controller: sys::ReadableStreamDefaultController| {
                 let source = source.clone();
                 future_to_promise(async move {
                     // This mutable borrow can never panic, since the ReadableStream always
                     // queues each operation on the underlying source.
                     let mut source = source.borrow_mut();
-                    source.start(&controller).await?;
+                    source.start(&From::from(controller)).await?;
                     Ok(JsValue::undefined())
                 })
-            }) as Box<dyn FnMut(ReadableStreamDefaultController) -> Promise>)
+            }) as Box<dyn FnMut(sys::ReadableStreamDefaultController) -> Promise>)
         };
         let pull_closure = {
             let source = source.clone();
-            Closure::wrap(Box::new(move |controller: ReadableStreamDefaultController| {
+            Closure::wrap(Box::new(move |controller: sys::ReadableStreamDefaultController| {
                 let source = source.clone();
                 future_to_promise(async move {
                     let mut source = source.borrow_mut();
-                    source.pull(&controller).await?;
+                    source.pull(&From::from(controller)).await?;
                     Ok(JsValue::undefined())
                 })
-            }) as Box<dyn FnMut(ReadableStreamDefaultController) -> Promise>)
+            }) as Box<dyn FnMut(sys::ReadableStreamDefaultController) -> Promise>)
         };
         let cancel_closure = {
             let source = source.clone();

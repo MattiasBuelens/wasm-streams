@@ -6,7 +6,6 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
 use async_trait::async_trait;
-pub use sys::TransformStreamDefaultController;
 
 use crate::readable::ReadableStream;
 use crate::writable::WritableStream;
@@ -58,6 +57,41 @@ impl From<sys::TransformStream> for TransformStream {
     }
 }
 
+pub struct TransformStreamDefaultController {
+    inner: sys::TransformStreamDefaultController
+}
+
+impl TransformStreamDefaultController {
+    #[inline]
+    pub fn as_raw(&self) -> &sys::TransformStreamDefaultController {
+        &self.inner
+    }
+
+    pub fn desired_size(&self) -> Option<f64> {
+        self.inner.desired_size()
+    }
+
+    pub fn enqueue(&self, chunk: &JsValue) {
+        self.inner.enqueue(chunk)
+    }
+
+    pub fn error(&self, error: &JsValue) {
+        self.inner.error(error)
+    }
+
+    pub fn terminate(&self) {
+        self.inner.terminate()
+    }
+}
+
+impl From<sys::TransformStreamDefaultController> for TransformStreamDefaultController {
+    fn from(raw: sys::TransformStreamDefaultController) -> TransformStreamDefaultController {
+        TransformStreamDefaultController {
+            inner: raw
+        }
+    }
+}
+
 #[async_trait(? Send)]
 pub trait Transformer {
     async fn start(&mut self, controller: &TransformStreamDefaultController) -> Result<(), JsValue> {
@@ -78,9 +112,9 @@ pub trait Transformer {
 
 struct JsTransformer {
     inner: sys::Transformer,
-    start_closure: Closure<dyn FnMut(TransformStreamDefaultController) -> Promise>,
-    transform_closure: Closure<dyn FnMut(JsValue, TransformStreamDefaultController) -> Promise>,
-    flush_closure: Closure<dyn FnMut(TransformStreamDefaultController) -> Promise>,
+    start_closure: Closure<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>,
+    transform_closure: Closure<dyn FnMut(JsValue, sys::TransformStreamDefaultController) -> Promise>,
+    flush_closure: Closure<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>,
 }
 
 impl JsTransformer {
@@ -89,38 +123,38 @@ impl JsTransformer {
 
         let start_closure = {
             let transformer = transformer.clone();
-            Closure::wrap(Box::new(move |controller: TransformStreamDefaultController| {
+            Closure::wrap(Box::new(move |controller: sys::TransformStreamDefaultController| {
                 let transformer = transformer.clone();
                 future_to_promise(async move {
                     // This mutable borrow can never panic, since the TransformStream always
                     // queues each operation on the transformer.
                     let mut transformer = transformer.borrow_mut();
-                    transformer.start(&controller).await?;
+                    transformer.start(&From::from(controller)).await?;
                     Ok(JsValue::undefined())
                 })
-            }) as Box<dyn FnMut(TransformStreamDefaultController) -> Promise>)
+            }) as Box<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>)
         };
         let transform_closure = {
             let transformer = transformer.clone();
-            Closure::wrap(Box::new(move |chunk: JsValue, controller: TransformStreamDefaultController| {
+            Closure::wrap(Box::new(move |chunk: JsValue, controller: sys::TransformStreamDefaultController| {
                 let transformer = transformer.clone();
                 future_to_promise(async move {
                     let mut transformer = transformer.borrow_mut();
-                    transformer.transform(chunk, &controller).await?;
+                    transformer.transform(chunk, &From::from(controller)).await?;
                     Ok(JsValue::undefined())
                 })
-            }) as Box<dyn FnMut(JsValue, TransformStreamDefaultController) -> Promise>)
+            }) as Box<dyn FnMut(JsValue, sys::TransformStreamDefaultController) -> Promise>)
         };
         let flush_closure = {
             let transformer = transformer.clone();
-            Closure::wrap(Box::new(move |controller: TransformStreamDefaultController| {
+            Closure::wrap(Box::new(move |controller: sys::TransformStreamDefaultController| {
                 let transformer = transformer.clone();
                 future_to_promise(async move {
                     let mut transformer = transformer.borrow_mut();
-                    transformer.flush(&controller).await?;
+                    transformer.flush(&From::from(controller)).await?;
                     Ok(JsValue::undefined())
                 })
-            }) as Box<dyn FnMut(TransformStreamDefaultController) -> Promise>)
+            }) as Box<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>)
         };
 
         let inner = sys::Transformer::from(JsValue::from(Object::new()));

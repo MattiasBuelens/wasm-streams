@@ -8,7 +8,6 @@ use wasm_bindgen_futures::{future_to_promise, JsFuture};
 
 use async_trait::async_trait;
 pub use into_sink::IntoSink;
-pub use sys::WritableStreamDefaultController;
 
 mod into_sink;
 pub mod sys;
@@ -73,6 +72,29 @@ impl From<sys::WritableStream> for WritableStream {
     }
 }
 
+pub struct WritableStreamDefaultController {
+    inner: sys::WritableStreamDefaultController
+}
+
+impl WritableStreamDefaultController {
+    #[inline]
+    pub fn as_raw(&self) -> &sys::WritableStreamDefaultController {
+        &self.inner
+    }
+
+    pub fn error(&self, error: &JsValue) {
+        self.inner.error(error)
+    }
+}
+
+impl From<sys::WritableStreamDefaultController> for WritableStreamDefaultController {
+    fn from(raw: sys::WritableStreamDefaultController) -> WritableStreamDefaultController {
+        WritableStreamDefaultController {
+            inner: raw
+        }
+    }
+}
+
 #[async_trait(? Send)]
 pub trait UnderlyingSink {
     async fn start(&mut self, controller: &WritableStreamDefaultController) -> Result<(), JsValue> {
@@ -97,8 +119,8 @@ pub trait UnderlyingSink {
 
 struct JsUnderlyingSink {
     inner: sys::UnderlyingSink,
-    start_closure: Closure<dyn FnMut(WritableStreamDefaultController) -> Promise>,
-    write_closure: Closure<dyn FnMut(JsValue, WritableStreamDefaultController) -> Promise>,
+    start_closure: Closure<dyn FnMut(sys::WritableStreamDefaultController) -> Promise>,
+    write_closure: Closure<dyn FnMut(JsValue, sys::WritableStreamDefaultController) -> Promise>,
     close_closure: Closure<dyn FnMut() -> Promise>,
     abort_closure: Closure<dyn FnMut(JsValue) -> Promise>,
 }
@@ -109,27 +131,27 @@ impl JsUnderlyingSink {
 
         let start_closure = {
             let sink = sink.clone();
-            Closure::wrap(Box::new(move |controller: WritableStreamDefaultController| {
+            Closure::wrap(Box::new(move |controller: sys::WritableStreamDefaultController| {
                 let sink = sink.clone();
                 future_to_promise(async move {
                     // This mutable borrow can never panic, since the WritableStream always
                     // queues each operation on the underlying sink.
                     let mut sink = sink.borrow_mut();
-                    sink.start(&controller).await?;
+                    sink.start(&From::from(controller)).await?;
                     Ok(JsValue::undefined())
                 })
-            }) as Box<dyn FnMut(WritableStreamDefaultController) -> Promise>)
+            }) as Box<dyn FnMut(sys::WritableStreamDefaultController) -> Promise>)
         };
         let write_closure = {
             let sink = sink.clone();
-            Closure::wrap(Box::new(move |chunk: JsValue, controller: WritableStreamDefaultController| {
+            Closure::wrap(Box::new(move |chunk: JsValue, controller: sys::WritableStreamDefaultController| {
                 let sink = sink.clone();
                 future_to_promise(async move {
                     let mut sink = sink.borrow_mut();
-                    sink.write(chunk, &controller).await?;
+                    sink.write(chunk, &From::from(controller)).await?;
                     Ok(JsValue::undefined())
                 })
-            }) as Box<dyn FnMut(JsValue, WritableStreamDefaultController) -> Promise>)
+            }) as Box<dyn FnMut(JsValue, sys::WritableStreamDefaultController) -> Promise>)
         };
         let close_closure = {
             let sink = sink.clone();
