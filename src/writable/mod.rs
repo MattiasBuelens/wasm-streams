@@ -13,44 +13,44 @@ mod into_sink;
 pub mod sys;
 
 pub struct WritableStream {
-    inner: sys::WritableStream,
+    raw: sys::WritableStream,
     _sink: Option<JsUnderlyingSink>,
 }
 
 impl WritableStream {
     pub fn new(sink: Box<dyn UnderlyingSink + 'static>) -> WritableStream {
         let sink = JsUnderlyingSink::new(sink);
-        let inner = sys::WritableStream::new_with_sink(sink.as_raw());
+        let raw = sys::WritableStream::new_with_sink(sink.as_raw());
         WritableStream {
-            inner,
+            raw,
             _sink: Some(sink),
         }
     }
 
     #[inline]
     pub fn as_raw(&self) -> &sys::WritableStream {
-        &self.inner
+        &self.raw
     }
 
     pub fn is_locked(&self) -> bool {
-        self.inner.is_locked()
+        self.raw.is_locked()
     }
 
     pub async fn abort(&mut self) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.inner.abort()).await?;
+        let js_value = JsFuture::from(self.raw.abort()).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
     pub async fn abort_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.inner.abort_with_reason(reason)).await?;
+        let js_value = JsFuture::from(self.raw.abort_with_reason(reason)).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
     pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter<'_>, JsValue> {
         Ok(WritableStreamDefaultWriter {
-            inner: Some(self.inner.get_writer()?),
+            raw: Some(self.raw.get_writer()?),
             _stream: PhantomData,
         })
     }
@@ -59,38 +59,38 @@ impl WritableStream {
         if let Some(sink) = self._sink {
             sink.forget();
         }
-        self.inner
+        self.raw
     }
 }
 
 impl From<sys::WritableStream> for WritableStream {
     fn from(raw: sys::WritableStream) -> WritableStream {
         WritableStream {
-            inner: raw,
+            raw,
             _sink: None,
         }
     }
 }
 
 pub struct WritableStreamDefaultController {
-    inner: sys::WritableStreamDefaultController
+    raw: sys::WritableStreamDefaultController
 }
 
 impl WritableStreamDefaultController {
     #[inline]
     pub fn as_raw(&self) -> &sys::WritableStreamDefaultController {
-        &self.inner
+        &self.raw
     }
 
     pub fn error(&self, error: &JsValue) {
-        self.inner.error(error)
+        self.raw.error(error)
     }
 }
 
 impl From<sys::WritableStreamDefaultController> for WritableStreamDefaultController {
     fn from(raw: sys::WritableStreamDefaultController) -> WritableStreamDefaultController {
         WritableStreamDefaultController {
-            inner: raw
+            raw
         }
     }
 }
@@ -118,7 +118,7 @@ pub trait UnderlyingSink {
 }
 
 struct JsUnderlyingSink {
-    inner: sys::UnderlyingSink,
+    raw: sys::UnderlyingSink,
     start_closure: Closure<dyn FnMut(sys::WritableStreamDefaultController) -> Promise>,
     write_closure: Closure<dyn FnMut(JsValue, sys::WritableStreamDefaultController) -> Promise>,
     close_closure: Closure<dyn FnMut() -> Promise>,
@@ -176,14 +176,14 @@ impl JsUnderlyingSink {
             }) as Box<dyn FnMut(JsValue) -> Promise>)
         };
 
-        let inner = sys::UnderlyingSink::from(JsValue::from(Object::new()));
-        inner.set_start(&start_closure);
-        inner.set_write(&write_closure);
-        inner.set_close(&close_closure);
-        inner.set_abort(&abort_closure);
+        let raw = sys::UnderlyingSink::from(JsValue::from(Object::new()));
+        raw.set_start(&start_closure);
+        raw.set_write(&write_closure);
+        raw.set_close(&close_closure);
+        raw.set_abort(&abort_closure);
 
         JsUnderlyingSink {
-            inner,
+            raw,
             start_closure,
             write_closure,
             close_closure,
@@ -193,7 +193,7 @@ impl JsUnderlyingSink {
 
     #[inline]
     pub fn as_raw(&self) -> &sys::UnderlyingSink {
-        &self.inner
+        &self.raw
     }
 
     pub fn forget(self) -> sys::UnderlyingSink {
@@ -201,19 +201,19 @@ impl JsUnderlyingSink {
         self.write_closure.forget();
         self.close_closure.forget();
         self.abort_closure.forget();
-        self.inner
+        self.raw
     }
 }
 
 pub struct WritableStreamDefaultWriter<'stream> {
-    inner: Option<sys::WritableStreamDefaultWriter>,
+    raw: Option<sys::WritableStreamDefaultWriter>,
     _stream: PhantomData<&'stream mut WritableStream>,
 }
 
 impl<'stream> WritableStreamDefaultWriter<'stream> {
     #[inline]
     pub fn as_raw(&self) -> &sys::WritableStreamDefaultWriter {
-        self.inner.as_ref().unwrap()
+        self.raw.as_ref().unwrap()
     }
 
     pub async fn closed(&self) -> Result<(), JsValue> {
@@ -257,9 +257,9 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     }
 
     pub fn release_lock(&mut self) -> Result<(), JsValue> {
-        if let Some(inner) = self.inner.as_ref() {
-            inner.release_lock()?;
-            self.inner.take();
+        if let Some(raw) = self.raw.as_ref() {
+            raw.release_lock()?;
+            self.raw.take();
         }
         Ok(())
     }

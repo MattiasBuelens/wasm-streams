@@ -13,44 +13,44 @@ mod into_stream;
 pub mod sys;
 
 pub struct ReadableStream {
-    inner: sys::ReadableStream,
+    raw: sys::ReadableStream,
     _source: Option<JsUnderlyingSource>,
 }
 
 impl ReadableStream {
     pub fn new(source: Box<dyn UnderlyingSource + 'static>) -> ReadableStream {
         let source = JsUnderlyingSource::new(source);
-        let inner = sys::ReadableStream::new_with_source(source.as_raw());
+        let raw = sys::ReadableStream::new_with_source(source.as_raw());
         ReadableStream {
-            inner,
+            raw,
             _source: Some(source),
         }
     }
 
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStream {
-        &self.inner
+        &self.raw
     }
 
     pub fn is_locked(&self) -> bool {
-        self.inner.is_locked()
+        self.raw.is_locked()
     }
 
     pub async fn cancel(&mut self) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.inner.cancel()).await?;
+        let js_value = JsFuture::from(self.raw.cancel()).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
     pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.inner.cancel_with_reason(reason)).await?;
+        let js_value = JsFuture::from(self.raw.cancel_with_reason(reason)).await?;
         debug_assert!(js_value.is_undefined());
         Ok(())
     }
 
     pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader<'_>, JsValue> {
         Ok(ReadableStreamDefaultReader {
-            inner: Some(self.inner.get_reader()?),
+            raw: Some(self.raw.get_reader()?),
             _stream: PhantomData,
         })
     }
@@ -59,50 +59,50 @@ impl ReadableStream {
         if let Some(source) = self._source {
             source.forget();
         }
-        self.inner
+        self.raw
     }
 }
 
 impl From<sys::ReadableStream> for ReadableStream {
     fn from(raw: sys::ReadableStream) -> ReadableStream {
         ReadableStream {
-            inner: raw,
+            raw,
             _source: None,
         }
     }
 }
 
 pub struct ReadableStreamDefaultController {
-    inner: sys::ReadableStreamDefaultController
+    raw: sys::ReadableStreamDefaultController
 }
 
 impl ReadableStreamDefaultController {
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamDefaultController {
-        &self.inner
+        &self.raw
     }
 
     pub fn desired_size(&self) -> Option<f64> {
-        self.inner.desired_size()
+        self.raw.desired_size()
     }
 
     pub fn close(&self) {
-        self.inner.close()
+        self.raw.close()
     }
 
     pub fn enqueue(&self, chunk: &JsValue) {
-        self.inner.enqueue(chunk)
+        self.raw.enqueue(chunk)
     }
 
     pub fn error(&self, error: &JsValue) {
-        self.inner.error(error)
+        self.raw.error(error)
     }
 }
 
 impl From<sys::ReadableStreamDefaultController> for ReadableStreamDefaultController {
     fn from(raw: sys::ReadableStreamDefaultController) -> ReadableStreamDefaultController {
         ReadableStreamDefaultController {
-            inner: raw
+            raw
         }
     }
 }
@@ -126,7 +126,7 @@ pub trait UnderlyingSource {
 }
 
 struct JsUnderlyingSource {
-    inner: sys::UnderlyingSource,
+    raw: sys::UnderlyingSource,
     start_closure: Closure<dyn FnMut(sys::ReadableStreamDefaultController) -> Promise>,
     pull_closure: Closure<dyn FnMut(sys::ReadableStreamDefaultController) -> Promise>,
     cancel_closure: Closure<dyn FnMut(JsValue) -> Promise>,
@@ -172,13 +172,13 @@ impl JsUnderlyingSource {
             }) as Box<dyn FnMut(JsValue) -> Promise>)
         };
 
-        let inner = sys::UnderlyingSource::from(JsValue::from(Object::new()));
-        inner.set_start(&start_closure);
-        inner.set_pull(&pull_closure);
-        inner.set_cancel(&cancel_closure);
+        let raw = sys::UnderlyingSource::from(JsValue::from(Object::new()));
+        raw.set_start(&start_closure);
+        raw.set_pull(&pull_closure);
+        raw.set_cancel(&cancel_closure);
 
         JsUnderlyingSource {
-            inner,
+            raw,
             start_closure,
             pull_closure,
             cancel_closure,
@@ -187,26 +187,26 @@ impl JsUnderlyingSource {
 
     #[inline]
     pub fn as_raw(&self) -> &sys::UnderlyingSource {
-        &self.inner
+        &self.raw
     }
 
     pub fn forget(self) -> sys::UnderlyingSource {
         self.start_closure.forget();
         self.pull_closure.forget();
         self.cancel_closure.forget();
-        self.inner
+        self.raw
     }
 }
 
 pub struct ReadableStreamDefaultReader<'stream> {
-    inner: Option<sys::ReadableStreamDefaultReader>,
+    raw: Option<sys::ReadableStreamDefaultReader>,
     _stream: PhantomData<&'stream mut ReadableStream>,
 }
 
 impl<'stream> ReadableStreamDefaultReader<'stream> {
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {
-        self.inner.as_ref().unwrap()
+        self.raw.as_ref().unwrap()
     }
 
     pub async fn closed(&self) -> Result<(), JsValue> {
@@ -238,9 +238,9 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     }
 
     pub fn release_lock(&mut self) -> Result<(), JsValue> {
-        if let Some(inner) = self.inner.as_ref() {
-            inner.release_lock()?;
-            self.inner.take();
+        if let Some(raw) = self.raw.as_ref() {
+            raw.release_lock()?;
+            self.raw.take();
         }
         Ok(())
     }

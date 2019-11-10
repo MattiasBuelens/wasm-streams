@@ -13,81 +13,81 @@ use crate::writable::WritableStream;
 pub mod sys;
 
 pub struct TransformStream {
-    inner: sys::TransformStream,
+    raw: sys::TransformStream,
     _transformer: Option<JsTransformer>,
 }
 
 impl TransformStream {
     pub fn new(source: Box<dyn Transformer + 'static>) -> TransformStream {
         let transformer = JsTransformer::new(source);
-        let inner = sys::TransformStream::new_with_transformer(transformer.as_raw());
+        let raw = sys::TransformStream::new_with_transformer(transformer.as_raw());
         TransformStream {
-            inner,
+            raw,
             _transformer: Some(transformer),
         }
     }
 
     #[inline]
     pub fn as_raw(&self) -> &sys::TransformStream {
-        &self.inner
+        &self.raw
     }
 
     pub fn readable(&self) -> ReadableStream {
-        ReadableStream::from(self.inner.readable())
+        ReadableStream::from(self.raw.readable())
     }
 
     pub fn writable(&self) -> WritableStream {
-        WritableStream::from(self.inner.writable())
+        WritableStream::from(self.raw.writable())
     }
 
     pub fn forget(self) -> sys::TransformStream {
         if let Some(transformer) = self._transformer {
             transformer.forget();
         }
-        self.inner
+        self.raw
     }
 }
 
 impl From<sys::TransformStream> for TransformStream {
     fn from(raw: sys::TransformStream) -> TransformStream {
         TransformStream {
-            inner: raw,
+            raw,
             _transformer: None,
         }
     }
 }
 
 pub struct TransformStreamDefaultController {
-    inner: sys::TransformStreamDefaultController
+    raw: sys::TransformStreamDefaultController
 }
 
 impl TransformStreamDefaultController {
     #[inline]
     pub fn as_raw(&self) -> &sys::TransformStreamDefaultController {
-        &self.inner
+        &self.raw
     }
 
     pub fn desired_size(&self) -> Option<f64> {
-        self.inner.desired_size()
+        self.raw.desired_size()
     }
 
     pub fn enqueue(&self, chunk: &JsValue) {
-        self.inner.enqueue(chunk)
+        self.raw.enqueue(chunk)
     }
 
     pub fn error(&self, error: &JsValue) {
-        self.inner.error(error)
+        self.raw.error(error)
     }
 
     pub fn terminate(&self) {
-        self.inner.terminate()
+        self.raw.terminate()
     }
 }
 
 impl From<sys::TransformStreamDefaultController> for TransformStreamDefaultController {
     fn from(raw: sys::TransformStreamDefaultController) -> TransformStreamDefaultController {
         TransformStreamDefaultController {
-            inner: raw
+            raw
         }
     }
 }
@@ -111,7 +111,7 @@ pub trait Transformer {
 }
 
 struct JsTransformer {
-    inner: sys::Transformer,
+    raw: sys::Transformer,
     start_closure: Closure<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>,
     transform_closure: Closure<dyn FnMut(JsValue, sys::TransformStreamDefaultController) -> Promise>,
     flush_closure: Closure<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>,
@@ -157,13 +157,13 @@ impl JsTransformer {
             }) as Box<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>)
         };
 
-        let inner = sys::Transformer::from(JsValue::from(Object::new()));
-        inner.set_start(&start_closure);
-        inner.set_transform(&transform_closure);
-        inner.set_flush(&flush_closure);
+        let raw = sys::Transformer::from(JsValue::from(Object::new()));
+        raw.set_start(&start_closure);
+        raw.set_transform(&transform_closure);
+        raw.set_flush(&flush_closure);
 
         JsTransformer {
-            inner,
+            raw,
             start_closure,
             transform_closure,
             flush_closure,
@@ -172,13 +172,13 @@ impl JsTransformer {
 
     #[inline]
     pub fn as_raw(&self) -> &sys::Transformer {
-        &self.inner
+        &self.raw
     }
 
     pub fn forget(self) -> sys::Transformer {
         self.start_closure.forget();
         self.transform_closure.forget();
         self.flush_closure.forget();
-        self.inner
+        self.raw
     }
 }
