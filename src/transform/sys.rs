@@ -46,11 +46,20 @@ extern "C" {
     pub type Transformer;
 
     #[wasm_bindgen(method, structural, setter, js_name = start)]
-    pub fn set_start(this: &Transformer, cb: &Closure<dyn FnMut(TransformStreamDefaultController) -> Promise>);
+    pub fn set_start(
+        this: &Transformer,
+        cb: &Closure<dyn FnMut(TransformStreamDefaultController) -> Promise>,
+    );
 
     #[wasm_bindgen(method, structural, setter, js_name = transform)]
-    pub fn set_transform(this: &Transformer, cb: &Closure<dyn FnMut(JsValue, TransformStreamDefaultController) -> Promise>);
+    pub fn set_transform(
+        this: &Transformer,
+        cb: &Closure<dyn FnMut(JsValue, TransformStreamDefaultController) -> Promise>,
+    );
 
     #[wasm_bindgen(method, structural, setter, js_name = flush)]
-    pub fn set_flush(this: &Transformer, cb: &Closure<dyn FnMut(TransformStreamDefaultController) -> Promise>);
+    pub fn set_flush(
+        this: &Transformer,
+        cb: &Closure<dyn FnMut(TransformStreamDefaultController) -> Promise>,
+    );
 }

@@ -17,7 +17,11 @@ impl UnderlyingSink for NoopSink {}
 
 #[async_trait(? Send)]
 impl UnderlyingSink for ConsoleSink {
-    async fn write(&mut self, chunk: JsValue, _: &WritableStreamDefaultController) -> Result<(), JsValue> {
+    async fn write(
+        &mut self,
+        chunk: JsValue,
+        _: &WritableStreamDefaultController,
+    ) -> Result<(), JsValue> {
         console_log!("wrote chunk: {}", chunk.as_string().unwrap());
         Ok(())
     }

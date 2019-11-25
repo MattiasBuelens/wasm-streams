@@ -40,10 +40,16 @@ extern "C" {
     pub type UnderlyingSink;
 
     #[wasm_bindgen(method, structural, setter, js_name = start)]
-    pub fn set_start(this: &UnderlyingSink, cb: &Closure<dyn FnMut(WritableStreamDefaultController) -> Promise>);
+    pub fn set_start(
+        this: &UnderlyingSink,
+        cb: &Closure<dyn FnMut(WritableStreamDefaultController) -> Promise>,
+    );
 
     #[wasm_bindgen(method, structural, setter, js_name = write)]
-    pub fn set_write(this: &UnderlyingSink, cb: &Closure<dyn FnMut(JsValue, WritableStreamDefaultController) -> Promise>);
+    pub fn set_write(
+        this: &UnderlyingSink,
+        cb: &Closure<dyn FnMut(JsValue, WritableStreamDefaultController) -> Promise>,
+    );
 
     #[wasm_bindgen(method, structural, setter, js_name = close)]
     pub fn set_close(this: &UnderlyingSink, cb: &Closure<dyn FnMut() -> Promise>);

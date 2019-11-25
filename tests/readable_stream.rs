@@ -1,4 +1,4 @@
-use futures::future::{abortable, Aborted, join};
+use futures::future::{abortable, join, Aborted};
 use futures::stream::StreamExt;
 use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
@@ -71,7 +71,8 @@ async fn test_readable_stream_abort_read() {
     let (fut, handle) = abortable(reader.read());
     let (result, _) = join(fut, async {
         handle.abort();
-    }).await;
+    })
+    .await;
     assert_eq!(result, Err(Aborted));
 
     // Must cancel any pending reads before releasing the reader's lock

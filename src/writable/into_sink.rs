@@ -139,9 +139,7 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
                 debug_assert!(js_value.is_undefined());
                 Ok(())
             }
-            Err(js_value) => {
-                Err(js_value)
-            }
+            Err(js_value) => Err(js_value),
         })
     }
 }

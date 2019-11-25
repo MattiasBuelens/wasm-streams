@@ -8,8 +8,8 @@ use pin_utils::{unsafe_pinned, unsafe_unpinned};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-use super::ReadableStreamDefaultReader;
 use super::sys::ReadableStreamReadResult;
+use super::ReadableStreamDefaultReader;
 
 #[must_use = "streams do nothing unless polled"]
 pub struct IntoStream<'reader> {
@@ -39,10 +39,7 @@ impl FusedStream for IntoStream<'_> {
 impl<'reader> Stream for IntoStream<'reader> {
     type Item = Result<JsValue, JsValue>;
 
-    fn poll_next(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<Self::Item>> {
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         if self.as_ref().fut.is_none() {
             // No pending read, start reading the next chunk
             match self.as_ref().reader.as_ref() {

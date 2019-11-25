@@ -58,7 +58,7 @@ impl From<sys::TransformStream> for TransformStream {
 }
 
 pub struct TransformStreamDefaultController {
-    raw: sys::TransformStreamDefaultController
+    raw: sys::TransformStreamDefaultController,
 }
 
 impl TransformStreamDefaultController {
@@ -86,25 +86,33 @@ impl TransformStreamDefaultController {
 
 impl From<sys::TransformStreamDefaultController> for TransformStreamDefaultController {
     fn from(raw: sys::TransformStreamDefaultController) -> TransformStreamDefaultController {
-        TransformStreamDefaultController {
-            raw
-        }
+        TransformStreamDefaultController { raw }
     }
 }
 
 #[async_trait(? Send)]
 pub trait Transformer {
-    async fn start(&mut self, controller: &TransformStreamDefaultController) -> Result<(), JsValue> {
+    async fn start(
+        &mut self,
+        controller: &TransformStreamDefaultController,
+    ) -> Result<(), JsValue> {
         let _ = controller;
         Ok(())
     }
 
-    async fn transform(&mut self, chunk: JsValue, controller: &TransformStreamDefaultController) -> Result<(), JsValue> {
+    async fn transform(
+        &mut self,
+        chunk: JsValue,
+        controller: &TransformStreamDefaultController,
+    ) -> Result<(), JsValue> {
         controller.enqueue(&chunk);
         Ok(())
     }
 
-    async fn flush(&mut self, controller: &TransformStreamDefaultController) -> Result<(), JsValue> {
+    async fn flush(
+        &mut self,
+        controller: &TransformStreamDefaultController,
+    ) -> Result<(), JsValue> {
         let _ = controller;
         Ok(())
     }
@@ -113,7 +121,8 @@ pub trait Transformer {
 struct JsTransformer {
     raw: sys::Transformer,
     start_closure: Closure<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>,
-    transform_closure: Closure<dyn FnMut(JsValue, sys::TransformStreamDefaultController) -> Promise>,
+    transform_closure:
+        Closure<dyn FnMut(JsValue, sys::TransformStreamDefaultController) -> Promise>,
     flush_closure: Closure<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>,
 }
 
@@ -123,38 +132,51 @@ impl JsTransformer {
 
         let start_closure = {
             let transformer = transformer.clone();
-            Closure::wrap(Box::new(move |controller: sys::TransformStreamDefaultController| {
-                let transformer = transformer.clone();
-                future_to_promise(async move {
-                    // This mutable borrow can never panic, since the TransformStream always
-                    // queues each operation on the transformer.
-                    let mut transformer = transformer.borrow_mut();
-                    transformer.start(&From::from(controller)).await?;
-                    Ok(JsValue::undefined())
+            Closure::wrap(
+                Box::new(move |controller: sys::TransformStreamDefaultController| {
+                    let transformer = transformer.clone();
+                    future_to_promise(async move {
+                        // This mutable borrow can never panic, since the TransformStream always
+                        // queues each operation on the transformer.
+                        let mut transformer = transformer.borrow_mut();
+                        transformer.start(&From::from(controller)).await?;
+                        Ok(JsValue::undefined())
+                    })
                 })
-            }) as Box<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>)
+                    as Box<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>,
+            )
         };
         let transform_closure = {
             let transformer = transformer.clone();
-            Closure::wrap(Box::new(move |chunk: JsValue, controller: sys::TransformStreamDefaultController| {
-                let transformer = transformer.clone();
-                future_to_promise(async move {
-                    let mut transformer = transformer.borrow_mut();
-                    transformer.transform(chunk, &From::from(controller)).await?;
-                    Ok(JsValue::undefined())
-                })
-            }) as Box<dyn FnMut(JsValue, sys::TransformStreamDefaultController) -> Promise>)
+            Closure::wrap(Box::new(
+                move |chunk: JsValue, controller: sys::TransformStreamDefaultController| {
+                    let transformer = transformer.clone();
+                    future_to_promise(async move {
+                        let mut transformer = transformer.borrow_mut();
+                        transformer
+                            .transform(chunk, &From::from(controller))
+                            .await?;
+                        Ok(JsValue::undefined())
+                    })
+                },
+            )
+                as Box<
+                    dyn FnMut(JsValue, sys::TransformStreamDefaultController) -> Promise,
+                >)
         };
         let flush_closure = {
             let transformer = transformer.clone();
-            Closure::wrap(Box::new(move |controller: sys::TransformStreamDefaultController| {
-                let transformer = transformer.clone();
-                future_to_promise(async move {
-                    let mut transformer = transformer.borrow_mut();
-                    transformer.flush(&From::from(controller)).await?;
-                    Ok(JsValue::undefined())
+            Closure::wrap(
+                Box::new(move |controller: sys::TransformStreamDefaultController| {
+                    let transformer = transformer.clone();
+                    future_to_promise(async move {
+                        let mut transformer = transformer.borrow_mut();
+                        transformer.flush(&From::from(controller)).await?;
+                        Ok(JsValue::undefined())
+                    })
                 })
-            }) as Box<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>)
+                    as Box<dyn FnMut(sys::TransformStreamDefaultController) -> Promise>,
+            )
         };
 
         let raw = sys::Transformer::from(JsValue::from(Object::new()));
