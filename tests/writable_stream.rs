@@ -5,35 +5,17 @@ use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use async_trait::async_trait;
 use wasm_streams::writable::*;
 
-struct NoopSink;
-
-struct ConsoleSink;
-
-#[async_trait(? Send)]
-impl UnderlyingSink for NoopSink {}
-
-#[async_trait(? Send)]
-impl UnderlyingSink for ConsoleSink {
-    async fn write(
-        &mut self,
-        chunk: JsValue,
-        _: &WritableStreamDefaultController,
-    ) -> Result<(), JsValue> {
-        console_log!("wrote chunk: {}", chunk.as_string().unwrap());
-        Ok(())
-    }
-    async fn close(&mut self) -> Result<(), JsValue> {
-        console_log!("close");
-        Ok(())
-    }
+#[wasm_bindgen(module = "/tests/writable_stream.js")]
+extern "C" {
+    fn new_noop_writable_stream() -> sys::WritableStream;
+    fn new_logging_writable_stream() -> sys::WritableStream;
 }
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_new() {
-    let mut writable = WritableStream::new(Box::new(NoopSink));
+    let mut writable = WritableStream::from(new_noop_writable_stream());
     assert!(!writable.is_locked());
 
     let mut writer = writable.get_writer().unwrap();
@@ -45,7 +27,7 @@ async fn test_writable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_into_sink() {
-    let mut writable = WritableStream::new(Box::new(ConsoleSink));
+    let mut writable = WritableStream::from(new_logging_writable_stream());
     assert!(!writable.is_locked());
 
     let writer = writable.get_writer().unwrap();
