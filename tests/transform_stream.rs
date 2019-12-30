@@ -2,33 +2,17 @@ use futures::future::join;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use async_trait::async_trait;
 use wasm_streams::transform::*;
 
-struct NoopTransformer;
-
-struct UppercaseTransformer;
-
-#[async_trait(? Send)]
-impl Transformer for NoopTransformer {}
-
-#[async_trait(? Send)]
-impl Transformer for UppercaseTransformer {
-    async fn transform(
-        &mut self,
-        chunk: JsValue,
-        controller: &TransformStreamDefaultController,
-    ) -> Result<(), JsValue> {
-        let mut value = chunk.as_string().unwrap();
-        value.make_ascii_uppercase();
-        controller.enqueue(&JsValue::from(value));
-        Ok(())
-    }
+#[wasm_bindgen(module = "/tests/transform_stream.js")]
+extern "C" {
+    fn new_noop_transform_stream() -> sys::TransformStream;
+    fn new_uppercase_transform_stream() -> sys::TransformStream;
 }
 
 #[wasm_bindgen_test]
 async fn test_transform_stream_new() {
-    let transform = TransformStream::new(Box::new(NoopTransformer));
+    let transform = TransformStream::from(new_noop_transform_stream());
     join(
         async {
             let mut writable = transform.writable();
@@ -50,7 +34,7 @@ async fn test_transform_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_transform_stream_new_uppercase() {
-    let transform = TransformStream::new(Box::new(UppercaseTransformer));
+    let transform = TransformStream::from(new_uppercase_transform_stream());
     join(
         async {
             let mut writable = transform.writable();
