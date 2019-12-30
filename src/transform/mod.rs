@@ -21,7 +21,7 @@ impl TransformStream {
         WritableStream::from(self.raw.writable())
     }
 
-    pub fn forget(self) -> sys::TransformStream {
+    pub fn into_raw(self) -> sys::TransformStream {
         self.raw
     }
 }

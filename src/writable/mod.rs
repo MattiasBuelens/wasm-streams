@@ -41,7 +41,7 @@ impl WritableStream {
         })
     }
 
-    pub fn forget(self) -> sys::WritableStream {
+    pub fn into_raw(self) -> sys::WritableStream {
         self.raw
     }
 }

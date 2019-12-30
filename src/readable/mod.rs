@@ -41,7 +41,7 @@ impl ReadableStream {
         })
     }
 
-    pub fn forget(self) -> sys::ReadableStream {
+    pub fn into_raw(self) -> sys::ReadableStream {
         self.raw
     }
 }
