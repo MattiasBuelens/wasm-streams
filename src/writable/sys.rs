@@ -9,9 +9,6 @@ extern "C" {
     #[wasm_bindgen(constructor)]
     pub fn new() -> WritableStream;
 
-    #[wasm_bindgen(constructor)]
-    pub fn new_with_sink(source: &UnderlyingSink) -> WritableStream;
-
     #[wasm_bindgen(method, getter, js_name = locked)]
     pub fn is_locked(this: &WritableStream) -> bool;
 
@@ -23,39 +20,6 @@ extern "C" {
 
     #[wasm_bindgen(method, catch, js_name = getWriter)]
     pub fn get_writer(this: &WritableStream) -> Result<WritableStreamDefaultWriter, JsValue>;
-}
-
-#[wasm_bindgen]
-extern "C" {
-    #[derive(Clone, Debug)]
-    pub type WritableStreamDefaultController;
-
-    #[wasm_bindgen(method, js_name = error)]
-    pub fn error(this: &WritableStreamDefaultController, error: &JsValue);
-}
-
-#[wasm_bindgen]
-extern "C" {
-    #[derive(Clone, Debug)]
-    pub type UnderlyingSink;
-
-    #[wasm_bindgen(method, structural, setter, js_name = start)]
-    pub fn set_start(
-        this: &UnderlyingSink,
-        cb: &Closure<dyn FnMut(WritableStreamDefaultController) -> Promise>,
-    );
-
-    #[wasm_bindgen(method, structural, setter, js_name = write)]
-    pub fn set_write(
-        this: &UnderlyingSink,
-        cb: &Closure<dyn FnMut(JsValue, WritableStreamDefaultController) -> Promise>,
-    );
-
-    #[wasm_bindgen(method, structural, setter, js_name = close)]
-    pub fn set_close(this: &UnderlyingSink, cb: &Closure<dyn FnMut() -> Promise>);
-
-    #[wasm_bindgen(method, structural, setter, js_name = abort)]
-    pub fn set_abort(this: &UnderlyingSink, cb: &Closure<dyn FnMut(JsValue) -> Promise>);
 }
 
 #[wasm_bindgen]
