@@ -1,11 +1,14 @@
 use std::marker::PhantomData;
 
+use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
 pub use into_stream::IntoStream;
+use into_underlying_source::IntoUnderlyingSource;
 
 mod into_stream;
+mod into_underlying_source;
 pub mod sys;
 
 pub struct ReadableStream {
@@ -50,6 +53,14 @@ impl ReadableStream {
 impl From<sys::ReadableStream> for ReadableStream {
     fn from(raw: sys::ReadableStream) -> ReadableStream {
         ReadableStream { raw }
+    }
+}
+
+impl From<Box<dyn Stream<Item = Result<JsValue, JsValue>>>> for ReadableStream {
+    fn from(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
+        ReadableStream::from(sys::ReadableStream::new_with_source(
+            IntoUnderlyingSource::new(stream),
+        ))
     }
 }
 
