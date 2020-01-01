@@ -4,9 +4,8 @@ use std::rc::Rc;
 
 use futures::future::{abortable, AbortHandle, TryFutureExt};
 use futures::stream::{Stream, TryStreamExt};
-use js_sys::Promise;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::future_to_promise;
+use wasm_bindgen_futures::spawn_local;
 
 use super::sys;
 
@@ -27,7 +26,7 @@ impl IntoUnderlyingSource {
 
 #[wasm_bindgen]
 impl IntoUnderlyingSource {
-    pub fn pull(&mut self, controller: sys::ReadableStreamDefaultController) -> Promise {
+    pub fn pull(&mut self, controller: sys::ReadableStreamDefaultController) {
         let maybe_stream = self.stream.clone();
         let fut = async move {
             // This mutable borrow can never panic, since the ReadableStream always queues
@@ -49,11 +48,19 @@ impl IntoUnderlyingSource {
                     controller.error(&err);
                 }
             }
-            Ok(JsValue::undefined())
         };
+
+        // If pull() returns a promise, and the ReadableStream is canceled while the promise
+        // from pull() is still pending, it will first await that promise before calling cancel().
+        // This would mean that we keep waiting for the next chunk, even though it will be
+        // immediately discarded.
+        // Therefore, we DO NOT return a promise from pull(), and return nothing instead.
+        // This works because when pull() does not return a promise, the ReadableStream will
+        // wait until the next enqueue() call before it attempts to call pull() again.
+        // We run the future separately, and abort it when the stream is dropped.
         let (fut, handle) = abortable(fut);
         self.pull_handle = Some(handle);
-        future_to_promise(fut.unwrap_or_else(|_| Ok(JsValue::from_str("aborted"))))
+        spawn_local(fut.unwrap_or_else(|_| ()))
     }
 
     pub fn cancel(self) {
