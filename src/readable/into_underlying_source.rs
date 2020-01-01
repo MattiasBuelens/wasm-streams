@@ -56,13 +56,17 @@ impl IntoUnderlyingSource {
         future_to_promise(fut.unwrap_or_else(|_| Ok(JsValue::from_str("aborted"))))
     }
 
-    pub fn cancel(mut self) {
-        // The stream has been canceled.
+    pub fn cancel(self) {
+        // The stream has been canceled, drop everything.
+        drop(self);
+    }
+}
+
+impl Drop for IntoUnderlyingSource {
+    fn drop(&mut self) {
         // Abort the pending pull, if any.
         if let Some(handle) = &mut self.pull_handle {
             handle.abort();
         }
-        // Drop everything.
-        drop(self);
     }
 }
