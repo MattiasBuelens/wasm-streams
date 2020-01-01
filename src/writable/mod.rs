@@ -18,6 +18,11 @@ impl WritableStream {
         &self.raw
     }
 
+    #[inline]
+    pub fn into_raw(self) -> sys::WritableStream {
+        self.raw
+    }
+
     pub fn is_locked(&self) -> bool {
         self.raw.is_locked()
     }
@@ -39,10 +44,6 @@ impl WritableStream {
             raw: Some(self.raw.get_writer()?),
             _stream: PhantomData,
         })
-    }
-
-    pub fn into_raw(self) -> sys::WritableStream {
-        self.raw
     }
 }
 

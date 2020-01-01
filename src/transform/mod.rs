@@ -13,16 +13,17 @@ impl TransformStream {
         &self.raw
     }
 
+    #[inline]
+    pub fn into_raw(self) -> sys::TransformStream {
+        self.raw
+    }
+
     pub fn readable(&self) -> ReadableStream {
         ReadableStream::from(self.raw.readable())
     }
 
     pub fn writable(&self) -> WritableStream {
         WritableStream::from(self.raw.writable())
-    }
-
-    pub fn into_raw(self) -> sys::TransformStream {
-        self.raw
     }
 }
 
