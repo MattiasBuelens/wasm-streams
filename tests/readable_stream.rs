@@ -56,6 +56,18 @@ async fn test_readable_stream_from_stream() {
 }
 
 #[wasm_bindgen_test]
+async fn test_readable_stream_from_stream_cancel() {
+    let stream = Box::new(iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s))))
+        as Box<dyn Stream<Item = Result<JsValue, JsValue>>>;
+    let mut readable = ReadableStream::from(stream);
+
+    let mut reader = readable.get_reader().unwrap();
+    assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
+    assert_eq!(reader.cancel().await, Ok(()));
+    reader.closed().await.unwrap();
+}
+
+#[wasm_bindgen_test]
 async fn test_readable_stream_multiple_release_lock() {
     let mut readable = ReadableStream::from(new_noop_readable_stream());
 

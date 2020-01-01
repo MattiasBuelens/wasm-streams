@@ -49,4 +49,9 @@ impl IntoUnderlyingSource {
             Ok(JsValue::undefined())
         })
     }
+
+    pub fn cancel(self) {
+        // The stream has been canceled, drop everything.
+        drop(self);
+    }
 }
