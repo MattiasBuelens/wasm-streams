@@ -56,7 +56,7 @@ impl<'reader> Stream for IntoStream<'reader> {
         }
 
         // Poll the future for the pending read
-        let js_result = ready!(self.as_mut().fut().as_pin_mut().unwrap().poll(cx));
+        let js_result = ready!(self.as_mut().fut().as_pin_mut().unwrap_throw().poll(cx));
         self.as_mut().fut().set(None);
 
         // Read completed

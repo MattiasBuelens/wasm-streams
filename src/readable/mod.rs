@@ -72,7 +72,7 @@ pub struct ReadableStreamDefaultReader<'stream> {
 impl<'stream> ReadableStreamDefaultReader<'stream> {
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {
-        self.raw.as_ref().unwrap()
+        self.raw.as_ref().unwrap_throw()
     }
 
     pub async fn closed(&self) -> Result<(), JsValue> {
@@ -119,6 +119,6 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
 impl Drop for ReadableStreamDefaultReader<'_> {
     fn drop(&mut self) {
         // TODO Error handling?
-        self.release_lock().unwrap();
+        self.release_lock().unwrap_throw();
     }
 }

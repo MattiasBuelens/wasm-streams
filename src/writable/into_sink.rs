@@ -55,7 +55,12 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
         }
 
         // Poll the ready future
-        let js_result = ready!(self.as_mut().ready_fut().as_pin_mut().unwrap().poll(cx));
+        let js_result = ready!(self
+            .as_mut()
+            .ready_fut()
+            .as_pin_mut()
+            .unwrap_throw()
+            .poll(cx));
         self.as_mut().ready_fut().set(None);
 
         // Ready future completed
@@ -94,7 +99,12 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
         }
 
         // Poll the write future
-        let js_result = ready!(self.as_mut().write_fut().as_pin_mut().unwrap().poll(cx));
+        let js_result = ready!(self
+            .as_mut()
+            .write_fut()
+            .as_pin_mut()
+            .unwrap_throw()
+            .poll(cx));
         self.as_mut().write_fut().set(None);
 
         // Write future completed
@@ -129,7 +139,12 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
         }
 
         // Poll the close future
-        let js_result = ready!(self.as_mut().close_fut().as_pin_mut().unwrap().poll(cx));
+        let js_result = ready!(self
+            .as_mut()
+            .close_fut()
+            .as_pin_mut()
+            .unwrap_throw()
+            .poll(cx));
         self.as_mut().close_fut().set(None);
 
         // Close future completed
