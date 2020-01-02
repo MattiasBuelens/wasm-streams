@@ -57,7 +57,10 @@ impl IntoUnderlyingSource {
         // Therefore, we DO NOT return a promise from pull(), and return nothing instead.
         // This works because when pull() does not return a promise, the ReadableStream will
         // wait until the next enqueue() call before it attempts to call pull() again.
-        // We run the future separately, and abort it when the stream is dropped.
+        // See also: https://github.com/whatwg/streams/issues/1014
+
+        // Since we run the future separately, we need to abort it manually when the stream
+        // is dropped.
         let (fut, handle) = abortable(fut);
         self.pull_handle = Some(handle);
         spawn_local(fut.unwrap_or_else(|_| ()))
