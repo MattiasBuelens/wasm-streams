@@ -31,7 +31,7 @@ impl IntoUnderlyingSource {
         let fut = async move {
             // This mutable borrow can never panic, since the ReadableStream always queues
             // each operation on the underlying source.
-            let mut maybe_stream = maybe_stream.borrow_mut();
+            let mut maybe_stream = maybe_stream.try_borrow_mut().unwrap_throw();
             // The stream should still exist, since pull() will not be called again
             // after the stream has closed or encountered an error.
             let stream = maybe_stream.as_mut().unwrap_throw();
