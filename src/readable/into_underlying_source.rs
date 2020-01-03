@@ -11,14 +11,14 @@ use super::sys;
 
 #[wasm_bindgen]
 pub(crate) struct IntoUnderlyingSource {
-    stream: Rc<RefCell<Option<Pin<Box<dyn Stream<Item = Result<JsValue, JsValue>>>>>>>,
+    inner: Rc<RefCell<Inner<Pin<Box<dyn Stream<Item = Result<JsValue, JsValue>>>>>>>,
     pull_handle: Option<AbortHandle>,
 }
 
 impl IntoUnderlyingSource {
     pub fn new(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
         IntoUnderlyingSource {
-            stream: Rc::new(RefCell::new(Some(stream.into()))),
+            inner: Rc::new(RefCell::new(Inner::new(stream.into()))),
             pull_handle: None,
         }
     }
@@ -27,27 +27,12 @@ impl IntoUnderlyingSource {
 #[wasm_bindgen]
 impl IntoUnderlyingSource {
     pub fn pull(&mut self, controller: sys::ReadableStreamDefaultController) {
-        let maybe_stream = self.stream.clone();
+        let inner = self.inner.clone();
         let fut = async move {
             // This mutable borrow can never panic, since the ReadableStream always queues
             // each operation on the underlying source.
-            let mut maybe_stream = maybe_stream.try_borrow_mut().unwrap_throw();
-            // The stream should still exist, since pull() will not be called again
-            // after the stream has closed or encountered an error.
-            let stream = maybe_stream.as_mut().unwrap_throw();
-            match stream.try_next().await {
-                Ok(Some(chunk)) => controller.enqueue(&chunk),
-                Ok(None) => {
-                    // The stream has closed, drop it.
-                    *maybe_stream = None;
-                    controller.close();
-                }
-                Err(err) => {
-                    // The stream encountered an error, drop it.
-                    *maybe_stream = None;
-                    controller.error(&err);
-                }
-            }
+            let mut inner = inner.try_borrow_mut().unwrap_throw();
+            inner.pull(controller).await;
         };
 
         // If pull() returns a promise, and the ReadableStream is canceled while the promise
@@ -77,6 +62,40 @@ impl Drop for IntoUnderlyingSource {
         // Abort the pending pull, if any.
         if let Some(handle) = &mut self.pull_handle {
             handle.abort();
+        }
+    }
+}
+
+struct Inner<S> {
+    stream: Option<S>,
+}
+
+impl<S> Inner<S>
+where
+    S: Stream<Item = Result<JsValue, JsValue>> + Unpin,
+{
+    fn new(stream: S) -> Self {
+        Inner {
+            stream: Some(stream),
+        }
+    }
+
+    async fn pull(&mut self, controller: sys::ReadableStreamDefaultController) {
+        // The stream should still exist, since pull() will not be called again
+        // after the stream has closed or encountered an error.
+        let stream = self.stream.as_mut().unwrap_throw();
+        match stream.try_next().await {
+            Ok(Some(chunk)) => controller.enqueue(&chunk),
+            Ok(None) => {
+                // The stream has closed, drop it.
+                self.stream = None;
+                controller.close();
+            }
+            Err(err) => {
+                // The stream encountered an error, drop it.
+                self.stream = None;
+                controller.error(&err);
+            }
         }
     }
 }
