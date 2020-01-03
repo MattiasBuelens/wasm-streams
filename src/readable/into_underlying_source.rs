@@ -47,8 +47,11 @@ impl IntoUnderlyingSource {
         // Since we run the future separately, we need to abort it manually when the stream
         // is dropped.
         let (fut, handle) = abortable(fut);
+        // Ignore errors from aborting the future.
+        let fut = fut.unwrap_or_else(|_| ());
+
         self.pull_handle = Some(handle);
-        spawn_local(fut.unwrap_or_else(|_| ()))
+        spawn_local(fut);
     }
 
     pub fn cancel(self) {
