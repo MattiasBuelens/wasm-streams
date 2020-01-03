@@ -61,7 +61,9 @@ impl From<sys::ReadableStream> for ReadableStream {
 impl From<Box<dyn Stream<Item = Result<JsValue, JsValue>>>> for ReadableStream {
     fn from(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
         let source = IntoUnderlyingSource::new(stream);
-        let strategy = QueuingStrategy::new(1.0);
+        // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
+        // since the original Rust stream is better suited to handle that.
+        let strategy = QueuingStrategy::new(0.0);
         let raw = sys::ReadableStream::new_with_source(source, strategy);
         ReadableStream { raw }
     }
