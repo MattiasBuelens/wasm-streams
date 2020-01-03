@@ -7,6 +7,8 @@ use wasm_bindgen_futures::JsFuture;
 pub use into_stream::IntoStream;
 use into_underlying_source::IntoUnderlyingSource;
 
+use super::queuing_strategy::QueuingStrategy;
+
 mod into_stream;
 mod into_underlying_source;
 pub mod sys;
@@ -58,9 +60,10 @@ impl From<sys::ReadableStream> for ReadableStream {
 
 impl From<Box<dyn Stream<Item = Result<JsValue, JsValue>>>> for ReadableStream {
     fn from(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
-        ReadableStream::from(sys::ReadableStream::new_with_source(
-            IntoUnderlyingSource::new(stream),
-        ))
+        let source = IntoUnderlyingSource::new(stream);
+        let strategy = QueuingStrategy::new(1.0);
+        let raw = sys::ReadableStream::new_with_source(source, strategy);
+        ReadableStream { raw }
     }
 }
 

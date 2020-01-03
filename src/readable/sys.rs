@@ -2,6 +2,7 @@ use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
 use super::into_underlying_source::IntoUnderlyingSource;
+use crate::queuing_strategy::QueuingStrategy;
 
 #[wasm_bindgen]
 extern "C" {
@@ -12,7 +13,10 @@ extern "C" {
     pub fn new() -> ReadableStream;
 
     #[wasm_bindgen(constructor)]
-    pub(crate) fn new_with_source(source: IntoUnderlyingSource) -> ReadableStream;
+    pub(crate) fn new_with_source(
+        source: IntoUnderlyingSource,
+        strategy: QueuingStrategy,
+    ) -> ReadableStream;
 
     #[wasm_bindgen(method, getter, js_name = locked)]
     pub fn is_locked(this: &ReadableStream) -> bool;
