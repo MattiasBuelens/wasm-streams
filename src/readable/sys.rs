@@ -1,6 +1,9 @@
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
+use super::into_underlying_source::IntoUnderlyingSource;
+use crate::queuing_strategy::QueuingStrategy;
+
 #[wasm_bindgen]
 extern "C" {
     #[derive(Clone, Debug)]
@@ -8,6 +11,12 @@ extern "C" {
 
     #[wasm_bindgen(constructor)]
     pub fn new() -> ReadableStream;
+
+    #[wasm_bindgen(constructor)]
+    pub(crate) fn new_with_source(
+        source: IntoUnderlyingSource,
+        strategy: QueuingStrategy,
+    ) -> ReadableStream;
 
     #[wasm_bindgen(method, getter, js_name = locked)]
     pub fn is_locked(this: &ReadableStream) -> bool;
@@ -20,6 +29,24 @@ extern "C" {
 
     #[wasm_bindgen(method, catch, js_name = getReader)]
     pub fn get_reader(this: &ReadableStream) -> Result<ReadableStreamDefaultReader, JsValue>;
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[derive(Clone, Debug)]
+    pub type ReadableStreamDefaultController;
+
+    #[wasm_bindgen(method, getter, js_name = desiredSize)]
+    pub fn desired_size(this: &ReadableStreamDefaultController) -> Option<f64>;
+
+    #[wasm_bindgen(method, js_name = close)]
+    pub fn close(this: &ReadableStreamDefaultController);
+
+    #[wasm_bindgen(method, js_name = enqueue)]
+    pub fn enqueue(this: &ReadableStreamDefaultController, chunk: &JsValue);
+
+    #[wasm_bindgen(method, js_name = error)]
+    pub fn error(this: &ReadableStreamDefaultController, error: &JsValue);
 }
 
 #[wasm_bindgen]

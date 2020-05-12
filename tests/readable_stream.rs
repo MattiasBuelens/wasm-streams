@@ -1,5 +1,5 @@
 use futures::future::{abortable, join, Aborted};
-use futures::stream::StreamExt;
+use futures::stream::{iter, Stream, StreamExt};
 use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
@@ -40,6 +40,31 @@ async fn test_readable_stream_into_stream() {
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
     assert_eq!(stream.next().await, None);
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_from_stream() {
+    let stream = Box::new(iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s))))
+        as Box<dyn Stream<Item = Result<JsValue, JsValue>>>;
+    let mut readable = ReadableStream::from(stream);
+
+    let mut reader = readable.get_reader().unwrap();
+    assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
+    assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("world!")));
+    assert_eq!(reader.read().await.unwrap(), None);
+    reader.closed().await.unwrap();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_from_stream_cancel() {
+    let stream = Box::new(iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s))))
+        as Box<dyn Stream<Item = Result<JsValue, JsValue>>>;
+    let mut readable = ReadableStream::from(stream);
+
+    let mut reader = readable.get_reader().unwrap();
+    assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
+    assert_eq!(reader.cancel().await, Ok(()));
+    reader.closed().await.unwrap();
 }
 
 #[wasm_bindgen_test]

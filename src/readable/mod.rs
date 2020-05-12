@@ -1,11 +1,16 @@
 use std::marker::PhantomData;
 
+use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
 pub use into_stream::IntoStream;
+use into_underlying_source::IntoUnderlyingSource;
+
+use super::queuing_strategy::QueuingStrategy;
 
 mod into_stream;
+mod into_underlying_source;
 pub mod sys;
 
 pub struct ReadableStream {
@@ -53,6 +58,17 @@ impl From<sys::ReadableStream> for ReadableStream {
     }
 }
 
+impl From<Box<dyn Stream<Item = Result<JsValue, JsValue>>>> for ReadableStream {
+    fn from(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
+        let source = IntoUnderlyingSource::new(stream);
+        // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
+        // since the original Rust stream is better suited to handle that.
+        let strategy = QueuingStrategy::new(0.0);
+        let raw = sys::ReadableStream::new_with_source(source, strategy);
+        ReadableStream { raw }
+    }
+}
+
 pub struct ReadableStreamDefaultReader<'stream> {
     raw: Option<sys::ReadableStreamDefaultReader>,
     _stream: PhantomData<&'stream mut ReadableStream>,
@@ -61,7 +77,7 @@ pub struct ReadableStreamDefaultReader<'stream> {
 impl<'stream> ReadableStreamDefaultReader<'stream> {
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {
-        self.raw.as_ref().unwrap()
+        self.raw.as_ref().unwrap_throw()
     }
 
     pub async fn closed(&self) -> Result<(), JsValue> {
@@ -108,6 +124,6 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
 impl Drop for ReadableStreamDefaultReader<'_> {
     fn drop(&mut self) {
         // TODO Error handling?
-        self.release_lock().unwrap();
+        self.release_lock().unwrap_throw();
     }
 }

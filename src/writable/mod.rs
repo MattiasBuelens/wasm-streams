@@ -61,7 +61,7 @@ pub struct WritableStreamDefaultWriter<'stream> {
 impl<'stream> WritableStreamDefaultWriter<'stream> {
     #[inline]
     pub fn as_raw(&self) -> &sys::WritableStreamDefaultWriter {
-        self.raw.as_ref().unwrap()
+        self.raw.as_ref().unwrap_throw()
     }
 
     pub async fn closed(&self) -> Result<(), JsValue> {
@@ -120,6 +120,6 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
 impl Drop for WritableStreamDefaultWriter<'_> {
     fn drop(&mut self) {
         // TODO Error handling?
-        self.release_lock().unwrap();
+        self.release_lock().unwrap_throw();
     }
 }
