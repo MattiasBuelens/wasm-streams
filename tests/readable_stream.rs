@@ -14,7 +14,7 @@ extern "C" {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_new() {
-    let mut readable = ReadableStream::from(new_readable_stream_from_array(
+    let mut readable = ReadableStream::from_raw(new_readable_stream_from_array(
         vec![JsValue::from("Hello"), JsValue::from("world!")].into_boxed_slice(),
     ));
     assert!(!readable.is_locked());
@@ -28,7 +28,7 @@ async fn test_readable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_into_stream() {
-    let mut readable = ReadableStream::from(new_readable_stream_from_array(
+    let mut readable = ReadableStream::from_raw(new_readable_stream_from_array(
         vec![JsValue::from("Hello"), JsValue::from("world!")].into_boxed_slice(),
     ));
     assert!(!readable.is_locked());
@@ -69,7 +69,7 @@ async fn test_readable_stream_from_stream_cancel() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_multiple_release_lock() {
-    let mut readable = ReadableStream::from(new_noop_readable_stream());
+    let mut readable = ReadableStream::from_raw(new_noop_readable_stream());
 
     let mut reader = readable.get_reader().unwrap();
     reader.release_lock().unwrap();
@@ -79,7 +79,7 @@ async fn test_readable_stream_multiple_release_lock() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_abort_read() {
-    let mut readable = ReadableStream::from(new_noop_readable_stream());
+    let mut readable = ReadableStream::from_raw(new_noop_readable_stream());
 
     let mut reader = readable.get_reader().unwrap();
 

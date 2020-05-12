@@ -14,6 +14,11 @@ pub struct WritableStream {
 
 impl WritableStream {
     #[inline]
+    pub fn from_raw(raw: sys::WritableStream) -> Self {
+        Self { raw }
+    }
+
+    #[inline]
     pub fn as_raw(&self) -> &sys::WritableStream {
         &self.raw
     }
@@ -44,12 +49,6 @@ impl WritableStream {
             raw: Some(self.raw.get_writer()?),
             _stream: PhantomData,
         })
-    }
-}
-
-impl From<sys::WritableStream> for WritableStream {
-    fn from(raw: sys::WritableStream) -> WritableStream {
-        WritableStream { raw }
     }
 }
 

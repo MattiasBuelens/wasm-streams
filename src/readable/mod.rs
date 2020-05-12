@@ -19,6 +19,11 @@ pub struct ReadableStream {
 
 impl ReadableStream {
     #[inline]
+    pub fn from_raw(raw: sys::ReadableStream) -> Self {
+        Self { raw }
+    }
+
+    #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStream {
         &self.raw
     }
@@ -49,12 +54,6 @@ impl ReadableStream {
             raw: Some(self.raw.get_reader()?),
             _stream: PhantomData,
         })
-    }
-}
-
-impl From<sys::ReadableStream> for ReadableStream {
-    fn from(raw: sys::ReadableStream) -> ReadableStream {
-        ReadableStream { raw }
     }
 }
 

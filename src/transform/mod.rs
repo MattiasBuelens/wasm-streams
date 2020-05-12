@@ -9,6 +9,11 @@ pub struct TransformStream {
 
 impl TransformStream {
     #[inline]
+    pub fn from_raw(raw: sys::TransformStream) -> Self {
+        Self { raw }
+    }
+
+    #[inline]
     pub fn as_raw(&self) -> &sys::TransformStream {
         &self.raw
     }
@@ -19,16 +24,10 @@ impl TransformStream {
     }
 
     pub fn readable(&self) -> ReadableStream {
-        ReadableStream::from(self.raw.readable())
+        ReadableStream::from_raw(self.raw.readable())
     }
 
     pub fn writable(&self) -> WritableStream {
-        WritableStream::from(self.raw.writable())
-    }
-}
-
-impl From<sys::TransformStream> for TransformStream {
-    fn from(raw: sys::TransformStream) -> TransformStream {
-        TransformStream { raw }
+        WritableStream::from_raw(self.raw.writable())
     }
 }

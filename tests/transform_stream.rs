@@ -12,7 +12,7 @@ extern "C" {
 
 #[wasm_bindgen_test]
 async fn test_transform_stream_new() {
-    let transform = TransformStream::from(new_noop_transform_stream());
+    let transform = TransformStream::from_raw(new_noop_transform_stream());
     join(
         async {
             let mut writable = transform.writable();
@@ -34,7 +34,7 @@ async fn test_transform_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_transform_stream_new_uppercase() {
-    let transform = TransformStream::from(new_uppercase_transform_stream());
+    let transform = TransformStream::from_raw(new_uppercase_transform_stream());
     join(
         async {
             let mut writable = transform.writable();

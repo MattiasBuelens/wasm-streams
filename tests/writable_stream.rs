@@ -15,7 +15,7 @@ extern "C" {
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_new() {
-    let mut writable = WritableStream::from(new_noop_writable_stream());
+    let mut writable = WritableStream::from_raw(new_noop_writable_stream());
     assert!(!writable.is_locked());
 
     let mut writer = writable.get_writer().unwrap();
@@ -27,7 +27,7 @@ async fn test_writable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_into_sink() {
-    let mut writable = WritableStream::from(new_logging_writable_stream());
+    let mut writable = WritableStream::from_raw(new_logging_writable_stream());
     assert!(!writable.is_locked());
 
     let writer = writable.get_writer().unwrap();
