@@ -1,11 +1,16 @@
 use std::marker::PhantomData;
 
+use futures::Sink;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
 pub use into_sink::IntoSink;
 
+use crate::queuing_strategy::QueuingStrategy;
+use crate::writable::into_underlying_sink::IntoUnderlyingSink;
+
 mod into_sink;
+mod into_underlying_sink;
 pub mod sys;
 
 pub struct WritableStream {
@@ -49,6 +54,17 @@ impl WritableStream {
             raw: Some(self.raw.get_writer()?),
             _stream: PhantomData,
         })
+    }
+}
+
+impl From<Box<dyn Sink<JsValue, Error = JsValue>>> for WritableStream {
+    fn from(sink: Box<dyn Sink<JsValue, Error = JsValue>>) -> Self {
+        let sink = IntoUnderlyingSink::new(sink);
+        // Set HWM to 0 to prevent the JS WritableStream from buffering chunks in its queue,
+        // since the original Rust sink is better suited to handle that.
+        let strategy = QueuingStrategy::new(0.0);
+        let raw = sys::WritableStream::new_with_sink(sink, strategy);
+        WritableStream { raw }
     }
 }
 
