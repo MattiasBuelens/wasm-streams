@@ -55,6 +55,14 @@ impl ReadableStream {
             _stream: PhantomData,
         })
     }
+
+    pub fn into_stream(self) -> Result<IntoStream<'static>, JsValue> {
+        let reader = ReadableStreamDefaultReader {
+            raw: Some(self.raw.get_reader()?),
+            _stream: PhantomData,
+        };
+        Ok(reader.into_stream())
+    }
 }
 
 impl<S> From<S> for ReadableStream

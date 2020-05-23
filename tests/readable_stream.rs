@@ -28,18 +28,44 @@ async fn test_readable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_into_stream() {
-    let mut readable = ReadableStream::from_raw(new_readable_stream_from_array(
+    let readable = ReadableStream::from_raw(new_readable_stream_from_array(
         vec![JsValue::from("Hello"), JsValue::from("world!")].into_boxed_slice(),
     ));
     assert!(!readable.is_locked());
 
-    let reader = readable.get_reader().unwrap();
-    let stream = reader.into_stream();
+    let stream = readable.into_stream().unwrap();
     pin_mut!(stream);
 
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
     assert_eq!(stream.next().await, None);
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_reader_into_stream() {
+    let mut readable = ReadableStream::from_raw(new_readable_stream_from_array(
+        vec![JsValue::from("Hello"), JsValue::from("world!")].into_boxed_slice(),
+    ));
+    assert!(!readable.is_locked());
+
+    {
+        // Acquire a reader and wrap it in a Rust stream
+        let reader = readable.get_reader().unwrap();
+        let stream = reader.into_stream();
+        pin_mut!(stream);
+
+        assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
+    }
+
+    // Dropping the wrapped stream should release the lock
+    assert!(!readable.is_locked());
+
+    {
+        // Can acquire a new reader after wrapped stream is dropped
+        let mut reader = readable.get_reader().unwrap();
+        assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("world!")));
+        assert_eq!(reader.read().await.unwrap(), None);
+    }
 }
 
 #[wasm_bindgen_test]

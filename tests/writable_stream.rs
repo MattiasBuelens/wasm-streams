@@ -28,15 +28,40 @@ async fn test_writable_stream_new() {
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_into_sink() {
-    let mut writable = WritableStream::from_raw(new_logging_writable_stream());
+    let writable = WritableStream::from_raw(new_logging_writable_stream());
     assert!(!writable.is_locked());
 
-    let writer = writable.get_writer().unwrap();
-    let sink = writer.into_sink();
+    let sink = writable.into_sink().unwrap();
     pin_mut!(sink);
+
     assert_eq!(sink.send(JsValue::from("Hello")).await, Ok(()));
     assert_eq!(sink.send(JsValue::from("world!")).await, Ok(()));
     assert_eq!(sink.close().await, Ok(()));
+}
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_writer_into_sink() {
+    let mut writable = WritableStream::from_raw(new_logging_writable_stream());
+    assert!(!writable.is_locked());
+
+    {
+        // Acquire a writer and wrap it in a Rust sink
+        let writer = writable.get_writer().unwrap();
+        let sink = writer.into_sink();
+        pin_mut!(sink);
+
+        assert_eq!(sink.send(JsValue::from("Hello")).await, Ok(()));
+    }
+
+    // Dropping the wrapped sink should release the lock
+    assert!(!writable.is_locked());
+
+    {
+        // Can acquire a new writer after wrapped sink is dropped
+        let mut writer = writable.get_writer().unwrap();
+        assert_eq!(writer.write(JsValue::from("world!")).await.unwrap(), ());
+        assert_eq!(writer.close().await.unwrap(), ());
+    }
 }
 
 #[wasm_bindgen_test]
