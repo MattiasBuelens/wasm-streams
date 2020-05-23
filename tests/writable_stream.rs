@@ -1,7 +1,7 @@
 extern crate wasm_bindgen_test;
 
 use futures::channel::*;
-use futures::{Sink, SinkExt, StreamExt};
+use futures::{SinkExt, StreamExt};
 use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
@@ -43,7 +43,6 @@ async fn test_writable_stream_into_sink() {
 async fn test_writable_stream_from_sink() {
     let (sink, stream) = mpsc::unbounded::<JsValue>();
     let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
-    let sink = Box::new(sink) as Box<dyn Sink<JsValue, Error = JsValue>>;
     let mut writable = WritableStream::from(sink);
 
     let mut writer = writable.get_writer().unwrap();
