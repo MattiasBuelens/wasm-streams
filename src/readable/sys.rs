@@ -1,8 +1,9 @@
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
-use super::into_underlying_source::IntoUnderlyingSource;
 use crate::queuing_strategy::QueuingStrategy;
+
+use super::into_underlying_source::IntoUnderlyingSource;
 
 #[wasm_bindgen]
 extern "C" {
