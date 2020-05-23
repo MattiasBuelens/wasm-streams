@@ -6,7 +6,6 @@ use wasm_bindgen_futures::JsFuture;
 
 pub use into_sink::IntoSink;
 
-use crate::queuing_strategy::QueuingStrategy;
 use crate::writable::into_underlying_sink::IntoUnderlyingSink;
 
 mod into_sink;
@@ -60,10 +59,9 @@ impl WritableStream {
 impl From<Box<dyn Sink<JsValue, Error = JsValue>>> for WritableStream {
     fn from(sink: Box<dyn Sink<JsValue, Error = JsValue>>) -> Self {
         let sink = IntoUnderlyingSink::new(sink);
-        // Set HWM to 0 to prevent the JS WritableStream from buffering chunks in its queue,
-        // since the original Rust sink is better suited to handle that.
-        let strategy = QueuingStrategy::new(0.0);
-        let raw = sys::WritableStream::new_with_sink(sink, strategy);
+        // Use the default queuing strategy (with a HWM of 1 chunk).
+        // We shouldn't set HWM to 0, since that would break piping to the writable stream.
+        let raw = sys::WritableStream::new_with_sink(sink);
         WritableStream { raw }
     }
 }
