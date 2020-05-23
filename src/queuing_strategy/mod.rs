@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct QueuingStrategy {
+pub(crate) struct QueuingStrategy {
     high_water_mark: f64,
 }
 
