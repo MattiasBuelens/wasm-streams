@@ -11,14 +11,14 @@ use super::sys;
 
 #[wasm_bindgen]
 pub(crate) struct IntoUnderlyingSource {
-    inner: Rc<RefCell<Inner<Pin<Box<dyn Stream<Item = Result<JsValue, JsValue>>>>>>>,
+    inner: Rc<RefCell<Inner>>,
     pull_handle: Option<AbortHandle>,
 }
 
 impl IntoUnderlyingSource {
     pub fn new(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
         IntoUnderlyingSource {
-            inner: Rc::new(RefCell::new(Inner::new(stream.into()))),
+            inner: Rc::new(RefCell::new(Inner::new(stream))),
             pull_handle: None,
         }
     }
@@ -69,17 +69,14 @@ impl Drop for IntoUnderlyingSource {
     }
 }
 
-struct Inner<S> {
-    stream: Option<S>,
+struct Inner {
+    stream: Option<Pin<Box<dyn Stream<Item = Result<JsValue, JsValue>>>>>,
 }
 
-impl<S> Inner<S>
-where
-    S: Stream<Item = Result<JsValue, JsValue>> + Unpin,
-{
-    fn new(stream: S) -> Self {
+impl Inner {
+    fn new(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
         Inner {
-            stream: Some(stream),
+            stream: Some(stream.into()),
         }
     }
 

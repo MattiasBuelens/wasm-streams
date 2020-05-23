@@ -9,7 +9,7 @@ use wasm_bindgen_futures::future_to_promise;
 
 #[wasm_bindgen]
 pub(crate) struct IntoUnderlyingSink {
-    inner: Rc<RefCell<Inner<Pin<Box<dyn Sink<JsValue, Error = JsValue>>>>>>,
+    inner: Rc<RefCell<Inner>>,
 }
 
 impl IntoUnderlyingSink {
@@ -47,16 +47,15 @@ impl IntoUnderlyingSink {
     }
 }
 
-struct Inner<S> {
-    sink: Option<S>,
+struct Inner {
+    sink: Option<Pin<Box<dyn Sink<JsValue, Error = JsValue>>>>,
 }
 
-impl<S> Inner<S>
-where
-    S: Sink<JsValue, Error = JsValue> + Unpin,
-{
-    fn new(sink: S) -> Self {
-        Inner { sink: Some(sink) }
+impl Inner {
+    fn new(sink: Box<dyn Sink<JsValue, Error = JsValue>>) -> Self {
+        Inner {
+            sink: Some(sink.into()),
+        }
     }
 
     async fn write(&mut self, chunk: JsValue) -> Result<(), JsValue> {
@@ -73,14 +72,14 @@ where
         }
     }
 
-    async fn close(&mut self) -> Result<(), S::Error> {
+    async fn close(&mut self) -> Result<(), JsValue> {
         let sink = self.sink.as_mut().unwrap_throw();
         let result = sink.close().await;
         self.sink = None;
         result
     }
 
-    async fn abort(&mut self, _reason: JsValue) -> Result<(), S::Error> {
+    async fn abort(&mut self, _reason: JsValue) -> Result<(), JsValue> {
         self.sink = None;
         Ok(())
     }
