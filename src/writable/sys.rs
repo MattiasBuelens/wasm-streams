@@ -1,6 +1,8 @@
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
+use super::into_underlying_sink::IntoUnderlyingSink;
+
 #[wasm_bindgen]
 extern "C" {
     #[derive(Clone, Debug)]
@@ -8,6 +10,9 @@ extern "C" {
 
     #[wasm_bindgen(constructor)]
     pub fn new() -> WritableStream;
+
+    #[wasm_bindgen(constructor)]
+    pub(crate) fn new_with_sink(sink: IntoUnderlyingSink) -> WritableStream;
 
     #[wasm_bindgen(method, getter, js_name = locked)]
     pub fn is_locked(this: &WritableStream) -> bool;

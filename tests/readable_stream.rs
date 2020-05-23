@@ -1,5 +1,5 @@
 use futures::future::{abortable, join, Aborted};
-use futures::stream::{iter, Stream, StreamExt};
+use futures::stream::{iter, StreamExt};
 use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
@@ -44,8 +44,7 @@ async fn test_readable_stream_into_stream() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_from_stream() {
-    let stream = Box::new(iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s))))
-        as Box<dyn Stream<Item = Result<JsValue, JsValue>>>;
+    let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
     let mut readable = ReadableStream::from(stream);
 
     let mut reader = readable.get_reader().unwrap();
@@ -57,8 +56,7 @@ async fn test_readable_stream_from_stream() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_from_stream_cancel() {
-    let stream = Box::new(iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s))))
-        as Box<dyn Stream<Item = Result<JsValue, JsValue>>>;
+    let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
     let mut readable = ReadableStream::from(stream);
 
     let mut reader = readable.get_reader().unwrap();

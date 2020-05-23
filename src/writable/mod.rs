@@ -1,11 +1,15 @@
 use std::marker::PhantomData;
 
+use futures::Sink;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
 pub use into_sink::IntoSink;
 
+use crate::writable::into_underlying_sink::IntoUnderlyingSink;
+
 mod into_sink;
+mod into_underlying_sink;
 pub mod sys;
 
 pub struct WritableStream {
@@ -49,6 +53,19 @@ impl WritableStream {
             raw: Some(self.raw.get_writer()?),
             _stream: PhantomData,
         })
+    }
+}
+
+impl<Si> From<Si> for WritableStream
+where
+    Si: Sink<JsValue, Error = JsValue> + 'static,
+{
+    fn from(sink: Si) -> Self {
+        let sink = IntoUnderlyingSink::new(Box::new(sink));
+        // Use the default queuing strategy (with a HWM of 1 chunk).
+        // We shouldn't set HWM to 0, since that would break piping to the writable stream.
+        let raw = sys::WritableStream::new_with_sink(sink);
+        WritableStream { raw }
     }
 }
 
