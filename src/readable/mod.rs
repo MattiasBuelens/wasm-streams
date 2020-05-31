@@ -49,7 +49,7 @@ impl ReadableStream {
         Ok(())
     }
 
-    pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader<'_>, JsValue> {
+    pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader, JsValue> {
         Ok(ReadableStreamDefaultReader {
             raw: Some(self.raw.get_reader()?),
             _stream: PhantomData,

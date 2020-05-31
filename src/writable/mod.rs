@@ -48,7 +48,7 @@ impl WritableStream {
         Ok(())
     }
 
-    pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter<'_>, JsValue> {
+    pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter, JsValue> {
         Ok(WritableStreamDefaultWriter {
             raw: Some(self.raw.get_writer()?),
             _stream: PhantomData,
