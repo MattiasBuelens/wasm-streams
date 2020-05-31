@@ -3,8 +3,12 @@ name = "wasm-streams"
 version = "0.1.0"
 authors = ["Mattias Buelens <mattias@buelens.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/MattiasBuelens/wasm-streams/"
+description = """
+Bridging between web streams and Rust streams using WebAssembly
+"""
 
 [dependencies]
 js-sys = "^0.3.40"
