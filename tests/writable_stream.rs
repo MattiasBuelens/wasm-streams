@@ -1,6 +1,7 @@
 extern crate wasm_bindgen_test;
 
 use futures::channel::*;
+use futures::stream::iter;
 use futures::{SinkExt, StreamExt};
 use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
@@ -81,4 +82,20 @@ async fn test_writable_stream_from_sink() {
         output,
         vec![JsValue::from("Hello"), JsValue::from("world!")]
     );
+}
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_from_sink_then_into_sink() {
+    let (sink, stream) = mpsc::unbounded::<JsValue>();
+    let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
+    let writable = WritableStream::from(sink);
+    let mut sink = writable.into_sink().unwrap();
+
+    let chunks = vec![JsValue::from("Hello"), JsValue::from("world!")];
+    let mut input = iter(chunks.clone()).map(Ok);
+    sink.send_all(&mut input).await.unwrap();
+    sink.close().await.unwrap();
+
+    let output = stream.collect::<Vec<_>>().await;
+    assert_eq!(output, chunks);
 }

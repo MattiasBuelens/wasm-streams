@@ -119,3 +119,31 @@ async fn test_readable_stream_abort_read() {
     // Must cancel any pending reads before releasing the reader's lock
     reader.cancel().await.unwrap();
 }
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_from_stream_then_into_stream() {
+    let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
+    let readable = ReadableStream::from(stream);
+
+    let stream = readable.into_stream().unwrap();
+    pin_mut!(stream);
+
+    assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
+    assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
+    assert_eq!(stream.next().await, None);
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_into_stream_then_from_stream() {
+    let readable = ReadableStream::from_raw(new_readable_stream_from_array(
+        vec![JsValue::from("Hello"), JsValue::from("world!")].into_boxed_slice(),
+    ));
+    let stream = readable.into_stream().unwrap();
+    let mut readable = ReadableStream::from(stream);
+
+    let mut reader = readable.get_reader().unwrap();
+    assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
+    assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("world!")));
+    assert_eq!(reader.read().await.unwrap(), None);
+    reader.closed().await.unwrap();
+}
