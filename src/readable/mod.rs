@@ -69,9 +69,13 @@ impl ReadableStream {
         })
     }
 
-    pub fn into_stream(self) -> Result<IntoStream<'static>, JsValue> {
+    pub fn into_stream(self) -> Result<IntoStream<'static>, (Self, JsValue)> {
+        let raw_reader = match self.raw.get_reader() {
+            Ok(raw_reader) => raw_reader,
+            Err(err) => return Err((self, err)),
+        };
         let reader = ReadableStreamDefaultReader {
-            raw: Some(self.raw.get_reader()?),
+            raw: Some(raw_reader),
             _stream: PhantomData,
         };
         Ok(reader.into_stream())

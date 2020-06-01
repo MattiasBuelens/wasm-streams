@@ -56,9 +56,13 @@ impl WritableStream {
         })
     }
 
-    pub fn into_sink(self) -> Result<IntoSink<'static>, JsValue> {
+    pub fn into_sink(self) -> Result<IntoSink<'static>, (Self, JsValue)> {
+        let raw_writer = match self.raw.get_writer() {
+            Ok(raw_writer) => raw_writer,
+            Err(err) => return Err((self, err)),
+        };
         let writer = WritableStreamDefaultWriter {
-            raw: Some(self.raw.get_writer()?),
+            raw: Some(raw_writer),
             _stream: PhantomData,
         };
         Ok(writer.into_sink())
