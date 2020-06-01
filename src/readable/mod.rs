@@ -42,9 +42,9 @@ impl ReadableStream {
     /// Use [`map`](StreamExt::map), [`map_ok`](TryStreamExt::map_ok) and/or
     /// [`map_err`](TryStreamExt::map_err) to convert a stream's items to a `JsValue`
     /// before passing it to this function.
-    pub fn from_stream<S>(stream: S) -> Self
+    pub fn from_stream<St>(stream: St) -> Self
     where
-        S: Stream<Item = Result<JsValue, JsValue>> + 'static,
+        St: Stream<Item = Result<JsValue, JsValue>> + 'static,
     {
         let source = IntoUnderlyingSource::new(Box::new(stream));
         // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
@@ -128,13 +128,13 @@ impl ReadableStream {
     }
 }
 
-impl<S> From<S> for ReadableStream
+impl<St> From<St> for ReadableStream
 where
-    S: Stream<Item = Result<JsValue, JsValue>> + 'static,
+    St: Stream<Item = Result<JsValue, JsValue>> + 'static,
 {
     /// Equivalent to [`from_stream`](Self::from_stream).
     #[inline]
-    fn from(stream: S) -> Self {
+    fn from(stream: St) -> Self {
         Self::from_stream(stream)
     }
 }
