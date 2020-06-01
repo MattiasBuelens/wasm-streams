@@ -2,7 +2,7 @@
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 use std::marker::PhantomData;
 
-use futures::stream::{Stream, StreamExt, TryStreamExt};
+use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
@@ -39,8 +39,8 @@ impl ReadableStream {
     /// Creates a new `ReadableStream` from a [`Stream`](Stream).
     ///
     /// Items and errors must be represented as raw [`JsValue`](JsValue)s.
-    /// Use [`map`](StreamExt::map), [`map_ok`](TryStreamExt::map_ok) and/or
-    /// [`map_err`](TryStreamExt::map_err) to convert a stream's items to a `JsValue`
+    /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
+    /// [`map_err`](futures::TryStreamExt::map_err) to convert a stream's items to a `JsValue`
     /// before passing it to this function.
     pub fn from_stream<St>(stream: St) -> Self
     where
@@ -109,8 +109,8 @@ impl ReadableStream {
     /// Converts this `ReadableStream` into a [`Stream`](Stream).
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
-    /// Use [`map`](StreamExt::map), [`map_ok`](TryStreamExt::map_ok) and/or
-    /// [`map_err`](TryStreamExt::map_err) on the returned stream to convert them to a more
+    /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
+    /// [`map_err`](futures::TryStreamExt::map_err) on the returned stream to convert them to a more
     /// appropriate type.
     ///
     /// If the stream is already locked to a reader, then this returns an error
