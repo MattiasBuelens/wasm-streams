@@ -1,3 +1,5 @@
+//! Raw bindings to JavaScript objects used
+//! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
@@ -7,6 +9,13 @@ use super::into_underlying_source::IntoUnderlyingSource;
 
 #[wasm_bindgen]
 extern "C" {
+    /// A raw [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+    ///
+    /// This represents the same JavaScript objects as [`web_sys::ReadableStream`][web-sys].
+    /// If you're using an API that returns such an object, you can cast it to this type using
+    /// [`unchecked_into`][wasm_bindgen::JsCast::unchecked_into].
+    ///
+    /// [web-sys]: https://docs.rs/web-sys/latest/web_sys/struct.ReadableStream.html
     #[derive(Clone, Debug)]
     pub type ReadableStream;
 
@@ -34,6 +43,7 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
+    /// A raw [`ReadableStreamDefaultController`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultController).
     #[derive(Clone, Debug)]
     pub type ReadableStreamDefaultController;
 
@@ -52,6 +62,7 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
+    /// A raw [`ReadableStreamDefaultReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader).
     #[derive(Clone, Debug)]
     pub type ReadableStreamDefaultReader;
 
@@ -73,6 +84,7 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
+    /// A result returned by [`ReadableStreamDefaultReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read).
     #[derive(Clone, Debug)]
     pub type ReadableStreamReadResult;
 
