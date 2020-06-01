@@ -23,6 +23,17 @@ impl WritableStream {
         Self { raw }
     }
 
+    pub fn from_sink<Si>(sink: Si) -> Self
+    where
+        Si: Sink<JsValue, Error = JsValue> + 'static,
+    {
+        let sink = IntoUnderlyingSink::new(Box::new(sink));
+        // Use the default queuing strategy (with a HWM of 1 chunk).
+        // We shouldn't set HWM to 0, since that would break piping to the writable stream.
+        let raw = sys::WritableStream::new_with_sink(sink);
+        WritableStream { raw }
+    }
+
     #[inline]
     pub fn as_raw(&self) -> &sys::WritableStream {
         &self.raw
@@ -73,12 +84,9 @@ impl<Si> From<Si> for WritableStream
 where
     Si: Sink<JsValue, Error = JsValue> + 'static,
 {
+    #[inline]
     fn from(sink: Si) -> Self {
-        let sink = IntoUnderlyingSink::new(Box::new(sink));
-        // Use the default queuing strategy (with a HWM of 1 chunk).
-        // We shouldn't set HWM to 0, since that would break piping to the writable stream.
-        let raw = sys::WritableStream::new_with_sink(sink);
-        WritableStream { raw }
+        Self::from_sink(sink)
     }
 }
 
