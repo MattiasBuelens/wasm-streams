@@ -24,6 +24,18 @@ impl ReadableStream {
         Self { raw }
     }
 
+    pub fn from_stream<S>(stream: S) -> Self
+    where
+        S: Stream<Item = Result<JsValue, JsValue>> + 'static,
+    {
+        let source = IntoUnderlyingSource::new(Box::new(stream));
+        // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
+        // since the original Rust stream is better suited to handle that.
+        let strategy = QueuingStrategy::new(0.0);
+        let raw = sys::ReadableStream::new_with_source(source, strategy);
+        Self { raw }
+    }
+
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStream {
         &self.raw
@@ -70,13 +82,9 @@ impl<S> From<S> for ReadableStream
 where
     S: Stream<Item = Result<JsValue, JsValue>> + 'static,
 {
+    #[inline]
     fn from(stream: S) -> Self {
-        let source = IntoUnderlyingSource::new(Box::new(stream));
-        // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
-        // since the original Rust stream is better suited to handle that.
-        let strategy = QueuingStrategy::new(0.0);
-        let raw = sys::ReadableStream::new_with_source(source, strategy);
-        ReadableStream { raw }
+        Self::from_stream(stream)
     }
 }
 
