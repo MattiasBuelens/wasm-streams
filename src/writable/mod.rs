@@ -12,6 +12,7 @@ mod into_sink;
 mod into_underlying_sink;
 pub mod sys;
 
+#[derive(Debug)]
 pub struct WritableStream {
     raw: sys::WritableStream,
 }
@@ -77,6 +78,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct WritableStreamDefaultWriter<'stream> {
     raw: Option<sys::WritableStreamDefaultWriter>,
     _stream: PhantomData<&'stream mut WritableStream>,

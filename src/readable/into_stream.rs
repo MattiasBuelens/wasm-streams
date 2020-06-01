@@ -12,6 +12,7 @@ use super::sys::ReadableStreamReadResult;
 use super::ReadableStreamDefaultReader;
 
 #[must_use = "streams do nothing unless polled"]
+#[derive(Debug)]
 pub struct IntoStream<'reader> {
     reader: Option<ReadableStreamDefaultReader<'reader>>,
     fut: Option<JsFuture>,

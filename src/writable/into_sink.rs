@@ -10,6 +10,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use super::WritableStreamDefaultWriter;
 
+#[derive(Debug)]
 pub struct IntoSink<'writer> {
     writer: Option<WritableStreamDefaultWriter<'writer>>,
     ready_fut: Option<JsFuture>,

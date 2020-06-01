@@ -13,6 +13,7 @@ mod into_stream;
 mod into_underlying_source;
 pub mod sys;
 
+#[derive(Debug)]
 pub struct ReadableStream {
     raw: sys::ReadableStream,
 }
@@ -79,6 +80,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct ReadableStreamDefaultReader<'stream> {
     raw: Option<sys::ReadableStreamDefaultReader>,
     _stream: PhantomData<&'stream mut ReadableStream>,

@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+#[derive(Debug)]
 pub(crate) struct QueuingStrategy {
     high_water_mark: f64,
 }

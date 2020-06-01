@@ -3,6 +3,7 @@ use crate::writable::WritableStream;
 
 pub mod sys;
 
+#[derive(Debug)]
 pub struct TransformStream {
     raw: sys::TransformStream,
 }
