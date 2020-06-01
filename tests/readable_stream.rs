@@ -71,7 +71,7 @@ async fn test_readable_stream_reader_into_stream() {
 #[wasm_bindgen_test]
 async fn test_readable_stream_from_stream() {
     let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
-    let mut readable = ReadableStream::from(stream);
+    let mut readable = ReadableStream::from_stream(stream);
 
     let mut reader = readable.get_reader().unwrap();
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
@@ -83,7 +83,7 @@ async fn test_readable_stream_from_stream() {
 #[wasm_bindgen_test]
 async fn test_readable_stream_from_stream_cancel() {
     let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
-    let mut readable = ReadableStream::from(stream);
+    let mut readable = ReadableStream::from_stream(stream);
 
     let mut reader = readable.get_reader().unwrap();
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
@@ -123,7 +123,7 @@ async fn test_readable_stream_abort_read() {
 #[wasm_bindgen_test]
 async fn test_readable_stream_from_stream_then_into_stream() {
     let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
-    let readable = ReadableStream::from(stream);
+    let readable = ReadableStream::from_stream(stream);
 
     let stream = readable.into_stream().unwrap();
     pin_mut!(stream);
@@ -139,7 +139,7 @@ async fn test_readable_stream_into_stream_then_from_stream() {
         vec![JsValue::from("Hello"), JsValue::from("world!")].into_boxed_slice(),
     ));
     let stream = readable.into_stream().unwrap();
-    let mut readable = ReadableStream::from(stream);
+    let mut readable = ReadableStream::from_stream(stream);
 
     let mut reader = readable.get_reader().unwrap();
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));

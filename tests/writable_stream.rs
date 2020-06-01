@@ -69,7 +69,7 @@ async fn test_writable_stream_writer_into_sink() {
 async fn test_writable_stream_from_sink() {
     let (sink, stream) = mpsc::unbounded::<JsValue>();
     let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
-    let mut writable = WritableStream::from(sink);
+    let mut writable = WritableStream::from_sink(sink);
 
     let mut writer = writable.get_writer().unwrap();
     assert_eq!(writer.write(JsValue::from("Hello")).await.unwrap(), ());
@@ -88,7 +88,7 @@ async fn test_writable_stream_from_sink() {
 async fn test_writable_stream_from_sink_then_into_sink() {
     let (sink, stream) = mpsc::unbounded::<JsValue>();
     let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
-    let writable = WritableStream::from(sink);
+    let writable = WritableStream::from_sink(sink);
     let mut sink = writable.into_sink().unwrap();
 
     let chunks = vec![JsValue::from("Hello"), JsValue::from("world!")];
