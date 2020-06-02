@@ -111,10 +111,10 @@ impl WritableStream {
     ///
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
-    pub fn into_sink(self) -> Result<IntoSink<'static>, (Self, JsValue)> {
+    pub fn into_sink(self) -> Result<IntoSink<'static>, (JsValue, Self)> {
         let raw_writer = match self.raw.get_writer() {
             Ok(raw_writer) => raw_writer,
-            Err(err) => return Err((self, err)),
+            Err(err) => return Err((err, self)),
         };
         let writer = WritableStreamDefaultWriter {
             raw: Some(raw_writer),

@@ -115,10 +115,10 @@ impl ReadableStream {
     ///
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
-    pub fn into_stream(self) -> Result<IntoStream<'static>, (Self, JsValue)> {
+    pub fn into_stream(self) -> Result<IntoStream<'static>, (JsValue, Self)> {
         let raw_reader = match self.raw.get_reader() {
             Ok(raw_reader) => raw_reader,
-            Err(err) => return Err((self, err)),
+            Err(err) => return Err((err, self)),
         };
         let reader = ReadableStreamDefaultReader {
             raw: Some(raw_reader),
