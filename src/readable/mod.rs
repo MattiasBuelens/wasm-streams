@@ -94,7 +94,7 @@ impl ReadableStream {
     }
 
     /// Creates a [default reader](ReadableStreamDefaultReader) and
-    /// [locks](https://streams.spec.whatwg.org/#lock) the stream to it.
+    /// [locks](https://streams.spec.whatwg.org/#lock) the stream to the new reader.
     ///
     /// While the stream is locked, no other reader can be acquired until this one is released.
     ///
@@ -204,7 +204,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
         }
     }
 
-    /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's on the
+    /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
     /// corresponding stream.
     ///
     /// The lock cannot be released while the reader still has a pending read request, i.e.
@@ -221,8 +221,9 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// Converts this `ReadableStreamDefaultReader` into a [`Stream`](Stream).
     ///
     /// This is similar to [`ReadableStream.into_stream`](ReadableStream::into_stream),
-    /// except that after the returned stream is dropped, the original `ReadableStream` is still
-    /// usable. This allows reading only a few chunks, without losing the remaining chunks.
+    /// except that after the returned `Stream` is dropped, the original `ReadableStream` is still
+    /// usable. This allows reading only a few chunks from the `Stream`, while still allowing
+    /// another reader to read the remaining chunks later on.
     pub fn into_stream(self) -> IntoStream<'stream> {
         IntoStream::new(self)
     }

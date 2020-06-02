@@ -1,3 +1,5 @@
+//! Raw bindings to JavaScript objects used
+//! by a [`WritableStream`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
@@ -5,6 +7,7 @@ use super::into_underlying_sink::IntoUnderlyingSink;
 
 #[wasm_bindgen]
 extern "C" {
+    /// A raw [`WritableStream`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
     #[derive(Clone, Debug)]
     pub type WritableStream;
 
@@ -29,6 +32,7 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
+    /// A raw [`WritableStreamDefaultWriter`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStreamDefaultWriter).
     #[derive(Clone, Debug)]
     pub type WritableStreamDefaultWriter;
 
