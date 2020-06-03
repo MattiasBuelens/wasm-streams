@@ -13,8 +13,8 @@ pub mod sys;
 /// Use [`readable`](Self::readable) and [`writable`](Self::writable) to access the readable and
 /// writable side of the transform stream.
 /// These can then be converted into a Rust [`Stream`](futures::Stream) and [`Sink`](futures::Sink)
-/// respectively using [`into_stream`](super::readable::ReadableStream::into_stream)
-/// and [`into_sink`](super::writable::WritableStream::into_sink).
+/// respectively using [`into_stream`](super::ReadableStream::into_stream)
+/// and [`into_sink`](super::WritableStream::into_sink).
 #[derive(Debug)]
 pub struct TransformStream {
     raw: sys::TransformStream,
