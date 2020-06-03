@@ -1,3 +1,5 @@
+//! Raw bindings to JavaScript objects used
+//! by a [`TransformStream`](https://developer.mozilla.org/en-US/docs/Web/API/TransformStream).
 use wasm_bindgen::prelude::*;
 
 use crate::readable::sys::ReadableStream;
@@ -5,6 +7,7 @@ use crate::writable::sys::WritableStream;
 
 #[wasm_bindgen]
 extern "C" {
+    /// A raw [`TransformStream`](https://developer.mozilla.org/en-US/docs/Web/API/TransformStream).
     #[derive(Clone, Debug)]
     pub type TransformStream;
 
