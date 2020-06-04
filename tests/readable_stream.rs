@@ -1,6 +1,5 @@
 use futures::future::{abortable, join, Aborted};
 use futures::stream::{iter, StreamExt};
-use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
@@ -33,8 +32,7 @@ async fn test_readable_stream_into_stream() {
     ));
     assert!(!readable.is_locked());
 
-    let stream = readable.into_stream().unwrap();
-    pin_mut!(stream);
+    let mut stream = readable.into_stream().unwrap();
 
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
@@ -51,8 +49,7 @@ async fn test_readable_stream_reader_into_stream() {
     {
         // Acquire a reader and wrap it in a Rust stream
         let reader = readable.get_reader().unwrap();
-        let stream = reader.into_stream();
-        pin_mut!(stream);
+        let mut stream = reader.into_stream();
 
         assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     }
@@ -125,8 +122,7 @@ async fn test_readable_stream_from_stream_then_into_stream() {
     let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
     let readable = ReadableStream::from_stream(stream);
 
-    let stream = readable.into_stream().unwrap();
-    pin_mut!(stream);
+    let mut stream = readable.into_stream().unwrap();
 
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));

@@ -3,7 +3,6 @@ extern crate wasm_bindgen_test;
 use futures::channel::*;
 use futures::stream::iter;
 use futures::{SinkExt, StreamExt};
-use pin_utils::pin_mut;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
@@ -32,8 +31,7 @@ async fn test_writable_stream_into_sink() {
     let writable = WritableStream::from_raw(new_logging_writable_stream());
     assert!(!writable.is_locked());
 
-    let sink = writable.into_sink().unwrap();
-    pin_mut!(sink);
+    let mut sink = writable.into_sink().unwrap();
 
     assert_eq!(sink.send(JsValue::from("Hello")).await, Ok(()));
     assert_eq!(sink.send(JsValue::from("world!")).await, Ok(()));
@@ -48,8 +46,7 @@ async fn test_writable_stream_writer_into_sink() {
     {
         // Acquire a writer and wrap it in a Rust sink
         let writer = writable.get_writer().unwrap();
-        let sink = writer.into_sink();
-        pin_mut!(sink);
+        let mut sink = writer.into_sink();
 
         assert_eq!(sink.send(JsValue::from("Hello")).await, Ok(()));
     }
