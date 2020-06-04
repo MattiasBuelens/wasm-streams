@@ -6,6 +6,7 @@ use futures::{SinkExt, StreamExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
+use assert_impl::assert_impl;
 use wasm_streams::writable::*;
 
 #[wasm_bindgen(module = "/tests/writable_stream.js")]
@@ -36,6 +37,11 @@ async fn test_writable_stream_into_sink() {
     assert_eq!(sink.send(JsValue::from("Hello")).await, Ok(()));
     assert_eq!(sink.send(JsValue::from("world!")).await, Ok(()));
     assert_eq!(sink.close().await, Ok(()));
+}
+
+#[wasm_bindgen_test]
+fn test_writable_stream_into_sink_impl_unpin() {
+    assert_impl!(Unpin: IntoSink<'_>);
 }
 
 #[wasm_bindgen_test]

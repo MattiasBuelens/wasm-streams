@@ -3,6 +3,7 @@ use futures::stream::{iter, StreamExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
+use assert_impl::assert_impl;
 use wasm_streams::readable::*;
 
 #[wasm_bindgen(module = "/tests/readable_stream.js")]
@@ -37,6 +38,11 @@ async fn test_readable_stream_into_stream() {
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
     assert_eq!(stream.next().await, None);
+}
+
+#[wasm_bindgen_test]
+fn test_readable_stream_into_stream_impl_unpin() {
+    assert_impl!(Unpin: IntoStream<'_>);
 }
 
 #[wasm_bindgen_test]
