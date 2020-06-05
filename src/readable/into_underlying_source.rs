@@ -9,6 +9,8 @@ use wasm_bindgen_futures::spawn_local;
 
 use super::sys;
 
+type JsValueStream = dyn Stream<Item = Result<JsValue, JsValue>>;
+
 #[wasm_bindgen]
 pub(crate) struct IntoUnderlyingSource {
     inner: Rc<RefCell<Inner>>,
@@ -16,7 +18,7 @@ pub(crate) struct IntoUnderlyingSource {
 }
 
 impl IntoUnderlyingSource {
-    pub fn new(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
+    pub fn new(stream: Box<JsValueStream>) -> Self {
         IntoUnderlyingSource {
             inner: Rc::new(RefCell::new(Inner::new(stream))),
             pull_handle: None,
@@ -70,11 +72,11 @@ impl Drop for IntoUnderlyingSource {
 }
 
 struct Inner {
-    stream: Option<Pin<Box<dyn Stream<Item = Result<JsValue, JsValue>>>>>,
+    stream: Option<Pin<Box<JsValueStream>>>,
 }
 
 impl Inner {
-    fn new(stream: Box<dyn Stream<Item = Result<JsValue, JsValue>>>) -> Self {
+    fn new(stream: Box<JsValueStream>) -> Self {
         Inner {
             stream: Some(stream.into()),
         }

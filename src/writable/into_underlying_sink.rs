@@ -15,7 +15,7 @@ pub(crate) struct IntoUnderlyingSink {
 impl IntoUnderlyingSink {
     pub fn new(sink: Box<dyn Sink<JsValue, Error = JsValue>>) -> Self {
         IntoUnderlyingSink {
-            inner: Rc::new(RefCell::new(Inner::new(sink.into()))),
+            inner: Rc::new(RefCell::new(Inner::new(sink))),
         }
     }
 }
