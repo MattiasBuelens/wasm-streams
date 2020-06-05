@@ -9,8 +9,10 @@ use web_sys::{console, window, Response};
 
 use wasm_streams::ReadableStream;
 
-async fn fetch_example(url: &str) {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Make a fetch request
+    let url = "http://example.com/";
     let window = window().unwrap();
     let resp_value = JsFuture::from(window.fetch_with_str(url))
         .await
@@ -28,4 +30,6 @@ async fn fetch_example(url: &str) {
     while let Some(Ok(chunk)) = stream.next().await {
         console::log_1(&chunk);
     }
+
+    Ok(())
 }
