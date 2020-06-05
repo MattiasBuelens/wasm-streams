@@ -1,9 +1,10 @@
+use std::pin::Pin;
+
 use futures::future::{abortable, join, Aborted};
 use futures::stream::{iter, StreamExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use assert_impl::assert_impl;
 use wasm_streams::readable::*;
 
 #[wasm_bindgen(module = "/tests/readable_stream.js")]
@@ -42,7 +43,10 @@ async fn test_readable_stream_into_stream() {
 
 #[wasm_bindgen_test]
 fn test_readable_stream_into_stream_impl_unpin() {
-    assert_impl!(Unpin: IntoStream<'_>);
+    let readable = ReadableStream::from_raw(new_noop_readable_stream());
+    let stream: IntoStream = readable.into_stream().unwrap();
+
+    let _ = Pin::new(&stream); // must be Unpin for this to work
 }
 
 #[wasm_bindgen_test]
