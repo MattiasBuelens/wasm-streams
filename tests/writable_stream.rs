@@ -1,5 +1,3 @@
-extern crate wasm_bindgen_test;
-
 use std::pin::Pin;
 
 use futures::channel::*;
