@@ -16,14 +16,14 @@ async fn test_transform_stream_new() {
     join(
         async {
             let mut writable = transform.writable();
-            let mut writer = writable.get_writer().unwrap();
+            let mut writer = writable.get_writer();
             writer.write(JsValue::from("Hello")).await.unwrap();
             writer.write(JsValue::from("world!")).await.unwrap();
             writer.close().await.unwrap();
         },
         async {
             let mut readable = transform.readable();
-            let mut reader = readable.get_reader().unwrap();
+            let mut reader = readable.get_reader();
             assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
             assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("world!")));
             assert_eq!(reader.read().await.unwrap(), None);
@@ -38,14 +38,14 @@ async fn test_transform_stream_new_uppercase() {
     join(
         async {
             let mut writable = transform.writable();
-            let mut writer = writable.get_writer().unwrap();
+            let mut writer = writable.get_writer();
             writer.write(JsValue::from("Hello")).await.unwrap();
             writer.write(JsValue::from("world!")).await.unwrap();
             writer.close().await.unwrap();
         },
         async {
             let mut readable = transform.readable();
-            let mut reader = readable.get_reader().unwrap();
+            let mut reader = readable.get_reader();
             assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("HELLO")));
             assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("WORLD!")));
             assert_eq!(reader.read().await.unwrap(), None);

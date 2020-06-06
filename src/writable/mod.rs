@@ -106,8 +106,21 @@ impl WritableStream {
     ///
     /// While the stream is locked, no other writer can be acquired until this one is released.
     ///
+    /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
+    /// use [`try_get_writer`](Self::try_get_writer).
+    #[inline]
+    pub fn get_writer(&mut self) -> WritableStreamDefaultWriter {
+        self.try_get_writer()
+            .expect_throw("already locked to a writer")
+    }
+
+    /// Try to create a [writer](WritableStreamDefaultWriter) and
+    /// [lock](https://streams.spec.whatwg.org/#lock) the stream to the new writer.
+    ///
+    /// While the stream is locked, no other writer can be acquired until this one is released.
+    ///
     /// If the stream is already locked to a writer, then this returns an error.
-    pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter, js_sys::Error> {
+    pub fn try_get_writer(&mut self) -> Result<WritableStreamDefaultWriter, js_sys::Error> {
         Ok(WritableStreamDefaultWriter {
             raw: self.as_raw().get_writer()?,
             _stream: PhantomData,

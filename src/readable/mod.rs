@@ -110,8 +110,21 @@ impl ReadableStream {
     ///
     /// While the stream is locked, no other reader can be acquired until this one is released.
     ///
+    /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
+    /// use [`try_get_reader`](Self::try_get_reader).
+    #[inline]
+    pub fn get_reader(&mut self) -> ReadableStreamDefaultReader {
+        self.try_get_reader()
+            .expect_throw("already locked to a reader")
+    }
+
+    /// Try to create a [default reader](ReadableStreamDefaultReader) and
+    /// [lock](https://streams.spec.whatwg.org/#lock) the stream to the new reader.
+    ///
+    /// While the stream is locked, no other reader can be acquired until this one is released.
+    ///
     /// If the stream is already locked to a reader, then this returns an error.
-    pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader, js_sys::Error> {
+    pub fn try_get_reader(&mut self) -> Result<ReadableStreamDefaultReader, js_sys::Error> {
         Ok(ReadableStreamDefaultReader {
             raw: self.as_raw().get_reader()?,
             _stream: PhantomData,

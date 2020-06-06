@@ -19,7 +19,7 @@ async fn test_writable_stream_new() {
     let mut writable = WritableStream::from_raw(new_noop_writable_stream());
     assert!(!writable.is_locked());
 
-    let mut writer = writable.get_writer().unwrap();
+    let mut writer = writable.get_writer();
     assert_eq!(writer.write(JsValue::from("Hello")).await.unwrap(), ());
     assert_eq!(writer.write(JsValue::from("world!")).await.unwrap(), ());
     assert_eq!(writer.close().await.unwrap(), ());
@@ -53,7 +53,7 @@ async fn test_writable_stream_writer_into_sink() {
 
     {
         // Acquire a writer and wrap it in a Rust sink
-        let writer = writable.get_writer().unwrap();
+        let writer = writable.get_writer();
         let mut sink = writer.into_sink();
 
         assert_eq!(sink.send(JsValue::from("Hello")).await, Ok(()));
@@ -64,7 +64,7 @@ async fn test_writable_stream_writer_into_sink() {
 
     {
         // Can acquire a new writer after wrapped sink is dropped
-        let mut writer = writable.get_writer().unwrap();
+        let mut writer = writable.get_writer();
         assert_eq!(writer.write(JsValue::from("world!")).await.unwrap(), ());
         assert_eq!(writer.close().await.unwrap(), ());
     }
@@ -76,7 +76,7 @@ async fn test_writable_stream_from_sink() {
     let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
     let mut writable = WritableStream::from_sink(sink);
 
-    let mut writer = writable.get_writer().unwrap();
+    let mut writer = writable.get_writer();
     assert_eq!(writer.write(JsValue::from("Hello")).await.unwrap(), ());
     assert_eq!(writer.write(JsValue::from("world!")).await.unwrap(), ());
     assert_eq!(writer.close().await.unwrap(), ());
@@ -109,11 +109,11 @@ async fn test_writable_stream_from_sink_then_into_sink() {
 async fn test_writable_stream_multiple_writers() {
     let mut writable = WritableStream::from_raw(new_noop_writable_stream());
 
-    let mut writer = writable.get_writer().unwrap();
+    let mut writer = writable.get_writer();
     writer.write(JsValue::from_str("Hello")).await.unwrap();
     drop(writer);
 
-    let mut writer = writable.get_writer().unwrap();
+    let mut writer = writable.get_writer();
     writer.write(JsValue::from_str("world!")).await.unwrap();
     writer.close().await.unwrap();
     drop(writer);
