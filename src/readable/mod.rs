@@ -69,7 +69,7 @@ impl ReadableStream {
 
     /// Returns `true` if the stream is [locked to a reader](https://streams.spec.whatwg.org/#lock).
     pub fn is_locked(&self) -> bool {
-        self.raw.is_locked()
+        self.as_raw().is_locked()
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -77,7 +77,7 @@ impl ReadableStream {
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
     pub fn cancel<'a>(&'a mut self) -> impl Future<Output = Result<(), JsValue>> + 'a {
-        let promise = self.raw.cancel();
+        let promise = self.as_raw().cancel();
         async {
             let js_value = JsFuture::from(promise).await?;
             debug_assert!(js_value.is_undefined());
@@ -95,7 +95,7 @@ impl ReadableStream {
         &'a mut self,
         reason: &JsValue,
     ) -> impl Future<Output = Result<(), JsValue>> + 'a {
-        let promise = self.raw.cancel_with_reason(reason);
+        let promise = self.as_raw().cancel_with_reason(reason);
         async {
             let js_value = JsFuture::from(promise).await?;
             debug_assert!(js_value.is_undefined());
@@ -111,7 +111,7 @@ impl ReadableStream {
     /// If the stream is already locked to a reader, then this returns an error.
     pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader, js_sys::Error> {
         Ok(ReadableStreamDefaultReader {
-            raw: Some(self.raw.get_reader()?),
+            raw: Some(self.as_raw().get_reader()?),
             _stream: PhantomData,
         })
     }
@@ -126,7 +126,7 @@ impl ReadableStream {
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
     pub fn into_stream(self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
-        let raw_reader = match self.raw.get_reader() {
+        let raw_reader = match self.as_raw().get_reader() {
             Ok(raw_reader) => raw_reader,
             Err(err) => return Err((err, self)),
         };

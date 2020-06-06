@@ -66,7 +66,7 @@ impl WritableStream {
 
     /// Returns `true` if the stream is [locked to a writer](https://streams.spec.whatwg.org/#lock).
     pub fn is_locked(&self) -> bool {
-        self.raw.is_locked()
+        self.as_raw().is_locked()
     }
 
     /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream,
@@ -75,7 +75,7 @@ impl WritableStream {
     ///
     /// If the stream is currently locked to a writer, then this returns an error.
     pub fn abort<'a>(&'a mut self) -> impl Future<Output = Result<(), JsValue>> + 'a {
-        let promise = self.raw.abort();
+        let promise = self.as_raw().abort();
         async {
             let js_value = JsFuture::from(promise).await?;
             debug_assert!(js_value.is_undefined());
@@ -92,7 +92,7 @@ impl WritableStream {
         &'a mut self,
         reason: &JsValue,
     ) -> impl Future<Output = Result<(), JsValue>> + 'a {
-        let promise = self.raw.abort_with_reason(reason);
+        let promise = self.as_raw().abort_with_reason(reason);
         async {
             let js_value = JsFuture::from(promise).await?;
             debug_assert!(js_value.is_undefined());
@@ -108,7 +108,7 @@ impl WritableStream {
     /// If the stream is already locked to a writer, then this returns an error.
     pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter, js_sys::Error> {
         Ok(WritableStreamDefaultWriter {
-            raw: self.raw.get_writer()?,
+            raw: self.as_raw().get_writer()?,
             _stream: PhantomData,
         })
     }
@@ -122,7 +122,7 @@ impl WritableStream {
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
     pub fn into_sink(self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
-        let raw_writer = match self.raw.get_writer() {
+        let raw_writer = match self.as_raw().get_writer() {
             Ok(raw_writer) => raw_writer,
             Err(err) => return Err((err, self)),
         };

@@ -41,11 +41,11 @@ impl TransformStream {
 
     /// Returns the readable side of the transform stream.
     pub fn readable(&self) -> ReadableStream {
-        ReadableStream::from_raw(self.raw.readable())
+        ReadableStream::from_raw(self.as_raw().readable())
     }
 
     /// Returns the writable side of the transform stream.
     pub fn writable(&self) -> WritableStream {
-        WritableStream::from_raw(self.raw.writable())
+        WritableStream::from_raw(self.as_raw().writable())
     }
 }
