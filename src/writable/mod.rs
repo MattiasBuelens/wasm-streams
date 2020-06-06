@@ -119,7 +119,8 @@ impl WritableStream {
     /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)
     /// on the returned stream to convert them to a more appropriate type.
     ///
-    /// **Panics** if the stream is already locked to a writer.
+    /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
+    /// use [`try_into_sink`](Self::try_into_sink).
     pub fn into_sink(self) -> IntoSink<'static> {
         self.try_into_sink()
             .expect_throw("already locked to a writer")

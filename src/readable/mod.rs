@@ -124,7 +124,8 @@ impl ReadableStream {
     /// [`map_err`](futures::TryStreamExt::map_err) on the returned stream to convert them to a more
     /// appropriate type.
     ///
-    /// **Panics** if the stream is already locked to a reader.
+    /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
+    /// use [`try_into_stream`](Self::try_into_stream).
     pub fn into_stream(self) -> IntoStream<'static> {
         self.try_into_stream()
             .expect_throw("already locked to a reader")
@@ -244,7 +245,8 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// corresponding stream.
     ///
     /// **Panics** if the reader still has a pending read request, i.e. if a future returned
-    /// by [`read`](Self::read) is not yet ready.
+    /// by [`read`](Self::read) is not yet ready. For a non-panicking variant,
+    /// use [`try_release_lock`](Self::try_release_lock).
     pub fn release_lock(mut self) -> () {
         self.release_lock_mut()
     }
