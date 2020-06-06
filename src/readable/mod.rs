@@ -5,6 +5,7 @@ use std::marker::PhantomData;
 
 use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::throw_val;
 use wasm_bindgen_futures::JsFuture;
 
 pub use into_stream::IntoStream;
@@ -165,7 +166,9 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// Acquires a reference to the underlying [JavaScript reader](sys::ReadableStreamDefaultReader).
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {
-        self.raw.as_ref().unwrap_throw()
+        self.raw
+            .as_ref()
+            .expect_throw("reader lock was already released")
     }
 
     /// Waits for the stream to become closed.
@@ -253,7 +256,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
 
 impl Drop for ReadableStreamDefaultReader<'_> {
     fn drop(&mut self) {
-        // TODO Error handling?
-        self.release_lock().unwrap_throw();
+        self.release_lock()
+            .unwrap_or_else(|error| throw_val(error.into()));
     }
 }
