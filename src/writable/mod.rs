@@ -1,5 +1,6 @@
 //! Bindings and conversions for
 //! [writable streams](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
+use std::future::Future;
 use std::marker::PhantomData;
 
 use futures::Sink;
@@ -73,10 +74,13 @@ impl WritableStream {
     /// and it is to be immediately moved to an errored state, with any queued-up writes discarded.
     ///
     /// If the stream is currently locked to a writer, then this returns an error.
-    pub async fn abort(&mut self) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.raw.abort()).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+    pub fn abort(&mut self) -> impl Future<Output = Result<(), JsValue>> {
+        let promise = self.raw.abort();
+        async {
+            let js_value = JsFuture::from(promise).await?;
+            debug_assert!(js_value.is_undefined());
+            Ok(())
+        }
     }
 
     /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream with the
@@ -84,10 +88,16 @@ impl WritableStream {
     /// and it is to be immediately moved to an errored state, with any queued-up writes discarded.
     ///
     /// If the stream is currently locked to a writer, then this returns an error.
-    pub async fn abort_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.raw.abort_with_reason(reason)).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+    pub fn abort_with_reason(
+        &mut self,
+        reason: &JsValue,
+    ) -> impl Future<Output = Result<(), JsValue>> {
+        let promise = self.raw.abort_with_reason(reason);
+        async {
+            let js_value = JsFuture::from(promise).await?;
+            debug_assert!(js_value.is_undefined());
+            Ok(())
+        }
     }
 
     /// Creates a [writer](WritableStreamDefaultWriter) and
@@ -195,20 +205,29 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// signaling that the producer can no longer successfully write to the stream.
     ///
     /// Equivalent to [`WritableStream.abort`](WritableStream::abort).
-    pub async fn abort(&mut self) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.as_raw().abort()).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+    pub fn abort(&mut self) -> impl Future<Output = Result<(), JsValue>> {
+        let promise = self.as_raw().abort();
+        async {
+            let js_value = JsFuture::from(promise).await?;
+            debug_assert!(js_value.is_undefined());
+            Ok(())
+        }
     }
 
     /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream with the
     /// given `reason`, signaling that the producer can no longer successfully write to the stream.
     ///
     /// Equivalent to [`WritableStream.abort_with_reason`](WritableStream::abort_with_reason).
-    pub async fn abort_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.as_raw().abort_with_reason(reason)).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+    pub fn abort_with_reason(
+        &mut self,
+        reason: &JsValue,
+    ) -> impl Future<Output = Result<(), JsValue>> {
+        let promise = self.as_raw().abort_with_reason(reason);
+        async {
+            let js_value = JsFuture::from(promise).await?;
+            debug_assert!(js_value.is_undefined());
+            Ok(())
+        }
     }
 
     /// Writes the given `chunk` to the writable stream, by waiting until any previous writes
@@ -221,10 +240,13 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// Note that what "success" means is up to the underlying sink; it might indicate simply
     /// that the chunk has been accepted, and not necessarily that it is safely saved to
     /// its ultimate destination.
-    pub async fn write(&mut self, chunk: JsValue) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.as_raw().write(chunk)).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+    pub fn write(&mut self, chunk: JsValue) -> impl Future<Output = Result<(), JsValue>> {
+        let promise = self.as_raw().write(chunk);
+        async {
+            let js_value = JsFuture::from(promise).await?;
+            debug_assert!(js_value.is_undefined());
+            Ok(())
+        }
     }
 
     /// Closes the stream.
@@ -235,10 +257,13 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     ///
     /// This returns `Ok(())` if all remaining chunks are successfully written and the stream
     /// successfully closes, or `Err(error)` if an error is encountered during this process.
-    pub async fn close(&mut self) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.as_raw().close()).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+    pub fn close(&mut self) -> impl Future<Output = Result<(), JsValue>> {
+        let promise = self.as_raw().close();
+        async {
+            let js_value = JsFuture::from(promise).await?;
+            debug_assert!(js_value.is_undefined());
+            Ok(())
+        }
     }
 
     /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this writer's lock on the
