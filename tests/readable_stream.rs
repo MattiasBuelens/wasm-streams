@@ -104,7 +104,7 @@ async fn test_readable_stream_multiple_readers() {
 
     // Release explicitly
     let reader = readable.get_reader().unwrap();
-    reader.release_lock().unwrap();
+    reader.release_lock();
     assert!(!readable.is_locked());
 
     // Release by drop
@@ -113,7 +113,7 @@ async fn test_readable_stream_multiple_readers() {
     assert!(!readable.is_locked());
 
     let reader = readable.get_reader().unwrap();
-    reader.release_lock().unwrap();
+    reader.release_lock();
     assert!(!readable.is_locked());
 }
 
@@ -129,14 +129,14 @@ async fn test_readable_stream_abort_read() {
 
     // Cannot release the lock while there are pending reads
     let (_err, mut reader) = reader
-        .release_lock()
+        .try_release_lock()
         .expect_err("reader was released while there are pending reads");
 
     // Cancel all pending reads
     reader.cancel().await.unwrap();
 
     // Can release lock after cancelling
-    reader.release_lock().unwrap();
+    reader.release_lock();
 }
 
 #[wasm_bindgen_test]

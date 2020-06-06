@@ -243,10 +243,25 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
     /// corresponding stream.
     ///
+    /// **Panics** if the reader still has a pending read request, i.e. if a future returned
+    /// by [`read`](Self::read) is not yet ready.
+    pub fn release_lock(mut self) -> () {
+        self.release_lock_mut()
+    }
+
+    fn release_lock_mut(&mut self) -> () {
+        self.as_raw()
+            .release_lock()
+            .unwrap_or_else(|error| throw_val(error.into()))
+    }
+
+    /// Try to [release](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
+    /// corresponding stream.
+    ///
     /// The lock cannot be released while the reader still has a pending read request, i.e.
     /// if a future returned by [`read`](Self::read) is not yet ready. Attempting to do so will
     /// return an error and leave the reader locked to the stream.
-    pub fn release_lock(self) -> Result<(), (js_sys::Error, Self)> {
+    pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
         self.as_raw().release_lock().map_err(|error| (error, self))
     }
 
@@ -263,8 +278,6 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
 
 impl Drop for ReadableStreamDefaultReader<'_> {
     fn drop(&mut self) {
-        self.as_raw()
-            .release_lock()
-            .unwrap_or_else(|error| throw_val(error.into()));
+        self.release_lock_mut();
     }
 }
