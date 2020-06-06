@@ -4,8 +4,10 @@ use js_sys::{Error, Promise};
 use wasm_bindgen::prelude::*;
 
 use crate::queuing_strategy::QueuingStrategy;
+use crate::writable::sys::WritableStream;
 
 use super::into_underlying_source::IntoUnderlyingSource;
+use super::pipe_options::PipeOptions;
 
 #[wasm_bindgen]
 extern "C" {
@@ -39,6 +41,9 @@ extern "C" {
 
     #[wasm_bindgen(method, catch, js_name = getReader)]
     pub fn get_reader(this: &ReadableStream) -> Result<ReadableStreamDefaultReader, Error>;
+
+    #[wasm_bindgen(method, js_name = pipeTo)]
+    pub fn pipe_to(this: &ReadableStream, dest: &WritableStream, opts: PipeOptions) -> Promise;
 }
 
 #[wasm_bindgen]
