@@ -1,6 +1,6 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`WritableStream`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
-use js_sys::Promise;
+use js_sys::{Error, Promise};
 use wasm_bindgen::prelude::*;
 
 use super::into_underlying_sink::IntoUnderlyingSink;
@@ -27,7 +27,7 @@ extern "C" {
     pub fn abort_with_reason(this: &WritableStream, reason: &JsValue) -> Promise;
 
     #[wasm_bindgen(method, catch, js_name = getWriter)]
-    pub fn get_writer(this: &WritableStream) -> Result<WritableStreamDefaultWriter, JsValue>;
+    pub fn get_writer(this: &WritableStream) -> Result<WritableStreamDefaultWriter, Error>;
 }
 
 #[wasm_bindgen]
@@ -58,5 +58,5 @@ extern "C" {
     pub fn write(this: &WritableStreamDefaultWriter, chunk: JsValue) -> Promise;
 
     #[wasm_bindgen(method, catch, js_name = releaseLock)]
-    pub fn release_lock(this: &WritableStreamDefaultWriter) -> Result<(), JsValue>;
+    pub fn release_lock(this: &WritableStreamDefaultWriter) -> Result<(), Error>;
 }

@@ -1,6 +1,6 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use js_sys::Promise;
+use js_sys::{Error, Promise};
 use wasm_bindgen::prelude::*;
 
 use crate::queuing_strategy::QueuingStrategy;
@@ -38,7 +38,7 @@ extern "C" {
     pub fn cancel_with_reason(this: &ReadableStream, reason: &JsValue) -> Promise;
 
     #[wasm_bindgen(method, catch, js_name = getReader)]
-    pub fn get_reader(this: &ReadableStream) -> Result<ReadableStreamDefaultReader, JsValue>;
+    pub fn get_reader(this: &ReadableStream) -> Result<ReadableStreamDefaultReader, Error>;
 }
 
 #[wasm_bindgen]
@@ -79,7 +79,7 @@ extern "C" {
     pub fn read(this: &ReadableStreamDefaultReader) -> Promise;
 
     #[wasm_bindgen(method, catch, js_name = releaseLock)]
-    pub fn release_lock(this: &ReadableStreamDefaultReader) -> Result<(), JsValue>;
+    pub fn release_lock(this: &ReadableStreamDefaultReader) -> Result<(), Error>;
 }
 
 #[wasm_bindgen]

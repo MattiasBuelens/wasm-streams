@@ -106,7 +106,7 @@ impl WritableStream {
     /// While the stream is locked, no other writer can be acquired until this one is released.
     ///
     /// If the stream is already locked to a writer, then this returns an error.
-    pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter, JsValue> {
+    pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter, js_sys::Error> {
         Ok(WritableStreamDefaultWriter {
             raw: Some(self.raw.get_writer()?),
             _stream: PhantomData,
@@ -121,7 +121,7 @@ impl WritableStream {
     ///
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
-    pub fn into_sink(self) -> Result<IntoSink<'static>, (JsValue, Self)> {
+    pub fn into_sink(self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
         let raw_writer = match self.raw.get_writer() {
             Ok(raw_writer) => raw_writer,
             Err(err) => return Err((err, self)),
@@ -280,7 +280,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// (i.e. even if the futures returned from previous calls to [`write()`](Self::write) are not
     /// yet ready). It's not necessary to hold the lock on the writer for the duration of the write;
     /// the lock instead simply prevents other producers from writing in an interleaved manner.
-    pub fn release_lock(&mut self) -> Result<(), JsValue> {
+    pub fn release_lock(&mut self) -> Result<(), js_sys::Error> {
         if let Some(raw) = self.raw.as_ref() {
             raw.release_lock()?;
             self.raw.take();

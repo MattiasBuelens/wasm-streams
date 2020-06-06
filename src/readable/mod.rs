@@ -109,7 +109,7 @@ impl ReadableStream {
     /// While the stream is locked, no other reader can be acquired until this one is released.
     ///
     /// If the stream is already locked to a reader, then this returns an error.
-    pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader, JsValue> {
+    pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader, js_sys::Error> {
         Ok(ReadableStreamDefaultReader {
             raw: Some(self.raw.get_reader()?),
             _stream: PhantomData,
@@ -125,7 +125,7 @@ impl ReadableStream {
     ///
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
-    pub fn into_stream(self) -> Result<IntoStream<'static>, (JsValue, Self)> {
+    pub fn into_stream(self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
         let raw_reader = match self.raw.get_reader() {
             Ok(raw_reader) => raw_reader,
             Err(err) => return Err((err, self)),
@@ -232,7 +232,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// The lock cannot be released while the reader still has a pending read request, i.e.
     /// if a future returned by [`read`](Self::read) is not yet ready. Attempting to do so will
     /// return an error and leave the reader locked to the stream.
-    pub fn release_lock(&mut self) -> Result<(), JsValue> {
+    pub fn release_lock(&mut self) -> Result<(), js_sys::Error> {
         if let Some(raw) = self.raw.as_ref() {
             raw.release_lock()?;
             self.raw.take();
