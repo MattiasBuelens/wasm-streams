@@ -104,3 +104,17 @@ async fn test_writable_stream_from_sink_then_into_sink() {
     let output = stream.collect::<Vec<_>>().await;
     assert_eq!(output, chunks);
 }
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_multiple_writers() {
+    let mut writable = WritableStream::from_raw(new_noop_writable_stream());
+
+    let mut writer = writable.get_writer().unwrap();
+    writer.write(JsValue::from_str("Hello")).await.unwrap();
+    drop(writer);
+
+    let mut writer = writable.get_writer().unwrap();
+    writer.write(JsValue::from_str("world!")).await.unwrap();
+    writer.close().await.unwrap();
+    drop(writer);
+}

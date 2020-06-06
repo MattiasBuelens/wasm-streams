@@ -112,7 +112,7 @@ impl ReadableStream {
     /// If the stream is already locked to a reader, then this returns an error.
     pub fn get_reader(&mut self) -> Result<ReadableStreamDefaultReader, js_sys::Error> {
         Ok(ReadableStreamDefaultReader {
-            raw: Some(self.as_raw().get_reader()?),
+            raw: self.as_raw().get_reader()?,
             _stream: PhantomData,
         })
     }
@@ -145,7 +145,7 @@ impl ReadableStream {
             Err(err) => return Err((err, self)),
         };
         let reader = ReadableStreamDefaultReader {
-            raw: Some(raw_reader),
+            raw: raw_reader,
             _stream: PhantomData,
         };
         Ok(reader.into_stream())
@@ -171,7 +171,7 @@ where
 /// When the reader is dropped, it automatically [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 #[derive(Debug)]
 pub struct ReadableStreamDefaultReader<'stream> {
-    raw: Option<sys::ReadableStreamDefaultReader>,
+    raw: sys::ReadableStreamDefaultReader,
     _stream: PhantomData<&'stream mut ReadableStream>,
 }
 
@@ -179,9 +179,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// Acquires a reference to the underlying [JavaScript reader](sys::ReadableStreamDefaultReader).
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {
-        self.raw
-            .as_ref()
-            .expect_throw("reader lock was already released")
+        &self.raw
     }
 
     /// Waits for the stream to become closed.
@@ -248,12 +246,8 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// The lock cannot be released while the reader still has a pending read request, i.e.
     /// if a future returned by [`read`](Self::read) is not yet ready. Attempting to do so will
     /// return an error and leave the reader locked to the stream.
-    pub fn release_lock(&mut self) -> Result<(), js_sys::Error> {
-        if let Some(raw) = self.raw.as_ref() {
-            raw.release_lock()?;
-            self.raw.take();
-        }
-        Ok(())
+    pub fn release_lock(self) -> Result<(), (js_sys::Error, Self)> {
+        self.as_raw().release_lock().map_err(|error| (error, self))
     }
 
     /// Converts this `ReadableStreamDefaultReader` into a [`Stream`](Stream).
@@ -269,7 +263,8 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
 
 impl Drop for ReadableStreamDefaultReader<'_> {
     fn drop(&mut self) {
-        self.release_lock()
+        self.as_raw()
+            .release_lock()
             .unwrap_or_else(|error| throw_val(error.into()));
     }
 }
