@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let body = ReadableStream::from_raw(raw_body.dyn_into().unwrap_throw());
 
     // Convert the ReadableStream to a Rust stream
-    let mut stream = body.into_stream().unwrap_throw();
+    let mut stream = body.into_stream();
 
     // Consume the stream
     while let Some(Ok(chunk)) = stream.next().await {

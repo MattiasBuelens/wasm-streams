@@ -124,9 +124,22 @@ impl ReadableStream {
     /// [`map_err`](futures::TryStreamExt::map_err) on the returned stream to convert them to a more
     /// appropriate type.
     ///
+    /// **Panics** if the stream is already locked to a reader.
+    pub fn into_stream(self) -> IntoStream<'static> {
+        self.try_into_stream()
+            .expect_throw("already locked to a reader")
+    }
+
+    /// Try to convert this `ReadableStream` into a [`Stream`](Stream).
+    ///
+    /// Items and errors are represented by their raw [`JsValue`](JsValue).
+    /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
+    /// [`map_err`](futures::TryStreamExt::map_err) on the returned stream to convert them to a more
+    /// appropriate type.
+    ///
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
-    pub fn into_stream(self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
+    pub fn try_into_stream(self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
         let raw_reader = match self.as_raw().get_reader() {
             Ok(raw_reader) => raw_reader,
             Err(err) => return Err((err, self)),

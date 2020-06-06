@@ -31,7 +31,7 @@ async fn test_writable_stream_into_sink() {
     let writable = WritableStream::from_raw(new_logging_writable_stream());
     assert!(!writable.is_locked());
 
-    let mut sink = writable.into_sink().unwrap();
+    let mut sink = writable.into_sink();
 
     assert_eq!(sink.send(JsValue::from("Hello")).await, Ok(()));
     assert_eq!(sink.send(JsValue::from("world!")).await, Ok(()));
@@ -41,7 +41,7 @@ async fn test_writable_stream_into_sink() {
 #[wasm_bindgen_test]
 fn test_writable_stream_into_sink_impl_unpin() {
     let writable = WritableStream::from_raw(new_noop_writable_stream());
-    let sink: IntoSink = writable.into_sink().unwrap();
+    let sink: IntoSink = writable.into_sink();
 
     let _ = Pin::new(&sink); // must be Unpin for this to work
 }
@@ -94,7 +94,7 @@ async fn test_writable_stream_from_sink_then_into_sink() {
     let (sink, stream) = mpsc::unbounded::<JsValue>();
     let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
     let writable = WritableStream::from_sink(sink);
-    let mut sink = writable.into_sink().unwrap();
+    let mut sink = writable.into_sink();
 
     let chunks = vec![JsValue::from("Hello"), JsValue::from("world!")];
     let mut input = iter(chunks.clone()).map(Ok);

@@ -33,7 +33,7 @@ async fn test_readable_stream_into_stream() {
     ));
     assert!(!readable.is_locked());
 
-    let mut stream = readable.into_stream().unwrap();
+    let mut stream = readable.into_stream();
 
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
@@ -43,7 +43,7 @@ async fn test_readable_stream_into_stream() {
 #[wasm_bindgen_test]
 fn test_readable_stream_into_stream_impl_unpin() {
     let readable = ReadableStream::from_raw(new_noop_readable_stream());
-    let stream: IntoStream = readable.into_stream().unwrap();
+    let stream: IntoStream = readable.into_stream();
 
     let _ = Pin::new(&stream); // must be Unpin for this to work
 }
@@ -132,7 +132,7 @@ async fn test_readable_stream_from_stream_then_into_stream() {
     let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
     let readable = ReadableStream::from_stream(stream);
 
-    let mut stream = readable.into_stream().unwrap();
+    let mut stream = readable.into_stream();
 
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     assert_eq!(stream.next().await, Some(Ok(JsValue::from("world!"))));
@@ -144,7 +144,7 @@ async fn test_readable_stream_into_stream_then_from_stream() {
     let readable = ReadableStream::from_raw(new_readable_stream_from_array(
         vec![JsValue::from("Hello"), JsValue::from("world!")].into_boxed_slice(),
     ));
-    let stream = readable.into_stream().unwrap();
+    let stream = readable.into_stream();
     let mut readable = ReadableStream::from_stream(stream);
 
     let mut reader = readable.get_reader().unwrap();

@@ -119,9 +119,21 @@ impl WritableStream {
     /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)
     /// on the returned stream to convert them to a more appropriate type.
     ///
+    /// **Panics** if the stream is already locked to a writer.
+    pub fn into_sink(self) -> IntoSink<'static> {
+        self.try_into_sink()
+            .expect_throw("already locked to a writer")
+    }
+
+    /// Try to convert this `WritableStream` into a [`Sink`](Sink).
+    ///
+    /// Items and errors are represented by their raw [`JsValue`](JsValue).
+    /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)
+    /// on the returned stream to convert them to a more appropriate type.
+    ///
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
-    pub fn into_sink(self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
+    pub fn try_into_sink(self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
         let raw_writer = match self.as_raw().get_writer() {
             Ok(raw_writer) => raw_writer,
             Err(err) => return Err((err, self)),
