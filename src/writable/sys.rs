@@ -57,6 +57,6 @@ extern "C" {
     #[wasm_bindgen(method, js_name = write)]
     pub fn write(this: &WritableStreamDefaultWriter, chunk: JsValue) -> Promise;
 
-    #[wasm_bindgen(method, catch, js_name = releaseLock)]
-    pub fn release_lock(this: &WritableStreamDefaultWriter) -> Result<(), Error>;
+    #[wasm_bindgen(method, js_name = releaseLock)]
+    pub fn release_lock(this: &WritableStreamDefaultWriter);
 }

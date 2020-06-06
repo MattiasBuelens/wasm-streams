@@ -108,7 +108,7 @@ impl WritableStream {
     /// If the stream is already locked to a writer, then this returns an error.
     pub fn get_writer(&mut self) -> Result<WritableStreamDefaultWriter, js_sys::Error> {
         Ok(WritableStreamDefaultWriter {
-            raw: Some(self.raw.get_writer()?),
+            raw: self.raw.get_writer()?,
             _stream: PhantomData,
         })
     }
@@ -127,7 +127,7 @@ impl WritableStream {
             Err(err) => return Err((err, self)),
         };
         let writer = WritableStreamDefaultWriter {
-            raw: Some(raw_writer),
+            raw: raw_writer,
             _stream: PhantomData,
         };
         Ok(writer.into_sink())
@@ -153,7 +153,7 @@ where
 /// When the writer is dropped, it automatically [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 #[derive(Debug)]
 pub struct WritableStreamDefaultWriter<'stream> {
-    raw: Option<sys::WritableStreamDefaultWriter>,
+    raw: sys::WritableStreamDefaultWriter,
     _stream: PhantomData<&'stream mut WritableStream>,
 }
 
@@ -161,7 +161,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// Acquires a reference to the underlying [JavaScript writer](sys::WritableStreamDefaultWriter).
     #[inline]
     pub fn as_raw(&self) -> &sys::WritableStreamDefaultWriter {
-        self.raw.as_ref().unwrap_throw()
+        &self.raw
     }
 
     /// Waits for the stream to become closed.
@@ -269,25 +269,6 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
         }
     }
 
-    /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this writer's lock on the
-    /// corresponding stream.
-    ///
-    /// After the lock is released, the writer is no longer active.
-    /// If the associated stream is errored when the lock is released, the writer will appear
-    /// errored in the same way from now on; otherwise, the writer will appear closed.
-    ///
-    /// Note that the lock can still be released even if some ongoing writes have not yet finished
-    /// (i.e. even if the futures returned from previous calls to [`write()`](Self::write) are not
-    /// yet ready). It's not necessary to hold the lock on the writer for the duration of the write;
-    /// the lock instead simply prevents other producers from writing in an interleaved manner.
-    pub fn release_lock(&mut self) -> Result<(), js_sys::Error> {
-        if let Some(raw) = self.raw.as_ref() {
-            raw.release_lock()?;
-            self.raw.take();
-        }
-        Ok(())
-    }
-
     /// Converts this `WritableStreamDefaultWriter` into a [`Sink`](Sink).
     ///
     /// This is similar to [`WritableStream.into_sink`](WritableStream::into_sink),
@@ -301,7 +282,6 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
 
 impl Drop for WritableStreamDefaultWriter<'_> {
     fn drop(&mut self) {
-        // TODO Error handling?
-        self.release_lock().unwrap_throw();
+        self.as_raw().release_lock()
     }
 }
