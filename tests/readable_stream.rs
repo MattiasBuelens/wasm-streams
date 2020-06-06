@@ -1,6 +1,5 @@
 use std::pin::Pin;
 
-use futures::future::{abortable, join, Aborted};
 use futures::stream::{iter, StreamExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
@@ -111,20 +110,21 @@ async fn test_readable_stream_multiple_release_lock() {
 #[wasm_bindgen_test]
 async fn test_readable_stream_abort_read() {
     let mut readable = ReadableStream::from_raw(new_noop_readable_stream());
-
     let mut reader = readable.get_reader().unwrap();
 
-    // Start reading, but abort the future immediately
-    // Use `join` to poll the future at least once
-    let (fut, handle) = abortable(reader.read());
-    let (result, _) = join(fut, async {
-        handle.abort();
-    })
-    .await;
-    assert_eq!(result, Err(Aborted));
+    // Start reading, but drop the future immediately
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let fut = reader.read();
+    drop(fut);
 
-    // Must cancel any pending reads before releasing the reader's lock
+    // Cannot release the lock while there are pending reads
+    assert_ne!(reader.release_lock(), Ok(()));
+
+    // Cancel all pending reads
     reader.cancel().await.unwrap();
+
+    // Can release lock after cancelling
+    assert_eq!(reader.release_lock(), Ok(()));
 }
 
 #[wasm_bindgen_test]
