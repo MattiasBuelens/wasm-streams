@@ -76,7 +76,7 @@ impl ReadableStream {
     /// signaling a loss of interest in the stream by a consumer.
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
-    pub fn cancel(&mut self) -> impl Future<Output = Result<(), JsValue>> {
+    pub fn cancel<'a>(&'a mut self) -> impl Future<Output = Result<(), JsValue>> + 'a {
         let promise = self.raw.cancel();
         async {
             let js_value = JsFuture::from(promise).await?;
@@ -91,10 +91,10 @@ impl ReadableStream {
     /// The supplied `reason` will be given to the underlying source, which may or may not use it.
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
-    pub fn cancel_with_reason(
-        &mut self,
+    pub fn cancel_with_reason<'a>(
+        &'a mut self,
         reason: &JsValue,
-    ) -> impl Future<Output = Result<(), JsValue>> {
+    ) -> impl Future<Output = Result<(), JsValue>> + 'a {
         let promise = self.raw.cancel_with_reason(reason);
         async {
             let js_value = JsFuture::from(promise).await?;
@@ -183,7 +183,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// signaling a loss of interest in the stream by a consumer.
     ///
     /// Equivalent to [`ReadableStream.cancel`](ReadableStream::cancel).
-    pub fn cancel(&mut self) -> impl Future<Output = Result<(), JsValue>> {
+    pub fn cancel<'a>(&'a mut self) -> impl Future<Output = Result<(), JsValue>> + 'a {
         let promise = self.as_raw().cancel();
         async {
             let js_value = JsFuture::from(promise).await?;
@@ -196,10 +196,10 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// signaling a loss of interest in the stream by a consumer.
     ///
     /// Equivalent to [`ReadableStream.cancel_with_reason`](ReadableStream::cancel_with_reason).
-    pub fn cancel_with_reason(
-        &mut self,
+    pub fn cancel_with_reason<'a>(
+        &'a mut self,
         reason: &JsValue,
-    ) -> impl Future<Output = Result<(), JsValue>> {
+    ) -> impl Future<Output = Result<(), JsValue>> + 'a {
         let promise = self.as_raw().cancel_with_reason(reason);
         async {
             let js_value = JsFuture::from(promise).await?;
@@ -213,7 +213,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// * If a next `chunk` becomes available, this returns `Ok(Some(chunk))`.
     /// * If the stream closes and no more chunks are available, this returns `Ok(None)`.
     /// * If the stream encounters an `error`, this returns `Err(error)`.
-    pub fn read(&mut self) -> impl Future<Output = Result<Option<JsValue>, JsValue>> {
+    pub fn read<'a>(&'a mut self) -> impl Future<Output = Result<Option<JsValue>, JsValue>> + 'a {
         let promise = self.as_raw().read();
         async {
             let js_value = JsFuture::from(promise).await?;
