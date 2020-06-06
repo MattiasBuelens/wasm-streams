@@ -69,6 +69,7 @@ impl ReadableStream {
     }
 
     /// Returns `true` if the stream is [locked to a reader](https://streams.spec.whatwg.org/#lock).
+    #[inline]
     pub fn is_locked(&self) -> bool {
         self.as_raw().is_locked()
     }
@@ -126,6 +127,7 @@ impl ReadableStream {
     ///
     /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
     /// use [`try_into_stream`](Self::try_into_stream).
+    #[inline]
     pub fn into_stream(self) -> IntoStream<'static> {
         self.try_into_stream()
             .expect_throw("already locked to a reader")
@@ -247,6 +249,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// **Panics** if the reader still has a pending read request, i.e. if a future returned
     /// by [`read`](Self::read) is not yet ready. For a non-panicking variant,
     /// use [`try_release_lock`](Self::try_release_lock).
+    #[inline]
     pub fn release_lock(mut self) -> () {
         self.release_lock_mut()
     }
@@ -263,6 +266,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// The lock cannot be released while the reader still has a pending read request, i.e.
     /// if a future returned by [`read`](Self::read) is not yet ready. Attempting to do so will
     /// return an error and leave the reader locked to the stream.
+    #[inline]
     pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
         self.as_raw().release_lock().map_err(|error| (error, self))
     }
@@ -273,6 +277,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// except that after the returned `Stream` is dropped, the original `ReadableStream` is still
     /// usable. This allows reading only a few chunks from the `Stream`, while still allowing
     /// another reader to read the remaining chunks later on.
+    #[inline]
     pub fn into_stream(self) -> IntoStream<'stream> {
         IntoStream::new(self)
     }

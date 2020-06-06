@@ -65,6 +65,7 @@ impl WritableStream {
     }
 
     /// Returns `true` if the stream is [locked to a writer](https://streams.spec.whatwg.org/#lock).
+    #[inline]
     pub fn is_locked(&self) -> bool {
         self.as_raw().is_locked()
     }
@@ -121,6 +122,7 @@ impl WritableStream {
     ///
     /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
     /// use [`try_into_sink`](Self::try_into_sink).
+    #[inline]
     pub fn into_sink(self) -> IntoSink<'static> {
         self.try_into_sink()
             .expect_throw("already locked to a writer")
@@ -195,6 +197,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// * It will be `None` if the stream cannot be successfully written to
     ///   (due to either being errored, or having an abort queued up).
     /// * It will return zero if the stream is closed.
+    #[inline]
     pub fn desired_size(&self) -> Option<f64> {
         self.as_raw().desired_size()
     }
@@ -288,6 +291,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// except that after the returned `Sink` is dropped, the original `WritableStream` is still
     /// usable. This allows writing only a few chunks through the `Sink`, while still allowing
     /// another writer to write more chunks later on.
+    #[inline]
     pub fn into_sink(self) -> IntoSink<'stream> {
         IntoSink::new(self)
     }
