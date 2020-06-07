@@ -1,10 +1,12 @@
 use std::pin::Pin;
 
 use futures::stream::{iter, StreamExt};
+use futures::{poll, FutureExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
 use wasm_streams::readable::*;
+use futures::task::Poll;
 
 #[wasm_bindgen(module = "/tests/readable_stream.js")]
 extern "C" {
@@ -122,9 +124,13 @@ async fn test_readable_stream_abort_read() {
     let mut readable = ReadableStream::from_raw(new_noop_readable_stream());
     let mut reader = readable.get_reader();
 
-    // Start reading, but drop the future immediately
+    // Start reading
     // Since the stream will never produce a chunk, this read will remain pending forever
-    let fut = reader.read();
+    let mut fut = reader.read().boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert_eq!(poll_result, Poll::Pending);
+    // Drop the future, to regain control over the reader
     drop(fut);
 
     // Cannot release the lock while there are pending reads
