@@ -4,7 +4,6 @@ use std::marker::PhantomData;
 
 use futures::Sink;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 
 pub use into_sink::IntoSink;
 use into_underlying_sink::IntoUnderlyingSink;
