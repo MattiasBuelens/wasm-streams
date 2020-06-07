@@ -6,11 +6,11 @@
 //! It also supports converting from and into [`Stream`](futures::Stream)s
 //! and [`Sink`](futures::Sink)s from the [futures crate](https://docs.rs/futures/).
 
+pub use readable::ReadableStream;
+pub use transform::TransformStream;
+pub use writable::WritableStream;
+
 pub(crate) mod queuing_strategy;
 pub mod readable;
 pub mod transform;
 pub mod writable;
-
-pub use readable::ReadableStream;
-pub use transform::TransformStream;
-pub use writable::WritableStream;

@@ -5,8 +5,8 @@ use futures::{poll, FutureExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use wasm_streams::readable::*;
 use futures::task::Poll;
+use wasm_streams::readable::*;
 
 #[wasm_bindgen(module = "/tests/readable_stream.js")]
 extern "C" {
