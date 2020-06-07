@@ -146,7 +146,7 @@ impl ReadableStream {
         &'a mut self,
         dest: &'a mut WritableStream,
     ) -> impl Future<Output = Result<(), JsValue>> + 'a {
-        self.pipe_to_with_opts(dest, PipeOptions::default())
+        self.pipe_to_with_options(dest, PipeOptions::default())
     }
 
     /// [Pipes](https://streams.spec.whatwg.org/#piping) this readable stream to a given
@@ -157,25 +157,25 @@ impl ReadableStream {
     ///
     /// Errors and closures of the source and destination streams propagate as follows:
     /// * An error in the source readable stream will [abort](https://streams.spec.whatwg.org/#abort-a-writable-stream)
-    ///   the destination writable stream, unless [`opts.prevent_abort`](PipeOptions::prevent_abort)
+    ///   the destination writable stream, unless [`options.prevent_abort`](PipeOptions::prevent_abort)
     ///   is `true`.
     /// * An error in the destination writable stream will [cancel](https://streams.spec.whatwg.org/#cancel-a-readable-stream)
-    ///   the source readable stream, unless [`opts.prevent_cancel`](PipeOptions::prevent_cancel)
+    ///   the source readable stream, unless [`options.prevent_cancel`](PipeOptions::prevent_cancel)
     ///   is `true`.
     /// * When the source readable stream closes, the destination writable stream will be closed,
-    ///   unless [`opts.prevent_close`](PipeOptions::prevent_close) is `true`.
+    ///   unless [`options.prevent_close`](PipeOptions::prevent_close) is `true`.
     /// * If the destination writable stream starts out closed or closing, the source readable stream
     ///   will be [canceled](https://streams.spec.whatwg.org/#cancel-a-readable-stream),
-    ///   unless unless [`opts.prevent_cancel`](PipeOptions::prevent_cancel) is `true`.
+    ///   unless unless [`options.prevent_cancel`](PipeOptions::prevent_cancel) is `true`.
     ///
     /// This returns `()` if the pipe completes successfully, or `Err(error)` if any `error`
     /// was encountered during the process.
-    pub fn pipe_to_with_opts<'a>(
+    pub fn pipe_to_with_options<'a>(
         &'a mut self,
         dest: &'a mut WritableStream,
-        opts: PipeOptions,
+        options: PipeOptions,
     ) -> impl Future<Output = Result<(), JsValue>> + 'a {
-        let promise = self.as_raw().pipe_to(dest.as_raw(), opts);
+        let promise = self.as_raw().pipe_to(dest.as_raw(), options);
         async {
             let js_value = JsFuture::from(promise).await?;
             debug_assert!(js_value.is_undefined());
