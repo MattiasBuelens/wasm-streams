@@ -1,6 +1,5 @@
 //! Bindings and conversions for
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use std::future::Future;
 use std::marker::PhantomData;
 
 use futures::stream::Stream;
@@ -81,13 +80,11 @@ impl ReadableStream {
     /// signaling a loss of interest in the stream by a consumer.
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
-    pub fn cancel<'a>(&'a mut self) -> impl Future<Output = Result<(), JsValue>> + 'a {
+    pub async fn cancel(&mut self) -> Result<(), JsValue> {
         let promise = self.as_raw().cancel();
-        async {
-            let js_value = JsFuture::from(promise).await?;
-            debug_assert!(js_value.is_undefined());
-            Ok(())
-        }
+        let js_value = JsFuture::from(promise).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -96,16 +93,11 @@ impl ReadableStream {
     /// The supplied `reason` will be given to the underlying source, which may or may not use it.
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
-    pub fn cancel_with_reason<'a>(
-        &'a mut self,
-        reason: &JsValue,
-    ) -> impl Future<Output = Result<(), JsValue>> + 'a {
+    pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
         let promise = self.as_raw().cancel_with_reason(reason);
-        async {
-            let js_value = JsFuture::from(promise).await?;
-            debug_assert!(js_value.is_undefined());
-            Ok(())
-        }
+        let js_value = JsFuture::from(promise).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
     }
 
     /// Creates a [default reader](ReadableStreamDefaultReader) and
@@ -142,11 +134,9 @@ impl ReadableStream {
     ///
     /// This returns `()` if the pipe completes successfully, or `Err(error)` if any `error`
     /// was encountered during the process.
-    pub fn pipe_to<'a>(
-        &'a mut self,
-        dest: &'a mut WritableStream,
-    ) -> impl Future<Output = Result<(), JsValue>> + 'a {
+    pub async fn pipe_to<'a>(&'a mut self, dest: &'a mut WritableStream) -> Result<(), JsValue> {
         self.pipe_to_with_options(dest, PipeOptions::default())
+            .await
     }
 
     /// [Pipes](https://streams.spec.whatwg.org/#piping) this readable stream to a given
@@ -170,17 +160,15 @@ impl ReadableStream {
     ///
     /// This returns `()` if the pipe completes successfully, or `Err(error)` if any `error`
     /// was encountered during the process.
-    pub fn pipe_to_with_options<'a>(
+    pub async fn pipe_to_with_options<'a>(
         &'a mut self,
         dest: &'a mut WritableStream,
         options: PipeOptions,
-    ) -> impl Future<Output = Result<(), JsValue>> + 'a {
+    ) -> Result<(), JsValue> {
         let promise = self.as_raw().pipe_to(dest.as_raw(), options);
-        async {
-            let js_value = JsFuture::from(promise).await?;
-            debug_assert!(js_value.is_undefined());
-            Ok(())
-        }
+        let js_value = JsFuture::from(promise).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
     }
 
     /// Converts this `ReadableStream` into a [`Stream`](Stream).
@@ -265,29 +253,22 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// signaling a loss of interest in the stream by a consumer.
     ///
     /// Equivalent to [`ReadableStream.cancel`](ReadableStream::cancel).
-    pub fn cancel<'a>(&'a mut self) -> impl Future<Output = Result<(), JsValue>> + 'a {
+    pub async fn cancel(&mut self) -> Result<(), JsValue> {
         let promise = self.as_raw().cancel();
-        async {
-            let js_value = JsFuture::from(promise).await?;
-            debug_assert!(js_value.is_undefined());
-            Ok(())
-        }
+        let js_value = JsFuture::from(promise).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
     /// signaling a loss of interest in the stream by a consumer.
     ///
     /// Equivalent to [`ReadableStream.cancel_with_reason`](ReadableStream::cancel_with_reason).
-    pub fn cancel_with_reason<'a>(
-        &'a mut self,
-        reason: &JsValue,
-    ) -> impl Future<Output = Result<(), JsValue>> + 'a {
+    pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
         let promise = self.as_raw().cancel_with_reason(reason);
-        async {
-            let js_value = JsFuture::from(promise).await?;
-            debug_assert!(js_value.is_undefined());
-            Ok(())
-        }
+        let js_value = JsFuture::from(promise).await?;
+        debug_assert!(js_value.is_undefined());
+        Ok(())
     }
 
     /// Reads the next chunk from the stream's internal queue.
@@ -295,16 +276,14 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// * If a next `chunk` becomes available, this returns `Ok(Some(chunk))`.
     /// * If the stream closes and no more chunks are available, this returns `Ok(None)`.
     /// * If the stream encounters an `error`, this returns `Err(error)`.
-    pub fn read<'a>(&'a mut self) -> impl Future<Output = Result<Option<JsValue>, JsValue>> + 'a {
+    pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
         let promise = self.as_raw().read();
-        async {
-            let js_value = JsFuture::from(promise).await?;
-            let result = sys::ReadableStreamReadResult::from(js_value);
-            if result.is_done() {
-                Ok(None)
-            } else {
-                Ok(Some(result.value()))
-            }
+        let js_value = JsFuture::from(promise).await?;
+        let result = sys::ReadableStreamReadResult::from(js_value);
+        if result.is_done() {
+            Ok(None)
+        } else {
+            Ok(Some(result.value()))
         }
     }
 
