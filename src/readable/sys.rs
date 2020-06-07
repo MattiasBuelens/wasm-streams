@@ -1,6 +1,6 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use js_sys::{Error, Promise};
+use js_sys::{Array, Error, Promise};
 use wasm_bindgen::prelude::*;
 
 use crate::queuing_strategy::QueuingStrategy;
@@ -44,6 +44,9 @@ extern "C" {
 
     #[wasm_bindgen(method, js_name = pipeTo)]
     pub fn pipe_to(this: &ReadableStream, dest: &WritableStream, opts: PipeOptions) -> Promise;
+
+    #[wasm_bindgen(method, catch, js_name = tee)]
+    pub fn tee(this: &ReadableStream) -> Result<Array, Error>;
 }
 
 #[wasm_bindgen]

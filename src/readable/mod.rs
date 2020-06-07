@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::throw_val;
+use wasm_bindgen::{throw_val, JsCast};
 use wasm_bindgen_futures::JsFuture;
 
 pub use into_stream::IntoStream;
@@ -161,6 +161,51 @@ impl ReadableStream {
         options: PipeOptions,
     ) -> Result<(), JsValue> {
         promise_to_void_future(self.as_raw().pipe_to(dest.as_raw(), options)).await
+    }
+
+    /// [Tees](https://streams.spec.whatwg.org/#tee-a-readable-stream) this readable stream,
+    /// returning the two resulting branches as new [`ReadableStream`](ReadableStream) instances.
+    ///
+    /// Teeing a stream will [lock](https://streams.spec.whatwg.org/#lock) it, preventing any other
+    /// consumer from acquiring a reader.
+    /// To [cancel](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
+    /// cancel both of the resulting branches; a composite cancellation reason will then be
+    /// propagated to the stream's underlying source.
+    ///
+    /// Note that the chunks seen in each branch will be the same object.
+    /// If the chunks are not immutable, this could allow interference between the two branches.
+    ///
+    /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
+    /// use [`try_tee`](Self::try_tee).
+    pub fn tee(self) -> (ReadableStream, ReadableStream) {
+        self.try_tee().expect_throw("already locked to a reader")
+    }
+
+    /// Tries to [tee](https://streams.spec.whatwg.org/#tee-a-readable-stream) this readable stream,
+    /// returning the two resulting branches as new [`ReadableStream`](ReadableStream) instances.
+    ///
+    /// Teeing a stream will [lock](https://streams.spec.whatwg.org/#lock) it, preventing any other
+    /// consumer from acquiring a reader.
+    /// To [cancel](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
+    /// cancel both of the resulting branches; a composite cancellation reason will then be
+    /// propagated to the stream's underlying source.
+    ///
+    /// Note that the chunks seen in each branch will be the same object.
+    /// If the chunks are not immutable, this could allow interference between the two branches.
+    ///
+    /// If the stream is already locked to a reader, then this returns an error
+    /// along with the original `ReadableStream`.
+    pub fn try_tee(self) -> Result<(ReadableStream, ReadableStream), (js_sys::Error, Self)> {
+        let branches = match self.as_raw().tee() {
+            Ok(branches) => branches,
+            Err(err) => return Err((err, self)),
+        };
+        debug_assert_eq!(branches.length(), 2);
+        let (left, right) = (branches.get(0), branches.get(1));
+        Ok((
+            Self::from_raw(left.unchecked_into()),
+            Self::from_raw(right.unchecked_into()),
+        ))
     }
 
     /// Converts this `ReadableStream` into a [`Stream`](Stream).
