@@ -11,8 +11,9 @@ pub use into_stream::IntoStream;
 use into_underlying_source::IntoUnderlyingSource;
 pub use pipe_options::PipeOptions;
 
-use super::queuing_strategy::QueuingStrategy;
-use super::writable::WritableStream;
+use crate::queuing_strategy::QueuingStrategy;
+use crate::util::promise_to_void_future;
+use crate::writable::WritableStream;
 
 mod into_stream;
 mod into_underlying_source;
@@ -81,10 +82,7 @@ impl ReadableStream {
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
     pub async fn cancel(&mut self) -> Result<(), JsValue> {
-        let promise = self.as_raw().cancel();
-        let js_value = JsFuture::from(promise).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+        promise_to_void_future(self.as_raw().cancel()).await
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -94,10 +92,7 @@ impl ReadableStream {
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
     pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        let promise = self.as_raw().cancel_with_reason(reason);
-        let js_value = JsFuture::from(promise).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+        promise_to_void_future(self.as_raw().cancel_with_reason(reason)).await
     }
 
     /// Creates a [default reader](ReadableStreamDefaultReader) and
@@ -165,10 +160,7 @@ impl ReadableStream {
         dest: &'a mut WritableStream,
         options: PipeOptions,
     ) -> Result<(), JsValue> {
-        let promise = self.as_raw().pipe_to(dest.as_raw(), options);
-        let js_value = JsFuture::from(promise).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+        promise_to_void_future(self.as_raw().pipe_to(dest.as_raw(), options)).await
     }
 
     /// Converts this `ReadableStream` into a [`Stream`](Stream).
@@ -244,9 +236,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// [released](https://streams.spec.whatwg.org/#release-a-lock) before the stream finishes
     /// closing.
     pub async fn closed(&self) -> Result<(), JsValue> {
-        let js_value = JsFuture::from(self.as_raw().closed()).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+        promise_to_void_future(self.as_raw().closed()).await
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -254,10 +244,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     ///
     /// Equivalent to [`ReadableStream.cancel`](ReadableStream::cancel).
     pub async fn cancel(&mut self) -> Result<(), JsValue> {
-        let promise = self.as_raw().cancel();
-        let js_value = JsFuture::from(promise).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+        promise_to_void_future(self.as_raw().cancel()).await
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -265,10 +252,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     ///
     /// Equivalent to [`ReadableStream.cancel_with_reason`](ReadableStream::cancel_with_reason).
     pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        let promise = self.as_raw().cancel_with_reason(reason);
-        let js_value = JsFuture::from(promise).await?;
-        debug_assert!(js_value.is_undefined());
-        Ok(())
+        promise_to_void_future(self.as_raw().cancel_with_reason(reason)).await
     }
 
     /// Reads the next chunk from the stream's internal queue.

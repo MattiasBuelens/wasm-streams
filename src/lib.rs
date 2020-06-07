@@ -13,4 +13,5 @@ pub use writable::WritableStream;
 pub(crate) mod queuing_strategy;
 pub mod readable;
 pub mod transform;
+pub(crate) mod util;
 pub mod writable;
