@@ -2,13 +2,18 @@ export function new_noop_writable_stream() {
     return new WritableStream();
 }
 
-export function new_logging_writable_stream() {
-    return new WritableStream({
+export function new_recording_writable_stream() {
+    const events = [];
+    const stream = new WritableStream({
         write(chunk) {
-            console.log("wrote chunk:", chunk);
+            events.push("write", chunk);
         },
         close() {
-            console.log("closed");
+            events.push("close");
+        },
+        abort(e) {
+            events.push("abort", e);
         }
     });
-}
+    return {stream, events};
+};
