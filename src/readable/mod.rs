@@ -323,11 +323,11 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// by [`read`](Self::read) is not yet ready. For a non-panicking variant,
     /// use [`try_release_lock`](Self::try_release_lock).
     #[inline]
-    pub fn release_lock(mut self) -> () {
+    pub fn release_lock(mut self) {
         self.release_lock_mut()
     }
 
-    fn release_lock_mut(&mut self) -> () {
+    fn release_lock_mut(&mut self) {
         self.as_raw()
             .release_lock()
             .unwrap_or_else(|error| throw_val(error.into()))
