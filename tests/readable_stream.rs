@@ -1,11 +1,11 @@
 use std::pin::Pin;
 
-use futures::stream::{iter, StreamExt};
+use futures::stream::{iter, StreamExt, TryStreamExt};
+use futures::task::Poll;
 use futures::{poll, FutureExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use futures::task::Poll;
 use wasm_streams::readable::*;
 
 #[wasm_bindgen(module = "/tests/readable_stream.js")]
@@ -170,4 +170,20 @@ async fn test_readable_stream_into_stream_then_from_stream() {
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("world!")));
     assert_eq!(reader.read().await.unwrap(), None);
     reader.closed().await.unwrap();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_tee() {
+    let chunks = vec![JsValue::from("Hello"), JsValue::from("world!")];
+    let readable = ReadableStream::from_raw(new_readable_stream_from_array(
+        chunks.clone().into_boxed_slice(),
+    ));
+
+    let (left, right) = readable.tee();
+
+    let left_chunks = left.into_stream().try_collect::<Vec<_>>().await.unwrap();
+    let right_chunks = right.into_stream().try_collect::<Vec<_>>().await.unwrap();
+
+    assert_eq!(left_chunks, chunks);
+    assert_eq!(right_chunks, chunks);
 }
