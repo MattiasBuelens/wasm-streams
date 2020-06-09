@@ -13,8 +13,9 @@ extern "C" {
 
 #[wasm_bindgen_test]
 async fn test_pipe_js_to_rust() {
+    let chunks = vec![JsValue::from("Hello"), JsValue::from("world!")];
     let mut readable = ReadableStream::from_raw(new_readable_stream_from_array(
-        vec![JsValue::from("Hello"), JsValue::from("world!")].into_boxed_slice(),
+        chunks.clone().into_boxed_slice(),
     ));
 
     let (sink, stream) = mpsc::unbounded::<JsValue>();
@@ -25,10 +26,7 @@ async fn test_pipe_js_to_rust() {
 
     // All chunks must be sent to sink
     let output = stream.collect::<Vec<_>>().await;
-    assert_eq!(
-        output,
-        vec![JsValue::from("Hello"), JsValue::from("world!")]
-    );
+    assert_eq!(output, chunks);
 
     // Both streams must be closed
     readable.get_reader().closed().await.unwrap();
