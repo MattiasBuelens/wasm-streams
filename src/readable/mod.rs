@@ -130,7 +130,7 @@ impl ReadableStream {
     /// This returns `()` if the pipe completes successfully, or `Err(error)` if any `error`
     /// was encountered during the process.
     pub async fn pipe_to<'a>(&'a mut self, dest: &'a mut WritableStream) -> Result<(), JsValue> {
-        self.pipe_to_with_options(dest, PipeOptions::default())
+        self.pipe_to_with_options(dest, &PipeOptions::default())
             .await
     }
 
@@ -158,9 +158,9 @@ impl ReadableStream {
     pub async fn pipe_to_with_options<'a>(
         &'a mut self,
         dest: &'a mut WritableStream,
-        options: PipeOptions,
+        options: &PipeOptions,
     ) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().pipe_to(dest.as_raw(), options)).await
+        promise_to_void_future(self.as_raw().pipe_to(dest.as_raw(), options.as_raw())).await
     }
 
     /// [Tees](https://streams.spec.whatwg.org/#tee-a-readable-stream) this readable stream,

@@ -1,6 +1,5 @@
-use wasm_bindgen::prelude::*;
+use super::sys;
 
-#[wasm_bindgen]
 #[derive(Clone, Debug, Default)]
 pub struct PipeOptions {
     prevent_close: bool,
@@ -14,36 +13,22 @@ impl PipeOptions {
         Default::default()
     }
 
-    pub fn set_prevent_close(&mut self, prevent_close: bool) -> &mut Self {
+    pub fn prevent_close(&mut self, prevent_close: bool) -> &mut Self {
         self.prevent_close = prevent_close;
         self
     }
 
-    pub fn set_prevent_cancel(&mut self, prevent_cancel: bool) -> &mut Self {
+    pub fn prevent_cancel(&mut self, prevent_cancel: bool) -> &mut Self {
         self.prevent_cancel = prevent_cancel;
         self
     }
 
-    pub fn set_prevent_abort(&mut self, prevent_abort: bool) -> &mut Self {
+    pub fn prevent_abort(&mut self, prevent_abort: bool) -> &mut Self {
         self.prevent_abort = prevent_abort;
         self
     }
-}
 
-#[wasm_bindgen]
-impl PipeOptions {
-    #[wasm_bindgen(getter, js_name = preventClose)]
-    pub fn prevent_close(&self) -> bool {
-        self.prevent_close
-    }
-
-    #[wasm_bindgen(getter, js_name = preventCancel)]
-    pub fn prevent_cancel(&self) -> bool {
-        self.prevent_cancel
-    }
-
-    #[wasm_bindgen(getter, js_name = preventAbort)]
-    pub fn prevent_abort(&self) -> bool {
-        self.prevent_abort
+    pub fn as_raw(&self) -> sys::PipeOptions {
+        sys::PipeOptions::new(self.prevent_close, self.prevent_cancel, self.prevent_abort)
     }
 }

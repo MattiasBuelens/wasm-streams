@@ -7,7 +7,6 @@ use crate::queuing_strategy::QueuingStrategy;
 use crate::writable::sys::WritableStream;
 
 use super::into_underlying_source::IntoUnderlyingSource;
-use super::pipe_options::PipeOptions;
 
 #[wasm_bindgen]
 extern "C" {
@@ -101,4 +100,42 @@ extern "C" {
 
     #[wasm_bindgen(method, getter, js_name = value)]
     pub fn value(this: &ReadableStreamReadResult) -> JsValue;
+}
+
+/// Raw options for [`pipe_to()`](ReadableStream::pipe_to).
+#[wasm_bindgen]
+#[derive(Clone, Debug, Default)]
+pub struct PipeOptions {
+    prevent_close: bool,
+    prevent_cancel: bool,
+    prevent_abort: bool,
+    // TODO abort signal
+}
+
+impl PipeOptions {
+    pub fn new(prevent_close: bool, prevent_cancel: bool, prevent_abort: bool) -> Self {
+        Self {
+            prevent_close,
+            prevent_cancel,
+            prevent_abort,
+        }
+    }
+}
+
+#[wasm_bindgen]
+impl PipeOptions {
+    #[wasm_bindgen(getter, js_name = preventClose)]
+    pub fn prevent_close(&self) -> bool {
+        self.prevent_close
+    }
+
+    #[wasm_bindgen(getter, js_name = preventCancel)]
+    pub fn prevent_cancel(&self) -> bool {
+        self.prevent_cancel
+    }
+
+    #[wasm_bindgen(getter, js_name = preventAbort)]
+    pub fn prevent_abort(&self) -> bool {
+        self.prevent_abort
+    }
 }
