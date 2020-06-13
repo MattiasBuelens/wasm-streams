@@ -4,7 +4,7 @@ use wasm_bindgen_test::*;
 
 use wasm_streams::transform::*;
 
-#[wasm_bindgen(module = "/tests/transform_stream.js")]
+#[wasm_bindgen(module = "/tests/js/transform_stream.js")]
 extern "C" {
     fn new_noop_transform_stream() -> sys::TransformStream;
     fn new_uppercase_transform_stream() -> sys::TransformStream;

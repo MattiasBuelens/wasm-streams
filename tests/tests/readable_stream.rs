@@ -8,7 +8,7 @@ use wasm_bindgen_test::*;
 
 use wasm_streams::readable::*;
 
-#[wasm_bindgen(module = "/tests/readable_stream.js")]
+#[wasm_bindgen(module = "/tests/js/readable_stream.js")]
 extern "C" {
     fn new_noop_readable_stream() -> sys::ReadableStream;
     fn new_readable_stream_from_array(chunks: Box<[JsValue]>) -> sys::ReadableStream;

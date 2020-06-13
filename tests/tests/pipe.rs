@@ -6,7 +6,7 @@ use wasm_bindgen_test::*;
 use wasm_streams::readable::sys as readable_sys;
 use wasm_streams::*;
 
-#[wasm_bindgen(module = "/tests/readable_stream.js")]
+#[wasm_bindgen(module = "/tests/js/readable_stream.js")]
 extern "C" {
     fn new_readable_stream_from_array(chunks: Box<[JsValue]>) -> readable_sys::ReadableStream;
 }

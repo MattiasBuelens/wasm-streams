@@ -8,7 +8,7 @@ use wasm_bindgen_test::*;
 
 use wasm_streams::writable::*;
 
-#[wasm_bindgen(module = "/tests/writable_stream.js")]
+#[wasm_bindgen(module = "/tests/js/writable_stream.js")]
 extern "C" {
     fn new_noop_writable_stream() -> sys::WritableStream;
     fn new_recording_writable_stream() -> WritableStreamAndEvents;
