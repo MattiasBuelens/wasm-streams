@@ -5,22 +5,38 @@ use wasm_streams::writable::*;
 #[wasm_bindgen(module = "/tests/js/writable_stream.js")]
 extern "C" {
     pub fn new_noop_writable_stream() -> sys::WritableStream;
-    pub fn new_recording_writable_stream() -> WritableStreamAndEvents;
+    fn new_recording_writable_stream() -> WritableStreamAndEvents;
 
     #[derive(Clone, Debug)]
-    pub type WritableStreamAndEvents;
+    type WritableStreamAndEvents;
 
     #[wasm_bindgen(method, getter)]
-    pub fn stream(this: &WritableStreamAndEvents) -> sys::WritableStream;
+    fn stream(this: &WritableStreamAndEvents) -> sys::WritableStream;
 
     #[wasm_bindgen(method, getter)]
-    pub fn events(this: &WritableStreamAndEvents) -> Box<[JsValue]>;
+    fn events(this: &WritableStreamAndEvents) -> Box<[JsValue]>;
 }
 
-pub fn get_recorded_events(stream_and_events: &WritableStreamAndEvents) -> Vec<String> {
-    stream_and_events
-        .events()
-        .into_iter()
-        .map(|x| x.as_string().unwrap())
-        .collect::<Vec<_>>()
+pub struct RecordingWritableStream {
+    raw: WritableStreamAndEvents,
+}
+
+impl RecordingWritableStream {
+    pub fn new() -> Self {
+        Self {
+            raw: new_recording_writable_stream(),
+        }
+    }
+
+    pub fn stream(&self) -> sys::WritableStream {
+        self.raw.stream()
+    }
+
+    pub fn events(&self) -> Vec<String> {
+        self.raw
+            .events()
+            .into_iter()
+            .map(|x| x.as_string().unwrap())
+            .collect::<Vec<_>>()
+    }
 }
