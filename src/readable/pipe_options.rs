@@ -1,11 +1,12 @@
 use super::sys;
+use web_sys::AbortSignal;
 
 #[derive(Clone, Debug, Default)]
 pub struct PipeOptions {
     prevent_close: bool,
     prevent_cancel: bool,
     prevent_abort: bool,
-    // TODO abort signal
+    signal: Option<AbortSignal>,
 }
 
 impl PipeOptions {
@@ -28,7 +29,17 @@ impl PipeOptions {
         self
     }
 
+    pub fn signal(&mut self, signal: AbortSignal) -> &mut Self {
+        self.signal = Some(signal);
+        self
+    }
+
     pub fn as_raw(&self) -> sys::PipeOptions {
-        sys::PipeOptions::new(self.prevent_close, self.prevent_cancel, self.prevent_abort)
+        sys::PipeOptions::new(
+            self.prevent_close,
+            self.prevent_cancel,
+            self.prevent_abort,
+            self.signal.clone(),
+        )
     }
 }

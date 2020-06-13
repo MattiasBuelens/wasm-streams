@@ -2,6 +2,7 @@
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 use js_sys::{Array, Error, Promise};
 use wasm_bindgen::prelude::*;
+use web_sys::AbortSignal;
 
 use crate::queuing_strategy::QueuingStrategy;
 use crate::writable::sys::WritableStream;
@@ -109,15 +110,21 @@ pub struct PipeOptions {
     prevent_close: bool,
     prevent_cancel: bool,
     prevent_abort: bool,
-    // TODO abort signal
+    signal: Option<AbortSignal>,
 }
 
 impl PipeOptions {
-    pub fn new(prevent_close: bool, prevent_cancel: bool, prevent_abort: bool) -> Self {
+    pub fn new(
+        prevent_close: bool,
+        prevent_cancel: bool,
+        prevent_abort: bool,
+        signal: Option<AbortSignal>,
+    ) -> Self {
         Self {
             prevent_close,
             prevent_cancel,
             prevent_abort,
+            signal,
         }
     }
 }
@@ -137,5 +144,10 @@ impl PipeOptions {
     #[wasm_bindgen(getter, js_name = preventAbort)]
     pub fn prevent_abort(&self) -> bool {
         self.prevent_abort
+    }
+
+    #[wasm_bindgen(getter, js_name = signal)]
+    pub fn signal(&self) -> Option<AbortSignal> {
+        self.signal.clone()
     }
 }
