@@ -4,7 +4,8 @@ use futures::{SinkExt, StreamExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use wasm_streams::*;
+use wasm_streams::readable::*;
+use wasm_streams::writable::*;
 
 use crate::js::*;
 
@@ -49,4 +50,29 @@ async fn test_pipe_rust_to_js() {
     // Both streams must be closed
     readable.get_reader().closed().await.unwrap();
     writable.get_writer().closed().await.unwrap();
+}
+
+#[wasm_bindgen_test]
+async fn test_pipe_prevent_close() {
+    let chunks = vec![JsValue::from("Hello"), JsValue::from("world!")];
+    let mut readable = ReadableStream::from_raw(new_readable_stream_from_array(
+        chunks.clone().into_boxed_slice(),
+    ));
+
+    let recording_stream = RecordingWritableStream::new();
+    let mut writable = WritableStream::from_raw(recording_stream.stream());
+
+    readable
+        .pipe_to_with_options(&mut writable, PipeOptions::new().prevent_close(true))
+        .await
+        .unwrap();
+
+    // All chunks must be sent to sink, without closing it
+    assert_eq!(
+        recording_stream.events(),
+        vec!["write", "Hello", "write", "world!"]
+    );
+
+    // Readable stream must be closed
+    readable.get_reader().closed().await.unwrap();
 }
