@@ -8,28 +8,7 @@ use wasm_bindgen_test::*;
 
 use wasm_streams::writable::*;
 
-#[wasm_bindgen(module = "/tests/js/writable_stream.js")]
-extern "C" {
-    fn new_noop_writable_stream() -> sys::WritableStream;
-    fn new_recording_writable_stream() -> WritableStreamAndEvents;
-
-    #[derive(Clone, Debug)]
-    type WritableStreamAndEvents;
-
-    #[wasm_bindgen(method, getter)]
-    pub fn stream(this: &WritableStreamAndEvents) -> sys::WritableStream;
-
-    #[wasm_bindgen(method, getter)]
-    pub fn events(this: &WritableStreamAndEvents) -> Box<[JsValue]>;
-}
-
-fn get_recorded_events(stream_and_events: &WritableStreamAndEvents) -> Vec<String> {
-    stream_and_events
-        .events()
-        .into_iter()
-        .map(|x| x.as_string().unwrap())
-        .collect::<Vec<_>>()
-}
+use crate::js::*;
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_new() {
