@@ -1,5 +1,6 @@
 # wasm-streams
 
+[![Build Status](https://img.shields.io/github/workflow/status/MattiasBuelens/wasm-streams/CI.svg)](https://github.com/MattiasBuelens/wasm-streams)
 [![Crates.io Version](https://img.shields.io/crates/v/wasm-streams.svg)](https://crates.io/crates/wasm-streams)
 [![Docs.rs](https://img.shields.io/badge/docs-latest-blue.svg)](https://docs.rs/wasm-streams)
 
