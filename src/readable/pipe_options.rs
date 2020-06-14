@@ -18,6 +18,26 @@ impl PipeOptions {
         Default::default()
     }
 
+    /// Creates a set of pipe options from a raw [`PipeOptions`](sys::PipeOptions) object.
+    pub fn from_raw(raw: sys::PipeOptions) -> Self {
+        Self {
+            prevent_close: raw.prevent_close(),
+            prevent_cancel: raw.prevent_cancel(),
+            prevent_abort: raw.prevent_abort(),
+            signal: raw.signal(),
+        }
+    }
+
+    /// Convert this to a raw [`PipeOptions`](sys::PipeOptions) object.
+    pub fn into_raw(self) -> sys::PipeOptions {
+        sys::PipeOptions::new(
+            self.prevent_close,
+            self.prevent_cancel,
+            self.prevent_abort,
+            self.signal,
+        )
+    }
+
     /// Sets whether the destination writable stream should be closed
     /// when the source readable stream closes.
     pub fn prevent_close(&mut self, prevent_close: bool) -> &mut Self {
@@ -47,15 +67,5 @@ impl PipeOptions {
     pub fn signal(&mut self, signal: AbortSignal) -> &mut Self {
         self.signal = Some(signal);
         self
-    }
-
-    /// Convert this to a raw [`PipeOptions`](sys::PipeOptions) object.
-    pub fn as_raw(&self) -> sys::PipeOptions {
-        sys::PipeOptions::new(
-            self.prevent_close,
-            self.prevent_cancel,
-            self.prevent_abort,
-            self.signal.clone(),
-        )
     }
 }

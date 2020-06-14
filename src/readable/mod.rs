@@ -160,7 +160,10 @@ impl ReadableStream {
         dest: &'a mut WritableStream,
         options: &PipeOptions,
     ) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().pipe_to(dest.as_raw(), options.as_raw())).await
+        let promise = self
+            .as_raw()
+            .pipe_to(dest.as_raw(), options.clone().into_raw());
+        promise_to_void_future(promise).await
     }
 
     /// [Tees](https://streams.spec.whatwg.org/#tee-a-readable-stream) this readable stream,
