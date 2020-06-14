@@ -103,7 +103,7 @@ extern "C" {
     pub fn value(this: &ReadableStreamReadResult) -> JsValue;
 }
 
-/// Raw options for [`pipe_to()`](ReadableStream::pipe_to).
+/// Raw options for [`pipeTo()`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/pipeTo).
 #[wasm_bindgen]
 #[derive(Clone, Debug, Default)]
 pub struct PipeOptions {
