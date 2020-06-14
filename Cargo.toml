@@ -9,6 +9,9 @@ repository = "https://github.com/MattiasBuelens/wasm-streams/"
 description = """
 Bridging between web streams and Rust streams using WebAssembly
 """
+exclude = [
+    ".github/"
+]
 
 [dependencies]
 js-sys = "^0.3.40"
