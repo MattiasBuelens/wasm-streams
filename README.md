@@ -1,9 +1,14 @@
 # wasm-streams
 
-This crate bridges the gap between [web streams][web-streams] and [Rust streams from the futures crate][rust-futures].
+[![Crates.io Version](https://img.shields.io/crates/v/wasm-streams.svg)](https://crates.io/crates/wasm-streams)
+[![Docs.rs](https://img.shields.io/badge/docs-latest-blue.svg)](https://docs.rs/wasm-streams)
+
+This crate bridges the gap between [web streams](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API) 
+and [Rust streams from the futures crate](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API).
+
 It provides Rust APIs for interacting with a JavaScript `ReadableStream`, `WritableStream` or `TransformStream`.
 It also allows converting between a `ReadableStream` and a Rust `Stream`, 
 as well as between a `WritableStream` and a Rust `Sink`.
 
-[web-streams]: https://developer.mozilla.org/en-US/docs/Web/API/Streams_API
-[rust-futures]: https://docs.rs/futures/
+See the [API documentation](https://docs.rs/wasm-streams) for more information,
+or check out the [examples](https://github.com/MattiasBuelens/wasm-streams/tree/master/examples).
