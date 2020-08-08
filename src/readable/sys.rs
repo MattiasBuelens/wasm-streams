@@ -18,6 +18,7 @@ extern "C" {
     /// [`unchecked_into`][wasm_bindgen::JsCast::unchecked_into].
     ///
     /// [web-sys]: https://docs.rs/web-sys/latest/web_sys/struct.ReadableStream.html
+    #[wasm_bindgen(js_name = ReadableStream, typescript_type = "ReadableStream")]
     #[derive(Clone, Debug)]
     pub type ReadableStream;
 
