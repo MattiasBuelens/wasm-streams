@@ -1,6 +1,6 @@
 [package]
 name = "wasm-streams"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Mattias Buelens <mattias@buelens.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
