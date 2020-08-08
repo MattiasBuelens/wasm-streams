@@ -5,7 +5,7 @@
 [![Docs.rs](https://img.shields.io/badge/docs-latest-blue.svg)](https://docs.rs/wasm-streams)
 
 This crate bridges the gap between [web streams](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API) 
-and [Rust streams from the futures crate](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API).
+and [Rust streams from the futures crate](https://docs.rs/futures/latest/futures/stream).
 
 It provides Rust APIs for interacting with a JavaScript `ReadableStream`, `WritableStream` or `TransformStream`.
 It also allows converting between a `ReadableStream` and a Rust `Stream`, 
