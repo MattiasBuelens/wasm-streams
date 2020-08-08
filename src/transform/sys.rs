@@ -8,6 +8,7 @@ use crate::writable::sys::WritableStream;
 #[wasm_bindgen]
 extern "C" {
     /// A raw [`TransformStream`](https://developer.mozilla.org/en-US/docs/Web/API/TransformStream).
+    #[wasm_bindgen(js_name = TransformStream, typescript_type = "TransformStream")]
     #[derive(Clone, Debug)]
     pub type TransformStream;
 

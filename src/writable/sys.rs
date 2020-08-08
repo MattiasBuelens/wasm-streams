@@ -8,6 +8,7 @@ use super::into_underlying_sink::IntoUnderlyingSink;
 #[wasm_bindgen]
 extern "C" {
     /// A raw [`WritableStream`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
+    #[wasm_bindgen(js_name = WritableStream, typescript_type = "WritableStream")]
     #[derive(Clone, Debug)]
     pub type WritableStream;
 
