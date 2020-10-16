@@ -10,7 +10,7 @@ use web_sys::{console, window, Response};
 
 use wasm_streams::ReadableStream;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Make a fetch request
     let url = "https://rustwasm.github.io/assets/wasm-ferris.png";
