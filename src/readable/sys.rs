@@ -34,17 +34,21 @@ extern "C" {
     #[wasm_bindgen(method, getter, js_name = locked)]
     pub fn is_locked(this: &ReadableStream) -> bool;
 
-    #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel(this: &ReadableStream) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = cancel)]
+    pub async fn cancel(this: &ReadableStream) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel_with_reason(this: &ReadableStream, reason: &JsValue) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = cancel)]
+    pub async fn cancel_with_reason(this: &ReadableStream, reason: &JsValue) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method, catch, js_name = getReader)]
     pub fn get_reader(this: &ReadableStream) -> Result<ReadableStreamDefaultReader, Error>;
 
-    #[wasm_bindgen(method, js_name = pipeTo)]
-    pub fn pipe_to(this: &ReadableStream, dest: &WritableStream, opts: PipeOptions) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = pipeTo)]
+    pub async fn pipe_to(
+        this: &ReadableStream,
+        dest: &WritableStream,
+        opts: PipeOptions,
+    ) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method, catch, js_name = tee)]
     pub fn tee(this: &ReadableStream) -> Result<Array, Error>;
@@ -75,14 +79,17 @@ extern "C" {
     #[derive(Clone, Debug)]
     pub type ReadableStreamDefaultReader;
 
-    #[wasm_bindgen(method, getter, js_name = closed)]
-    pub fn closed(this: &ReadableStreamDefaultReader) -> Promise;
+    #[wasm_bindgen(method, getter, catch, js_name = closed)]
+    pub async fn closed(this: &ReadableStreamDefaultReader) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel(this: &ReadableStreamDefaultReader) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = cancel)]
+    pub async fn cancel(this: &ReadableStreamDefaultReader) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel_with_reason(this: &ReadableStreamDefaultReader, reason: &JsValue) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = cancel)]
+    pub async fn cancel_with_reason(
+        this: &ReadableStreamDefaultReader,
+        reason: &JsValue,
+    ) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method, js_name = read)]
     pub fn read(this: &ReadableStreamDefaultReader) -> Promise;
