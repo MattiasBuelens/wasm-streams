@@ -14,7 +14,6 @@ pub use pipe_options::PipeOptions;
 
 use crate::queuing_strategy::QueuingStrategy;
 use crate::readable::into_underlying_byte_source::IntoUnderlyingByteSource;
-use crate::util::promise_to_void_future;
 use crate::writable::WritableStream;
 
 mod byob_reader;
@@ -119,7 +118,7 @@ impl ReadableStream {
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
     pub async fn cancel(&mut self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().cancel()).await
+        self.as_raw().cancel().await
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -129,7 +128,7 @@ impl ReadableStream {
     ///
     /// If the stream is currently locked to a reader, then this returns an error.
     pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().cancel_with_reason(reason)).await
+        self.as_raw().cancel_with_reason(reason).await
     }
 
     /// Creates a [default reader](ReadableStreamDefaultReader) and
@@ -216,10 +215,9 @@ impl ReadableStream {
         dest: &'a mut WritableStream,
         options: &PipeOptions,
     ) -> Result<(), JsValue> {
-        let promise = self
-            .as_raw()
-            .pipe_to(dest.as_raw(), options.clone().into_raw());
-        promise_to_void_future(promise).await
+        self.as_raw()
+            .pipe_to(dest.as_raw(), options.clone().into_raw())
+            .await
     }
 
     /// [Tees](https://streams.spec.whatwg.org/#tee-a-readable-stream) this readable stream,

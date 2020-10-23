@@ -3,8 +3,6 @@ use std::marker::PhantomData;
 use wasm_bindgen::{throw_val, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
-use crate::util::promise_to_void_future;
-
 use super::{sys, IntoStream, ReadableStream};
 
 /// A [`ReadableStreamDefaultReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader)
@@ -39,7 +37,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// [released](https://streams.spec.whatwg.org/#release-a-lock) before the stream finishes
     /// closing.
     pub async fn closed(&self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().closed()).await
+        self.as_raw().closed().await
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -47,7 +45,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     ///
     /// Equivalent to [`ReadableStream.cancel`](ReadableStream::cancel).
     pub async fn cancel(&mut self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().cancel()).await
+        self.as_raw().cancel().await
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -55,7 +53,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     ///
     /// Equivalent to [`ReadableStream.cancel_with_reason`](ReadableStream::cancel_with_reason).
     pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().cancel_with_reason(reason)).await
+        self.as_raw().cancel_with_reason(reason).await
     }
 
     /// Reads the next chunk from the stream's internal queue.
