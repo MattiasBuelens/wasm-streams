@@ -20,6 +20,7 @@ impl IntoUnderlyingSink {
     }
 }
 
+#[allow(clippy::await_holding_refcell_ref)]
 #[wasm_bindgen]
 impl IntoUnderlyingSink {
     pub fn write(&mut self, chunk: JsValue) -> Promise {

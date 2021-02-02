@@ -26,6 +26,7 @@ impl IntoUnderlyingSource {
     }
 }
 
+#[allow(clippy::await_holding_refcell_ref)]
 #[wasm_bindgen]
 impl IntoUnderlyingSource {
     pub fn pull(&mut self, controller: sys::ReadableStreamDefaultController) {
