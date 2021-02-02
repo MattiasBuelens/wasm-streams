@@ -13,11 +13,9 @@ use super::into_underlying_source::IntoUnderlyingSource;
 extern "C" {
     /// A raw [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
     ///
-    /// This represents the same JavaScript objects as [`web_sys::ReadableStream`][web-sys].
+    /// This represents the same JavaScript objects as [`web_sys::ReadableStream`].
     /// If you're using an API that returns such an object, you can cast it to this type using
     /// [`unchecked_into`][wasm_bindgen::JsCast::unchecked_into].
-    ///
-    /// [web-sys]: https://docs.rs/web-sys/latest/web_sys/struct.ReadableStream.html
     #[wasm_bindgen(js_name = ReadableStream, typescript_type = "ReadableStream")]
     #[derive(Clone, Debug)]
     pub type ReadableStream;

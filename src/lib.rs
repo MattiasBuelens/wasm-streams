@@ -4,7 +4,7 @@
 //! This crate provides wrappers around [`ReadableStream`](crate::ReadableStream),
 //! [`WritableStream`](crate::WritableStream) and [`TransformStream`](crate::TransformStream).
 //! It also supports converting from and into [`Stream`](futures::Stream)s
-//! and [`Sink`](futures::Sink)s from the [futures crate](https://docs.rs/futures/).
+//! and [`Sink`](futures::Sink)s from the [futures crate](futures).
 
 pub use readable::ReadableStream;
 pub use transform::TransformStream;
