@@ -14,23 +14,23 @@ exclude = [
 ]
 
 [dependencies]
-js-sys = "^0.3.45"
-wasm-bindgen = "0.2.68"
-wasm-bindgen-futures = "^0.4.18"
-futures = "^0.3.6"
+js-sys = "^0.3.47"
+wasm-bindgen = "0.2.70"
+wasm-bindgen-futures = "^0.4.20"
+futures = "^0.3.12"
 
 [dependencies.web-sys]
-version = "^0.3.45"
+version = "^0.3.47"
 features = [
     "AbortSignal",
 ]
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3.18"
-tokio = { version = "^0.3", features = ["macros", "rt"] }
+wasm-bindgen-test = "0.3.20"
+tokio = { version = "^1", features = ["macros", "rt"] }
 
 [dev-dependencies.web-sys]
-version = "^0.3.45"
+version = "^0.3.47"
 features = [
     "console",
     "AbortSignal",
