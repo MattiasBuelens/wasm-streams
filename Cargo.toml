@@ -13,6 +13,9 @@ exclude = [
     ".github/"
 ]
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 js-sys = "^0.3.47"
 wasm-bindgen = "0.2.70"
