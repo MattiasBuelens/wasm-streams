@@ -1,6 +1,6 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use js_sys::{Array, Error, Promise};
+use js_sys::{Array, Error, Promise, Uint8Array};
 use wasm_bindgen::prelude::*;
 use web_sys::AbortSignal;
 
@@ -43,6 +43,12 @@ extern "C" {
 
     #[wasm_bindgen(method, catch, js_name = getReader)]
     pub fn get_reader(this: &ReadableStream) -> Result<ReadableStreamDefaultReader, Error>;
+
+    #[wasm_bindgen(method, catch, js_name = getReader)]
+    pub fn get_reader_with_options(
+        this: &ReadableStream,
+        opts: ReadableStreamGetReaderOptions,
+    ) -> Result<ReadableStreamBYOBReader, Error>;
 
     #[wasm_bindgen(method, js_name = pipeTo)]
     pub fn pipe_to(this: &ReadableStream, dest: &WritableStream, opts: PipeOptions) -> Promise;
@@ -103,6 +109,68 @@ extern "C" {
 
     #[wasm_bindgen(method, getter, js_name = value)]
     pub fn value(this: &ReadableStreamDefaultReadResult) -> JsValue;
+}
+
+#[wasm_bindgen]
+extern "C" {
+    /// A raw [`ReadableStreamBYOBReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader).
+    #[derive(Clone, Debug)]
+    pub type ReadableStreamBYOBReader;
+
+    #[wasm_bindgen(method, getter, js_name = closed)]
+    pub fn closed(this: &ReadableStreamBYOBReader) -> Promise;
+
+    #[wasm_bindgen(method, js_name = cancel)]
+    pub fn cancel(this: &ReadableStreamBYOBReader) -> Promise;
+
+    #[wasm_bindgen(method, js_name = cancel)]
+    pub fn cancel_with_reason(this: &ReadableStreamBYOBReader, reason: &JsValue) -> Promise;
+
+    #[wasm_bindgen(method, js_name = read)]
+    pub fn read(this: &ReadableStreamBYOBReader, view: &Uint8Array) -> Promise;
+
+    #[wasm_bindgen(method, catch, js_name = releaseLock)]
+    pub fn release_lock(this: &ReadableStreamBYOBReader) -> Result<(), Error>;
+}
+
+#[wasm_bindgen]
+extern "C" {
+    /// A result returned by [`ReadableStreamDefaultReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read).
+    #[derive(Clone, Debug)]
+    pub type ReadableStreamBYOBReadResult;
+
+    #[wasm_bindgen(method, getter, js_name = done)]
+    pub fn is_done(this: &ReadableStreamBYOBReadResult) -> bool;
+
+    #[wasm_bindgen(method, getter, js_name = value)]
+    pub fn value(this: &ReadableStreamBYOBReadResult) -> Uint8Array;
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ReadableStreamReaderMode {
+    BYOB = "byob",
+}
+
+/// Raw options for [`getReader()`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/getReader).
+#[wasm_bindgen]
+#[derive(Clone, Debug)]
+pub struct ReadableStreamGetReaderOptions {
+    mode: ReadableStreamReaderMode,
+}
+
+impl ReadableStreamGetReaderOptions {
+    pub fn new(mode: ReadableStreamReaderMode) -> Self {
+        Self { mode }
+    }
+}
+
+#[wasm_bindgen]
+impl ReadableStreamGetReaderOptions {
+    #[wasm_bindgen(getter, js_name = mode)]
+    pub fn mode(&self) -> ReadableStreamReaderMode {
+        self.mode
+    }
 }
 
 /// Raw options for [`pipeTo()`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/pipeTo).
