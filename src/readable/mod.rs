@@ -311,7 +311,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
         let promise = self.as_raw().read();
         let js_value = JsFuture::from(promise).await?;
-        let result = sys::ReadableStreamReadResult::from(js_value);
+        let result = sys::ReadableStreamDefaultReadResult::from(js_value);
         if result.is_done() {
             Ok(None)
         } else {

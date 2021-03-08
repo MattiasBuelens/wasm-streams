@@ -4,6 +4,9 @@ use js_sys::{Array, Error, Promise};
 use wasm_bindgen::prelude::*;
 use web_sys::AbortSignal;
 
+// For backwards compatibility
+pub use ReadableStreamDefaultReadResult as ReadableStreamReadResult;
+
 use crate::queuing_strategy::QueuingStrategy;
 use crate::writable::sys::WritableStream;
 
@@ -93,13 +96,13 @@ extern "C" {
 extern "C" {
     /// A result returned by [`ReadableStreamDefaultReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read).
     #[derive(Clone, Debug)]
-    pub type ReadableStreamReadResult;
+    pub type ReadableStreamDefaultReadResult;
 
     #[wasm_bindgen(method, getter, js_name = done)]
-    pub fn is_done(this: &ReadableStreamReadResult) -> bool;
+    pub fn is_done(this: &ReadableStreamDefaultReadResult) -> bool;
 
     #[wasm_bindgen(method, getter, js_name = value)]
-    pub fn value(this: &ReadableStreamReadResult) -> JsValue;
+    pub fn value(this: &ReadableStreamDefaultReadResult) -> JsValue;
 }
 
 /// Raw options for [`pipeTo()`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/pipeTo).
