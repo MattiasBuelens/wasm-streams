@@ -33,6 +33,12 @@ impl<'reader> IntoAsyncRead<'reader> {
             fut: None,
         }
     }
+
+    #[inline]
+    fn discard_reader(mut self: Pin<&mut Self>) {
+        self.reader = None;
+        self.buffer = None;
+    }
 }
 
 impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
@@ -75,9 +81,8 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                 let result = ReadableStreamBYOBReadResult::from(js_value);
                 let filled_view = result.value();
                 if result.is_done() {
-                    // End of stream, drop reader
-                    self.as_mut().reader = None;
-                    self.as_mut().buffer = None;
+                    // End of stream
+                    self.discard_reader();
                     Ok(0)
                 } else {
                     // Copy bytes to output buffer
@@ -89,9 +94,8 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                 }
             }
             Err(js_value) => {
-                // Error, drop reader
-                self.as_mut().reader = None;
-                self.as_mut().buffer = None;
+                // Error
+                self.discard_reader();
                 Err(Error::new(ErrorKind::Other, "TODO js_value to error"))
             }
         })
