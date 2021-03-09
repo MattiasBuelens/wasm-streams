@@ -1,3 +1,4 @@
+use futures::io::AsyncRead;
 use std::marker::PhantomData;
 
 use js_sys::Uint8Array;
@@ -6,7 +7,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use crate::util::promise_to_void_future;
 
-use super::{sys, ReadableStream};
+use super::{sys, IntoAsyncRead, ReadableStream};
 
 /// A [`ReadableStreamBYOBReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader)
 /// that can be used to read chunks from a [`ReadableStream`](ReadableStream).
@@ -153,6 +154,17 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     #[inline]
     pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
         self.as_raw().release_lock().map_err(|error| (error, self))
+    }
+
+    /// Converts this `ReadableStreamBYOBReader` into an [`AsyncRead`](AsyncRead).
+    ///
+    /// This is similar to [`ReadableStream.into_async_read`](ReadableStream::into_async_read),
+    /// except that after the returned `AsyncRead` is dropped, the original `ReadableStream` is
+    /// still usable. This allows reading only a few bytes from the `AsyncRead`, while still
+    /// allowing another reader to read the remaining bytes later on.
+    #[inline]
+    pub fn into_async_read(self) -> IntoAsyncRead<'stream> {
+        IntoAsyncRead::new(self)
     }
 }
 

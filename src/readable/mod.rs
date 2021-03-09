@@ -1,11 +1,13 @@
 //! Bindings and conversions for
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+use futures::io::AsyncRead;
 use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
 pub use byob_reader::ReadableStreamBYOBReader;
 pub use default_reader::ReadableStreamDefaultReader;
+pub use into_async_read::IntoAsyncRead;
 pub use into_stream::IntoStream;
 use into_underlying_source::IntoUnderlyingSource;
 pub use pipe_options::PipeOptions;
@@ -16,6 +18,7 @@ use crate::writable::WritableStream;
 
 mod byob_reader;
 mod default_reader;
+mod into_async_read;
 mod into_stream;
 mod into_underlying_source;
 mod pipe_options;
@@ -256,6 +259,25 @@ impl ReadableStream {
     pub fn try_into_stream(mut self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
         let reader = ReadableStreamDefaultReader::new(&mut self).map_err(|err| (err, self))?;
         Ok(reader.into_stream())
+    }
+
+    /// Converts this `ReadableStream` into an [`AsyncRead`](AsyncRead).
+    ///
+    /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
+    /// use [`try_into_async_read`](Self::try_into_async_read).
+    #[inline]
+    pub fn into_async_read(self) -> IntoAsyncRead<'static> {
+        self.try_into_async_read()
+            .expect_throw("already locked to a reader")
+    }
+
+    /// Try to convert this `ReadableStream` into an [`AsyncRead`](AsyncRead).
+    ///
+    /// If the stream is already locked to a reader, then this returns an error
+    /// along with the original `ReadableStream`.
+    pub fn try_into_async_read(mut self) -> Result<IntoAsyncRead<'static>, (js_sys::Error, Self)> {
+        let reader = ReadableStreamBYOBReader::new(&mut self).map_err(|err| (err, self))?;
+        Ok(reader.into_async_read())
     }
 }
 
