@@ -78,24 +78,32 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
+    /// A raw [`ReadableStreamGenericReader`](https://streams.spec.whatwg.org/#readablestreamgenericreader).
+    #[derive(Clone, Debug)]
+    pub type ReadableStreamGenericReader;
+
+    #[wasm_bindgen(method, getter, js_name = closed)]
+    pub fn closed(this: &ReadableStreamGenericReader) -> Promise;
+
+    #[wasm_bindgen(method, js_name = cancel)]
+    pub fn cancel(this: &ReadableStreamGenericReader) -> Promise;
+
+    #[wasm_bindgen(method, js_name = cancel)]
+    pub fn cancel_with_reason(this: &ReadableStreamGenericReader, reason: &JsValue) -> Promise;
+
+    #[wasm_bindgen(method, catch, js_name = releaseLock)]
+    pub fn release_lock(this: &ReadableStreamGenericReader) -> Result<(), Error>;
+}
+
+#[wasm_bindgen]
+extern "C" {
     /// A raw [`ReadableStreamDefaultReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader).
+    #[wasm_bindgen(extends = ReadableStreamGenericReader)]
     #[derive(Clone, Debug)]
     pub type ReadableStreamDefaultReader;
 
-    #[wasm_bindgen(method, getter, js_name = closed)]
-    pub fn closed(this: &ReadableStreamDefaultReader) -> Promise;
-
-    #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel(this: &ReadableStreamDefaultReader) -> Promise;
-
-    #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel_with_reason(this: &ReadableStreamDefaultReader, reason: &JsValue) -> Promise;
-
     #[wasm_bindgen(method, js_name = read)]
     pub fn read(this: &ReadableStreamDefaultReader) -> Promise;
-
-    #[wasm_bindgen(method, catch, js_name = releaseLock)]
-    pub fn release_lock(this: &ReadableStreamDefaultReader) -> Result<(), Error>;
 }
 
 #[wasm_bindgen]
@@ -114,23 +122,12 @@ extern "C" {
 #[wasm_bindgen]
 extern "C" {
     /// A raw [`ReadableStreamBYOBReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader).
+    #[wasm_bindgen(extends = ReadableStreamGenericReader)]
     #[derive(Clone, Debug)]
     pub type ReadableStreamBYOBReader;
 
-    #[wasm_bindgen(method, getter, js_name = closed)]
-    pub fn closed(this: &ReadableStreamBYOBReader) -> Promise;
-
-    #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel(this: &ReadableStreamBYOBReader) -> Promise;
-
-    #[wasm_bindgen(method, js_name = cancel)]
-    pub fn cancel_with_reason(this: &ReadableStreamBYOBReader, reason: &JsValue) -> Promise;
-
     #[wasm_bindgen(method, js_name = read)]
     pub fn read(this: &ReadableStreamBYOBReader, view: &Uint8Array) -> Promise;
-
-    #[wasm_bindgen(method, catch, js_name = releaseLock)]
-    pub fn release_lock(this: &ReadableStreamBYOBReader) -> Result<(), Error>;
 }
 
 #[wasm_bindgen]
