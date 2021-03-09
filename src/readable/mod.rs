@@ -1,7 +1,5 @@
 //! Bindings and conversions for
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use std::marker::PhantomData;
-
 use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -118,10 +116,7 @@ impl ReadableStream {
     ///
     /// If the stream is already locked to a reader, then this returns an error.
     pub fn try_get_reader(&mut self) -> Result<ReadableStreamDefaultReader, js_sys::Error> {
-        Ok(ReadableStreamDefaultReader {
-            raw: self.as_raw().get_reader()?,
-            _stream: PhantomData,
-        })
+        ReadableStreamDefaultReader::new(self)
     }
 
     /// Creates a [BYOB reader](ReadableStreamBYOBReader) and
@@ -144,12 +139,7 @@ impl ReadableStream {
     ///
     /// If the stream is already locked to a reader, then this returns an error.
     pub fn try_get_byob_reader(&mut self) -> Result<ReadableStreamBYOBReader, js_sys::Error> {
-        Ok(ReadableStreamBYOBReader {
-            raw: self.as_raw().get_reader_with_options(
-                sys::ReadableStreamGetReaderOptions::new(sys::ReadableStreamReaderMode::BYOB),
-            )?,
-            _stream: PhantomData,
-        })
+        ReadableStreamBYOBReader::new(self)
     }
 
     /// [Pipes](https://streams.spec.whatwg.org/#piping) this readable stream to a given
@@ -266,14 +256,10 @@ impl ReadableStream {
     ///
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
-    pub fn try_into_stream(self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
-        let raw_reader = match self.as_raw().get_reader() {
-            Ok(raw_reader) => raw_reader,
+    pub fn try_into_stream(mut self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
+        let reader = match ReadableStreamDefaultReader::new(&mut self) {
+            Ok(reader) => reader,
             Err(err) => return Err((err, self)),
-        };
-        let reader = ReadableStreamDefaultReader {
-            raw: raw_reader,
-            _stream: PhantomData,
         };
         Ok(reader.into_stream())
     }

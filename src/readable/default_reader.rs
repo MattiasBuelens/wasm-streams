@@ -20,6 +20,13 @@ pub struct ReadableStreamDefaultReader<'stream> {
 }
 
 impl<'stream> ReadableStreamDefaultReader<'stream> {
+    pub(crate) fn new(stream: &mut ReadableStream) -> Result<Self, js_sys::Error> {
+        Ok(Self {
+            raw: stream.as_raw().get_reader()?,
+            _stream: PhantomData,
+        })
+    }
+
     /// Acquires a reference to the underlying [JavaScript reader](sys::ReadableStreamDefaultReader).
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {

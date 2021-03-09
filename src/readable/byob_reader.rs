@@ -21,6 +21,15 @@ pub struct ReadableStreamBYOBReader<'stream> {
 }
 
 impl<'stream> ReadableStreamBYOBReader<'stream> {
+    pub(crate) fn new(stream: &mut ReadableStream) -> Result<Self, js_sys::Error> {
+        Ok(Self {
+            raw: stream.as_raw().get_reader_with_options(
+                sys::ReadableStreamGetReaderOptions::new(sys::ReadableStreamReaderMode::BYOB),
+            )?,
+            _stream: PhantomData,
+        })
+    }
+
     /// Acquires a reference to the underlying [JavaScript reader](sys::ReadableStreamBYOBReader).
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamBYOBReader {
