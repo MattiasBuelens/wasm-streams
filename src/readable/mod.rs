@@ -220,10 +220,7 @@ impl ReadableStream {
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
     pub fn try_tee(self) -> Result<(ReadableStream, ReadableStream), (js_sys::Error, Self)> {
-        let branches = match self.as_raw().tee() {
-            Ok(branches) => branches,
-            Err(err) => return Err((err, self)),
-        };
+        let branches = self.as_raw().tee().map_err(|err| (err, self))?;
         debug_assert_eq!(branches.length(), 2);
         let (left, right) = (branches.get(0), branches.get(1));
         Ok((
@@ -257,10 +254,7 @@ impl ReadableStream {
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
     pub fn try_into_stream(mut self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
-        let reader = match ReadableStreamDefaultReader::new(&mut self) {
-            Ok(reader) => reader,
-            Err(err) => return Err((err, self)),
-        };
+        let reader = ReadableStreamDefaultReader::new(&mut self).map_err(|err| (err, self))?;
         Ok(reader.into_stream())
     }
 }

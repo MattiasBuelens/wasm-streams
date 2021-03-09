@@ -136,10 +136,7 @@ impl WritableStream {
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
     pub fn try_into_sink(self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
-        let raw_writer = match self.as_raw().get_writer() {
-            Ok(raw_writer) => raw_writer,
-            Err(err) => return Err((err, self)),
-        };
+        let raw_writer = self.as_raw().get_writer().map_err(|err| (err, self))?;
         let writer = WritableStreamDefaultWriter {
             raw: raw_writer,
             _stream: PhantomData,
