@@ -135,7 +135,7 @@ impl ReadableStream {
             .expect_throw("already locked to a reader")
     }
 
-    /// Try to create a [default reader](ReadableStreamBYOBReader) and
+    /// Try to create a [BYOB reader](ReadableStreamBYOBReader) and
     /// [lock](https://streams.spec.whatwg.org/#lock) the stream to the new reader.
     ///
     /// While the stream is locked, no other reader can be acquired until this one is released.
