@@ -107,10 +107,7 @@ impl WritableStream {
     ///
     /// If the stream is already locked to a writer, then this returns an error.
     pub fn try_get_writer(&mut self) -> Result<WritableStreamDefaultWriter, js_sys::Error> {
-        Ok(WritableStreamDefaultWriter {
-            raw: self.as_raw().get_writer()?,
-            _stream: PhantomData,
-        })
+        WritableStreamDefaultWriter::new(self)
     }
 
     /// Converts this `WritableStream` into a [`Sink`](Sink).
@@ -135,12 +132,8 @@ impl WritableStream {
     ///
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
-    pub fn try_into_sink(self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
-        let raw_writer = self.as_raw().get_writer().map_err(|err| (err, self))?;
-        let writer = WritableStreamDefaultWriter {
-            raw: raw_writer,
-            _stream: PhantomData,
-        };
+    pub fn try_into_sink(mut self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
+        let writer = WritableStreamDefaultWriter::new(&mut self).map_err(|err| (err, self))?;
         Ok(writer.into_sink())
     }
 }
@@ -169,6 +162,13 @@ pub struct WritableStreamDefaultWriter<'stream> {
 }
 
 impl<'stream> WritableStreamDefaultWriter<'stream> {
+    pub(crate) fn new(stream: &mut WritableStream) -> Result<Self, js_sys::Error> {
+        Ok(Self {
+            raw: stream.as_raw().get_writer()?,
+            _stream: PhantomData,
+        })
+    }
+
     /// Acquires a reference to the underlying [JavaScript writer](sys::WritableStreamDefaultWriter).
     #[inline]
     pub fn as_raw(&self) -> &sys::WritableStreamDefaultWriter {
