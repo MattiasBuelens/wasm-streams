@@ -438,24 +438,69 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         promise_to_void_future(self.as_raw().cancel_with_reason(reason)).await
     }
 
-    /// Reads the next chunk from the stream's internal queue into `buf`,
+    /// Reads the next chunk from the stream's internal queue into `dst`,
     /// and returns the number of bytes read.
     ///
-    /// * If some bytes were read into `buf`, this returns `Ok(bytes_read)`.
+    /// * If some bytes were read into `dst`, this returns `Ok(bytes_read)`.
     /// * If the stream closes and no more bytes are available, this returns `Ok(0)`.
     /// * If the stream encounters an `error`, this returns `Err(error)`.
-    pub async fn read(&mut self, buf: &mut [u8]) -> Result<usize, JsValue> {
-        let mut view = Uint8Array::new_with_length(buf.len() as u32); // TODO Avoid repeated allocations?
+    ///
+    /// This always allocated a new temporary `Uint8Array` with the same size as `dst` to hold
+    /// the result before copying to `dst`. We cannot pass a view on the backing WebAssembly memory
+    /// directly, because:
+    /// * `reader.read(view)` needs to transfer `view.buffer`, but `WebAssembly.Memory` buffers
+    ///    are non-transferable
+    /// * `view.buffer` can be invalidated if the WebAssembly memory grows while `read(view)`
+    ///    is still in progress.
+    ///
+    /// Therefore, it is necessary to use a separate buffer living in the JavaScript heap.
+    /// To avoid repeated allocations for repeated reads,
+    /// use [`read_with_buffer`](Self::read_with_buffer).
+    pub async fn read(&mut self, dst: &mut [u8]) -> Result<usize, JsValue> {
+        let buffer = Uint8Array::new_with_length(dst.len() as u32);
+        let (bytes_read, _) = self.read_with_buffer(dst, buffer).await?;
+        Ok(bytes_read)
+    }
+
+    /// Reads the next chunk from the stream's internal queue into `dst`,
+    /// and returns the number of bytes read.
+    ///
+    /// The given `buffer` is used to store the bytes before they are copied to `dst`.
+    /// This buffer is returned back together with the result, so it can be re-used for subsequent
+    /// reads without extra allocations. Note that the underlying `ArrayBuffer` is transferred
+    /// in the process, so any other views on the original buffer will become unusable.
+    ///
+    /// * If some bytes were read into `dst`, this returns `Ok((bytes_read, buffer))`.
+    /// * If the stream closes and no more bytes are available, this returns `Ok((0, buffer))`.
+    /// * If the stream encounters an `error`, this returns `Err(error)`.
+    pub async fn read_with_buffer(
+        &mut self,
+        dst: &mut [u8],
+        buffer: Uint8Array,
+    ) -> Result<(usize, Uint8Array), JsValue> {
+        // Save the original buffer's byte offset and length.
+        let buffer_offset = buffer.byte_offset();
+        let byte_length = buffer.byte_length();
+        // Limit view to destination slice's length.
+        let mut view = buffer.subarray(0, dst.len() as u32);
+        // Read into view. This transfers `buffer.buffer()`.
         let promise = self.as_raw().read(&mut view);
         let js_value = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamBYOBReadResult::from(js_value);
+        let filled_view = result.value();
+        debug_assert!(filled_view.byte_length() <= dst.len() as u32);
+        // Re-construct the original Uint8Array with the new ArrayBuffer.
+        let new_buffer = Uint8Array::new_with_byte_offset_and_length(
+            &filled_view.buffer(),
+            buffer_offset,
+            byte_length,
+        );
         if result.is_done() {
-            debug_assert_eq!(result.value().byte_length(), 0);
-            Ok(0)
+            debug_assert_eq!(filled_view.byte_length(), 0);
+            Ok((0, new_buffer))
         } else {
-            let filled_view = result.value();
-            filled_view.copy_to(buf);
-            Ok(filled_view.byte_length() as usize)
+            filled_view.copy_to(dst);
+            Ok((filled_view.byte_length() as usize, new_buffer))
         }
     }
 
