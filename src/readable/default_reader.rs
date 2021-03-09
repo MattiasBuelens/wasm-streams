@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+use futures::stream::Stream;
 use wasm_bindgen::{throw_val, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
