@@ -1,6 +1,5 @@
 //! Bindings and conversions for
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use futures::io::AsyncRead;
 use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -261,7 +260,7 @@ impl ReadableStream {
         Ok(reader.into_stream())
     }
 
-    /// Converts this `ReadableStream` into an [`AsyncRead`](AsyncRead).
+    /// Converts this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
     ///
     /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
     /// use [`try_into_async_read`](Self::try_into_async_read).
@@ -271,7 +270,7 @@ impl ReadableStream {
             .expect_throw("already locked to a reader")
     }
 
-    /// Try to convert this `ReadableStream` into an [`AsyncRead`](AsyncRead).
+    /// Try to convert this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
     ///
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.

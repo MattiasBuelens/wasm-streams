@@ -1,6 +1,5 @@
 use std::marker::PhantomData;
 
-use futures::stream::Stream;
 use wasm_bindgen::{throw_val, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
@@ -103,7 +102,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
         self.as_raw().release_lock().map_err(|error| (error, self))
     }
 
-    /// Converts this `ReadableStreamDefaultReader` into a [`Stream`](Stream).
+    /// Converts this `ReadableStreamDefaultReader` into a [`Stream`](futures::stream::Stream).
     ///
     /// This is similar to [`ReadableStream.into_stream`](ReadableStream::into_stream),
     /// except that after the returned `Stream` is dropped, the original `ReadableStream` is still

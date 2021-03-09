@@ -1,4 +1,3 @@
-use futures::io::AsyncRead;
 use std::marker::PhantomData;
 
 use js_sys::Uint8Array;
@@ -156,7 +155,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         self.as_raw().release_lock().map_err(|error| (error, self))
     }
 
-    /// Converts this `ReadableStreamBYOBReader` into an [`AsyncRead`](AsyncRead).
+    /// Converts this `ReadableStreamBYOBReader` into an [`AsyncRead`](futures::io::AsyncRead).
     ///
     /// This is similar to [`ReadableStream.into_async_read`](ReadableStream::into_async_read),
     /// except that after the returned `AsyncRead` is dropped, the original `ReadableStream` is
