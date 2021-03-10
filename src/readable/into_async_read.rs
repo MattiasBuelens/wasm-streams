@@ -1,6 +1,6 @@
 use core::pin::Pin;
 
-use futures::future::Future;
+use futures::future::FutureExt;
 use futures::io::{AsyncRead, Error, ErrorKind};
 use futures::ready;
 use futures::task::{Context, Poll};
@@ -50,7 +50,7 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
         if self.fut.is_none() {
             // No pending read, start reading the next bytes
             let buf_len = buf.len() as u32;
-            let buffer = match self.as_mut().buffer.take() {
+            let buffer = match self.buffer.take() {
                 // Re-use the internal buffer if it is large enough,
                 // otherwise allocate a new one
                 Some(buffer) if buffer.byte_length() >= buf_len => buffer,
@@ -58,11 +58,11 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
             };
             // Limit to output buffer size
             let buffer = buffer.subarray(0, buf_len);
-            match self.reader.as_ref() {
+            match &self.reader {
                 Some(reader) => {
                     // Read into internal buffer and store its future
                     let fut = JsFuture::from(reader.as_raw().read(&buffer));
-                    self.as_mut().fut = Some(fut);
+                    self.fut = Some(fut);
                 }
                 None => {
                     // Reader was already dropped
@@ -72,8 +72,8 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
         }
 
         // Poll the future for the pending read
-        let js_result = ready!(Pin::new(self.as_mut().fut.as_mut().unwrap_throw()).poll(cx));
-        self.as_mut().fut = None;
+        let js_result = ready!(self.as_mut().fut.as_mut().unwrap_throw().poll_unpin(cx));
+        self.fut = None;
 
         // Read completed
         Poll::Ready(match js_result {
@@ -89,7 +89,7 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                     debug_assert!(filled_view.byte_length() <= buf.len() as u32);
                     filled_view.copy_to(buf);
                     // Re-construct internal buffer with the new ArrayBuffer
-                    self.as_mut().buffer = Some(Uint8Array::new(&filled_view.buffer()));
+                    self.buffer = Some(Uint8Array::new(&filled_view.buffer()));
                     Ok(filled_view.byte_length() as usize)
                 }
             }
