@@ -6,9 +6,10 @@ use futures::ready;
 use futures::task::{Context, Poll};
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
-use super::sys::ReadableStreamBYOBReadResult;
+use super::sys::{ArrayBufferView, ReadableStreamBYOBReadResult};
 use super::ReadableStreamBYOBReader;
 
 /// An [`AsyncRead`](AsyncRead) for the [`into_async_read`](super::ReadableStream::into_async_read) method.
@@ -57,7 +58,9 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                 _ => Uint8Array::new_with_length(buf_len),
             };
             // Limit to output buffer size
-            let buffer = buffer.subarray(0, buf_len);
+            let buffer = buffer
+                .subarray(0, buf_len)
+                .unchecked_into::<ArrayBufferView>();
             match &self.reader {
                 Some(reader) => {
                     // Read into internal buffer and store its future

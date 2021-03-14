@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use js_sys::Uint8Array;
-use wasm_bindgen::{throw_val, JsValue};
+use wasm_bindgen::{throw_val, JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
 use crate::util::promise_to_void_future;
@@ -105,8 +105,11 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let buffer_offset = buffer.byte_offset();
         let byte_length = buffer.byte_length();
         // Limit view to destination slice's length.
-        let mut view = buffer.subarray(0, dst.len() as u32); // TODO Clamp to u32::MAX
-                                                             // Read into view. This transfers `buffer.buffer()`.
+        // TODO Clamp to u32::MAX
+        let mut view = buffer
+            .subarray(0, dst.len() as u32)
+            .unchecked_into::<sys::ArrayBufferView>();
+        // Read into view. This transfers `buffer.buffer()`.
         let promise = self.as_raw().read(&mut view);
         let js_value = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamBYOBReadResult::from(js_value);

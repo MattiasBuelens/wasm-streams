@@ -1,5 +1,6 @@
 //! Bindings and conversions for
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+use futures::io::AsyncRead;
 use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -12,6 +13,7 @@ use into_underlying_source::IntoUnderlyingSource;
 pub use pipe_options::PipeOptions;
 
 use crate::queuing_strategy::QueuingStrategy;
+use crate::readable::into_underlying_byte_source::IntoUnderlyingByteSource;
 use crate::util::promise_to_void_future;
 use crate::writable::WritableStream;
 
@@ -19,6 +21,7 @@ mod byob_reader;
 mod default_reader;
 mod into_async_read;
 mod into_stream;
+mod into_underlying_byte_source;
 mod into_underlying_source;
 mod pipe_options;
 pub mod sys;
@@ -59,6 +62,16 @@ impl ReadableStream {
         // since the original Rust stream is better suited to handle that.
         let strategy = QueuingStrategy::new(0.0);
         let raw = sys::ReadableStream::new_with_source(source, strategy);
+        Self { raw }
+    }
+
+    /// Creates a new `ReadableStream` from an [`AsyncRead`](AsyncRead).
+    pub fn from_async_read<R>(async_read: R, default_buffer_len: usize) -> Self
+    where
+        R: AsyncRead + 'static,
+    {
+        let source = IntoUnderlyingByteSource::new(Box::new(async_read), default_buffer_len);
+        let raw = sys::ReadableStream::new_with_byte_source(source);
         Self { raw }
     }
 
@@ -260,7 +273,7 @@ impl ReadableStream {
         Ok(reader.into_stream())
     }
 
-    /// Converts this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
+    /// Converts this `ReadableStream` into an [`AsyncRead`](AsyncRead).
     ///
     /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
     /// use [`try_into_async_read`](Self::try_into_async_read).
@@ -270,7 +283,7 @@ impl ReadableStream {
             .expect_throw("already locked to a reader")
     }
 
-    /// Try to convert this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
+    /// Try to convert this `ReadableStream` into an [`AsyncRead`](AsyncRead).
     ///
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.

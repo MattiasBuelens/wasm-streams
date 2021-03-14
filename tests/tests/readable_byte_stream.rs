@@ -77,3 +77,25 @@ async fn test_readable_byte_stream_into_async_read() {
     assert_eq!(async_read.read(&mut buf).await.unwrap(), 0);
     assert_eq!(&buf, &[4, 5, 6]);
 }
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_from_async_read() {
+    static ASYNC_READ: [u8; 6] = [1u8, 2, 3, 4, 5, 6];
+    let mut readable = ReadableStream::from_async_read(&ASYNC_READ[..], 2);
+    assert!(!readable.is_locked());
+
+    let mut reader = readable.get_byob_reader();
+    let mut dst = [0u8; 3];
+    let buf = Uint8Array::new_with_length(3);
+    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
+    assert_eq!(bytes_read, 3);
+    assert_eq!(&dst, &[1, 2, 3]);
+    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
+    assert_eq!(bytes_read, 3);
+    assert_eq!(&dst, &[4, 5, 6]);
+    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
+    assert_eq!(bytes_read, 0);
+    assert_eq!(&dst, &[4, 5, 6]);
+    drop(buf);
+    reader.closed().await.unwrap();
+}

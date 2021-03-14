@@ -1,6 +1,6 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use js_sys::{Array, Error, Promise, Uint8Array};
+use js_sys::{Array, ArrayBuffer, Error, Promise, Uint8Array};
 use wasm_bindgen::prelude::*;
 use web_sys::AbortSignal;
 
@@ -10,6 +10,7 @@ pub use ReadableStreamDefaultReadResult as ReadableStreamReadResult;
 use crate::queuing_strategy::QueuingStrategy;
 use crate::writable::sys::WritableStream;
 
+use super::into_underlying_byte_source::IntoUnderlyingByteSource;
 use super::into_underlying_source::IntoUnderlyingSource;
 
 #[wasm_bindgen]
@@ -31,6 +32,9 @@ extern "C" {
         source: IntoUnderlyingSource,
         strategy: QueuingStrategy,
     ) -> ReadableStream;
+
+    #[wasm_bindgen(constructor)]
+    pub(crate) fn new_with_byte_source(source: IntoUnderlyingByteSource) -> ReadableStream;
 
     #[wasm_bindgen(method, getter, js_name = locked)]
     pub fn is_locked(this: &ReadableStream) -> bool;
@@ -74,6 +78,60 @@ extern "C" {
 
     #[wasm_bindgen(method, js_name = error)]
     pub fn error(this: &ReadableStreamDefaultController, error: &JsValue);
+}
+
+#[wasm_bindgen]
+extern "C" {
+    /// A raw [`ReadableByteStreamController`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableByteStreamController).
+    #[derive(Clone, Debug)]
+    pub type ReadableByteStreamController;
+
+    #[wasm_bindgen(method, getter, js_name = byobRequest)]
+    pub fn byob_request(this: &ReadableByteStreamController) -> Option<ReadableStreamBYOBRequest>;
+
+    #[wasm_bindgen(method, getter, js_name = desiredSize)]
+    pub fn desired_size(this: &ReadableByteStreamController) -> Option<f64>;
+
+    #[wasm_bindgen(method, js_name = close)]
+    pub fn close(this: &ReadableByteStreamController);
+
+    #[wasm_bindgen(method, js_name = enqueue)]
+    pub fn enqueue(this: &ReadableByteStreamController, chunk: &ArrayBufferView);
+
+    #[wasm_bindgen(method, js_name = error)]
+    pub fn error(this: &ReadableByteStreamController, error: &JsValue);
+}
+
+#[wasm_bindgen]
+extern "C" {
+    /// A raw [`ReadableStreamBYOBRequest`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBRequest).
+    #[derive(Clone, Debug)]
+    pub type ReadableStreamBYOBRequest;
+
+    #[wasm_bindgen(method, getter, js_name = view)]
+    pub fn view(this: &ReadableStreamBYOBRequest) -> Option<ArrayBufferView>;
+
+    #[wasm_bindgen(method, js_name = respond)]
+    pub fn respond(this: &ReadableStreamBYOBRequest, bytes_written: u32);
+
+    #[wasm_bindgen(method, js_name = respondWithNewView)]
+    pub fn respond_with_new_view(this: &ReadableStreamBYOBRequest, view: &ArrayBufferView);
+}
+
+#[wasm_bindgen]
+extern "C" {
+    /// An [`ArrayBufferView`](https://developer.mozilla.org/en-US/docs/Web/API/ArrayBufferView).
+    #[derive(Clone, Debug)]
+    pub type ArrayBufferView;
+
+    #[wasm_bindgen(method, getter, js_name = buffer)]
+    pub fn buffer(this: &ArrayBufferView) -> ArrayBuffer;
+
+    #[wasm_bindgen(method, getter, js_name = byteOffset)]
+    pub fn byte_offset(this: &ArrayBufferView) -> u32;
+
+    #[wasm_bindgen(method, getter, js_name = byteLength)]
+    pub fn byte_length(this: &ArrayBufferView) -> u32;
 }
 
 #[wasm_bindgen]
@@ -127,7 +185,7 @@ extern "C" {
     pub type ReadableStreamBYOBReader;
 
     #[wasm_bindgen(method, js_name = read)]
-    pub fn read(this: &ReadableStreamBYOBReader, view: &Uint8Array) -> Promise;
+    pub fn read(this: &ReadableStreamBYOBReader, view: &ArrayBufferView) -> Promise;
 }
 
 #[wasm_bindgen]
