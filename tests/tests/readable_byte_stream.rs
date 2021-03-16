@@ -125,7 +125,7 @@ async fn test_readable_byte_stream_byob_reader_into_async_read() {
 
 #[wasm_bindgen_test]
 async fn test_readable_byte_stream_from_async_read() {
-    static ASYNC_READ: [u8; 6] = [1u8, 2, 3, 4, 5, 6];
+    static ASYNC_READ: [u8; 6] = [1, 2, 3, 4, 5, 6];
     let mut readable = ReadableStream::from_async_read(&ASYNC_READ[..], 2);
     assert!(!readable.is_locked());
 
@@ -147,7 +147,7 @@ async fn test_readable_byte_stream_from_async_read() {
 
 #[wasm_bindgen_test]
 async fn test_readable_byte_stream_from_async_read_cancel() {
-    static ASYNC_READ: [u8; 6] = [1u8, 2, 3, 4, 5, 6];
+    static ASYNC_READ: [u8; 6] = [1, 2, 3, 4, 5, 6];
     let mut readable = ReadableStream::from_async_read(&ASYNC_READ[..], 2);
 
     let mut reader = readable.get_byob_reader();
