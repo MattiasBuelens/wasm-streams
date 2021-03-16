@@ -180,9 +180,7 @@ async fn test_readable_byte_stream_multiple_byob_readers() {
     assert!(!readable.is_locked());
 }
 
-#[wasm_bindgen_test]
-async fn test_readable_byte_stream_abort_read() {
-    let mut readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+async fn test_readable_byte_stream_abort_read(mut readable: ReadableStream) {
     let mut reader = readable.get_byob_reader();
 
     // Start reading
@@ -205,4 +203,17 @@ async fn test_readable_byte_stream_abort_read() {
 
     // Can release lock after cancelling
     reader.release_lock();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_abort_read_from_raw() {
+    let readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+    test_readable_byte_stream_abort_read(readable).await
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_abort_read_from_async_read() {
+    static ASYNC_READ: [u8; 6] = [1, 2, 3, 4, 5, 6];
+    let readable = ReadableStream::from_async_read(&ASYNC_READ[..], 2);
+    test_readable_byte_stream_abort_read(readable).await
 }

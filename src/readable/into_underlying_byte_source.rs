@@ -14,6 +14,7 @@ use super::sys;
 pub(crate) struct IntoUnderlyingByteSource {
     inner: Rc<RefCell<Inner>>,
     default_buffer_len: usize,
+    controller: Option<sys::ReadableByteStreamController>,
     pull_handle: Option<AbortHandle>,
 }
 
@@ -22,6 +23,7 @@ impl IntoUnderlyingByteSource {
         IntoUnderlyingByteSource {
             inner: Rc::new(RefCell::new(Inner::new(async_read))),
             default_buffer_len,
+            controller: None,
             pull_handle: None,
         }
     }
@@ -50,6 +52,10 @@ impl IntoUnderlyingByteSource {
     #[wasm_bindgen(getter, js_name = autoAllocateChunkSize)]
     pub fn auto_allocate_chunk_size(&self) -> usize {
         self.default_buffer_len
+    }
+
+    pub fn start(&mut self, controller: sys::ReadableByteStreamController) {
+        self.controller = Some(controller);
     }
 
     pub fn pull(&mut self, controller: sys::ReadableByteStreamController) {
@@ -89,8 +95,12 @@ impl IntoUnderlyingByteSource {
 impl Drop for IntoUnderlyingByteSource {
     fn drop(&mut self) {
         // Abort the pending pull, if any.
-        if let Some(handle) = &mut self.pull_handle {
+        if let Some(handle) = self.pull_handle.take() {
             handle.abort();
+        }
+        // Close the pending BYOB request, if any. This is necessary for cancellation.
+        if let Some(request) = self.controller.take().and_then(|c| c.byob_request()) {
+            request.respond(0);
         }
     }
 }
@@ -113,9 +123,9 @@ impl Inner {
         // after the stream has closed or encountered an error.
         let async_read = self.async_read.as_mut().unwrap_throw();
         // We set autoAllocateChunkSize, so there should always be a BYOB request.
-        let request = controller.byob_request().unwrap_throw();
+        let mut request = ByobRequestGuard::new(controller.byob_request().unwrap_throw());
         // Resize the buffer to fit the BYOB request.
-        let request_view = request.view().unwrap_throw();
+        let request_view = request.view();
         let request_len = request_view.byte_length() as usize;
         if self.buffer.len() < request_len {
             self.buffer.resize(request_len, 0);
@@ -155,5 +165,31 @@ impl Inner {
     fn discard(&mut self) {
         self.async_read = None;
         self.buffer = Vec::new();
+    }
+}
+
+#[derive(Debug)]
+struct ByobRequestGuard(Option<sys::ReadableStreamBYOBRequest>);
+
+impl ByobRequestGuard {
+    fn new(request: sys::ReadableStreamBYOBRequest) -> Self {
+        Self(Some(request))
+    }
+
+    fn view(&mut self) -> sys::ArrayBufferView {
+        self.0.as_mut().unwrap_throw().view().unwrap_throw()
+    }
+
+    fn respond(mut self, bytes_read: u32) {
+        self.0.take().unwrap_throw().respond(bytes_read);
+    }
+}
+
+impl Drop for ByobRequestGuard {
+    fn drop(&mut self) {
+        // Close the BYOB request, if still pending. This is necessary for cancellation.
+        if let Some(request) = self.0.take() {
+            request.respond(0);
+        }
     }
 }
