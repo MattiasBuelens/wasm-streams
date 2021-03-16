@@ -9,6 +9,8 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
+use crate::util::clamp_to_u32;
+
 use super::sys::{ArrayBufferView, ReadableStreamBYOBReadResult};
 use super::ReadableStreamBYOBReader;
 
@@ -50,7 +52,7 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
     ) -> Poll<Result<usize, Error>> {
         if self.fut.is_none() {
             // No pending read, start reading the next bytes
-            let buf_len = buf.len() as u32;
+            let buf_len = clamp_to_u32(buf.len());
             let buffer = match self.buffer.take() {
                 // Re-use the internal buffer if it is large enough,
                 // otherwise allocate a new one
@@ -89,7 +91,7 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                     Ok(0)
                 } else {
                     // Copy bytes to output buffer
-                    debug_assert!(filled_view.byte_length() <= buf.len() as u32);
+                    debug_assert!(filled_view.byte_length() as usize <= buf.len());
                     filled_view.copy_to(buf);
                     // Re-construct internal buffer with the new ArrayBuffer
                     self.buffer = Some(Uint8Array::new(&filled_view.buffer()));

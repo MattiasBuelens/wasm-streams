@@ -8,3 +8,13 @@ pub(crate) async fn promise_to_void_future(promise: Promise) -> Result<(), JsVal
     let _ = js_value;
     Ok(())
 }
+
+pub(crate) fn clamp_to_u32(value: usize) -> u32 {
+    let wrapped = value as u32;
+    let overflow = value != (wrapped as usize);
+    if overflow {
+        u32::MAX
+    } else {
+        wrapped
+    }
+}

@@ -140,6 +140,7 @@ impl Inner {
                     dest.set(&Uint8Array::view(bytes), 0);
                 }
                 // Respond to BYOB request
+                debug_assert!(bytes_read <= u32::MAX as usize);
                 request.respond(bytes_read as u32);
             }
             Err(err) => {

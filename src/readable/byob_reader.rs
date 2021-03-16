@@ -4,7 +4,7 @@ use js_sys::Uint8Array;
 use wasm_bindgen::{throw_val, JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
-use crate::util::promise_to_void_future;
+use crate::util::{clamp_to_u32, promise_to_void_future};
 
 use super::{sys, IntoAsyncRead, ReadableStream};
 
@@ -80,7 +80,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// To avoid repeated allocations for repeated reads,
     /// use [`read_with_buffer`](Self::read_with_buffer).
     pub async fn read(&mut self, dst: &mut [u8]) -> Result<usize, JsValue> {
-        let buffer = Uint8Array::new_with_length(dst.len() as u32); // TODO Clamp to u32::MAX
+        let buffer = Uint8Array::new_with_length(clamp_to_u32(dst.len()));
         let (bytes_read, _) = self.read_with_buffer(dst, buffer).await?;
         Ok(bytes_read)
     }
@@ -105,16 +105,16 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let buffer_offset = buffer.byte_offset();
         let byte_length = buffer.byte_length();
         // Limit view to destination slice's length.
-        // TODO Clamp to u32::MAX
+        let dst_len = clamp_to_u32(dst.len());
         let mut view = buffer
-            .subarray(0, dst.len() as u32)
+            .subarray(0, dst_len)
             .unchecked_into::<sys::ArrayBufferView>();
         // Read into view. This transfers `buffer.buffer()`.
         let promise = self.as_raw().read(&mut view);
         let js_value = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamBYOBReadResult::from(js_value);
         let filled_view = result.value();
-        debug_assert!(filled_view.byte_length() <= dst.len() as u32);
+        debug_assert!(filled_view.byte_length() as usize <= dst.len());
         // Re-construct the original Uint8Array with the new ArrayBuffer.
         let new_buffer = Uint8Array::new_with_byte_offset_and_length(
             &filled_view.buffer(),
