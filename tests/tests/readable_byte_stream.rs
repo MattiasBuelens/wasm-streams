@@ -1,6 +1,8 @@
 use std::pin::Pin;
 
 use futures::io::AsyncReadExt;
+use futures::task::Poll;
+use futures::{poll, FutureExt};
 use js_sys::Uint8Array;
 use wasm_bindgen_test::*;
 
@@ -176,4 +178,31 @@ async fn test_readable_byte_stream_multiple_byob_readers() {
     let reader = readable.get_byob_reader();
     reader.release_lock();
     assert!(!readable.is_locked());
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_abort_read() {
+    let mut readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+    let mut reader = readable.get_byob_reader();
+
+    // Start reading
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let mut dst = [0u8; 3];
+    let mut fut = reader.read(&mut dst).boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert_eq!(poll_result, Poll::Pending);
+    // Drop the future, to regain control over the reader
+    drop(fut);
+
+    // Cannot release the lock while there are pending reads
+    let (_err, mut reader) = reader
+        .try_release_lock()
+        .expect_err("reader was released while there are pending reads");
+
+    // Cancel all pending reads
+    reader.cancel().await.unwrap();
+
+    // Can release lock after cancelling
+    reader.release_lock();
 }
