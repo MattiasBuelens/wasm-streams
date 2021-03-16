@@ -4,7 +4,7 @@ use futures::future::FutureExt;
 use futures::io::{AsyncRead, Error, ErrorKind};
 use futures::ready;
 use futures::task::{Context, Poll};
-use js_sys::Uint8Array;
+use js_sys::{Object, Uint8Array};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -101,7 +101,11 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
             Err(js_value) => {
                 // Error
                 self.discard_reader();
-                Err(Error::new(ErrorKind::Other, "TODO js_value to error"))
+                let error = match Object::try_from(&js_value) {
+                    Some(js_object) => js_object.to_string().as_string().unwrap_throw(),
+                    None => "Unknown error".to_string(),
+                };
+                Err(Error::new(ErrorKind::Other, error))
             }
         })
     }
