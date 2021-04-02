@@ -36,13 +36,12 @@ impl IntoUnderlyingSource {
             // This mutable borrow can never panic, since the ReadableStream always queues
             // each operation on the underlying source.
             let mut inner = inner.try_borrow_mut().unwrap_throw();
-            inner.pull(controller).await;
-            JsValue::undefined()
+            inner.pull(controller).await
         };
 
         // Allow aborting the future from cancel().
         let (fut, handle) = abortable(fut);
-        let fut = fut.map_err(|_| JsValue::from_str("aborted"));
+        let fut = fut.unwrap_or_else(|_| Err(JsValue::from_str("aborted")));
 
         self.pull_handle = Some(handle);
         future_to_promise(fut)
@@ -74,7 +73,10 @@ impl Inner {
         }
     }
 
-    async fn pull(&mut self, controller: sys::ReadableStreamDefaultController) {
+    async fn pull(
+        &mut self,
+        controller: sys::ReadableStreamDefaultController,
+    ) -> Result<JsValue, JsValue> {
         // The stream should still exist, since pull() will not be called again
         // after the stream has closed or encountered an error.
         let stream = self.stream.as_mut().unwrap_throw();
@@ -88,8 +90,9 @@ impl Inner {
             Err(err) => {
                 // The stream encountered an error, drop it.
                 self.stream = None;
-                controller.error(&err);
+                return Err(err);
             }
-        }
+        };
+        Ok(JsValue::undefined())
     }
 }
