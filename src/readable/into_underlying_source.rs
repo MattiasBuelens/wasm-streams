@@ -41,7 +41,8 @@ impl IntoUnderlyingSource {
 
         // Allow aborting the future from cancel().
         let (fut, handle) = abortable(fut);
-        let fut = fut.unwrap_or_else(|_| Err(JsValue::from_str("aborted")));
+        // Ignore errors from aborting the future.
+        let fut = fut.unwrap_or_else(|_| Ok(JsValue::undefined()));
 
         self.pull_handle = Some(handle);
         future_to_promise(fut)
