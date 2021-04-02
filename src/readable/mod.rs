@@ -35,6 +35,11 @@ pub mod sys;
 /// They can be converted into a [raw JavaScript stream](sys::ReadableStream) with
 /// [`into_raw`](Self::into_raw), or into a Rust [`Stream`](Stream)
 /// with [`into_stream`](Self::into_stream).
+///
+/// If the browser supports [readable byte streams](https://streams.spec.whatwg.org/#readable-byte-stream),
+/// then they can be created from a Rust [`AsyncRead`](AsyncRead) with
+/// [`from_async_read`](Self::from_async_read), or converted into one with
+/// [`into_async_read`](Self::into_async_read).
 #[derive(Debug)]
 pub struct ReadableStream {
     raw: sys::ReadableStream,
@@ -66,6 +71,11 @@ impl ReadableStream {
     }
 
     /// Creates a new `ReadableStream` from an [`AsyncRead`](AsyncRead).
+    ///
+    /// This creates a readable byte stream whose `autoAllocateChunkSize` is `default_buffer_len`.
+    /// Therefore, if a default reader is used to consume the stream, the given `async_read`
+    /// will be [polled](AsyncRead::poll_read) with a buffer of this size. If a BYOB reader is used,
+    /// then it will be polled with a buffer of the same size as the BYOB read request instead.
     ///
     /// **Panics** if readable byte streams are not supported by the browser.
     // TODO Non-panicking variant?
@@ -143,12 +153,11 @@ impl ReadableStream {
     ///
     /// While the stream is locked, no other reader can be acquired until this one is released.
     ///
-    /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
-    /// use [`try_get_reader`](Self::try_get_reader).
-    #[inline]
+    /// **Panics** if the stream is already locked to a reader, or if this stream is not a readable
+    /// byte stream. For a non-panicking variant, use [`try_get_reader`](Self::try_get_reader).
     pub fn get_byob_reader(&mut self) -> ReadableStreamBYOBReader {
         self.try_get_byob_reader()
-            .expect_throw("already locked to a reader")
+            .expect_throw("already locked to a reader, or not a readable byte stream")
     }
 
     /// Try to create a [BYOB reader](ReadableStreamBYOBReader) and
@@ -279,18 +288,18 @@ impl ReadableStream {
 
     /// Converts this `ReadableStream` into an [`AsyncRead`](AsyncRead).
     ///
-    /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
-    /// use [`try_into_async_read`](Self::try_into_async_read).
+    /// **Panics** if the stream is already locked to a reader, or if this stream is not a readable
+    /// byte stream. For a non-panicking variant, use [`try_into_async_read`](Self::try_into_async_read).
     #[inline]
     pub fn into_async_read(self) -> IntoAsyncRead<'static> {
         self.try_into_async_read()
-            .expect_throw("already locked to a reader")
+            .expect_throw("already locked to a reader, or not a readable byte stream")
     }
 
     /// Try to convert this `ReadableStream` into an [`AsyncRead`](AsyncRead).
     ///
-    /// If the stream is already locked to a reader, then this returns an error
-    /// along with the original `ReadableStream`.
+    /// If the stream is already locked to a reader, or if this stream is not a readable byte
+    /// stream, then this returns an error along with the original `ReadableStream`.
     pub fn try_into_async_read(mut self) -> Result<IntoAsyncRead<'static>, (js_sys::Error, Self)> {
         let reader = ReadableStreamBYOBReader::new(&mut self).map_err(|err| (err, self))?;
         Ok(reader.into_async_read())
