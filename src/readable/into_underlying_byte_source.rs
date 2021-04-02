@@ -138,11 +138,7 @@ impl Inner {
                     request_view.byte_offset(),
                     bytes_read as u32,
                 );
-                let bytes = &self.buffer[0..bytes_read];
-                unsafe {
-                    // This is safe because `set()` copies from its argument
-                    dest.set(&Uint8Array::view(bytes), 0);
-                }
+                dest.copy_from(&self.buffer[0..bytes_read]);
                 // Respond to BYOB request
                 debug_assert!(bytes_read <= u32::MAX as usize);
                 request.respond(bytes_read as u32);
