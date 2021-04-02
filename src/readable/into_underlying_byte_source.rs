@@ -4,9 +4,9 @@ use std::rc::Rc;
 
 use futures::future::{abortable, AbortHandle, TryFutureExt};
 use futures::io::{AsyncRead, AsyncReadExt};
-use js_sys::{Error as JsError, Uint8Array};
+use js_sys::{Error as JsError, Promise, Uint8Array};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::spawn_local;
+use wasm_bindgen_futures::future_to_promise;
 
 use super::sys;
 
@@ -58,32 +58,22 @@ impl IntoUnderlyingByteSource {
         self.controller = Some(controller);
     }
 
-    pub fn pull(&mut self, controller: sys::ReadableByteStreamController) {
+    pub fn pull(&mut self, controller: sys::ReadableByteStreamController) -> Promise {
         let inner = self.inner.clone();
         let fut = async move {
             // This mutable borrow can never panic, since the ReadableStream always queues
             // each operation on the underlying source.
             let mut inner = inner.try_borrow_mut().unwrap_throw();
-            inner.pull(controller).await;
+            inner.pull(controller).await
         };
 
-        // If pull() returns a promise, and the ReadableStream is canceled while the promise
-        // from pull() is still pending, it will first await that promise before calling cancel().
-        // This would mean that we keep waiting for the next chunk, even though it will be
-        // immediately discarded.
-        // Therefore, we DO NOT return a promise from pull(), and return nothing instead.
-        // This works because when pull() does not return a promise, the ReadableStream will
-        // wait until the next enqueue() call before it attempts to call pull() again.
-        // See also: https://github.com/whatwg/streams/issues/1014
-
-        // Since we run the future separately, we need to abort it manually when the stream
-        // is dropped.
+        // Allow aborting the future from cancel().
         let (fut, handle) = abortable(fut);
         // Ignore errors from aborting the future.
-        let fut = fut.unwrap_or_else(|_| ());
+        let fut = fut.unwrap_or_else(|_| Ok(JsValue::undefined()));
 
         self.pull_handle = Some(handle);
-        spawn_local(fut);
+        future_to_promise(fut)
     }
 
     pub fn cancel(self) {
@@ -118,7 +108,10 @@ impl Inner {
         }
     }
 
-    async fn pull(&mut self, controller: sys::ReadableByteStreamController) {
+    async fn pull(
+        &mut self,
+        controller: sys::ReadableByteStreamController,
+    ) -> Result<JsValue, JsValue> {
         // The AsyncRead should still exist, since pull() will not be called again
         // after the stream has closed or encountered an error.
         let async_read = self.async_read.as_mut().unwrap_throw();
@@ -156,9 +149,10 @@ impl Inner {
             Err(err) => {
                 // The stream encountered an error, drop it.
                 self.discard();
-                controller.error(&JsError::new(&err.to_string()));
+                return Err(JsError::new(&err.to_string()).into());
             }
-        }
+        };
+        Ok(JsValue::undefined())
     }
 
     #[inline]
