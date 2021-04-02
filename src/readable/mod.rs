@@ -66,12 +66,16 @@ impl ReadableStream {
     }
 
     /// Creates a new `ReadableStream` from an [`AsyncRead`](AsyncRead).
+    ///
+    /// **Panics** if readable byte streams are not supported by the browser.
+    // TODO Non-panicking variant?
     pub fn from_async_read<R>(async_read: R, default_buffer_len: usize) -> Self
     where
         R: AsyncRead + 'static,
     {
         let source = IntoUnderlyingByteSource::new(Box::new(async_read), default_buffer_len);
-        let raw = sys::ReadableStream::new_with_byte_source(source);
+        let raw = sys::ReadableStream::new_with_byte_source(source)
+            .expect_throw("readable byte streams not supported");
         Self { raw }
     }
 

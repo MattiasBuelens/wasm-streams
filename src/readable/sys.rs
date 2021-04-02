@@ -33,8 +33,10 @@ extern "C" {
         strategy: QueuingStrategy,
     ) -> ReadableStream;
 
-    #[wasm_bindgen(constructor)]
-    pub(crate) fn new_with_byte_source(source: IntoUnderlyingByteSource) -> ReadableStream;
+    #[wasm_bindgen(constructor, catch)]
+    pub(crate) fn new_with_byte_source(
+        source: IntoUnderlyingByteSource,
+    ) -> Result<ReadableStream, Error>;
 
     #[wasm_bindgen(method, getter, js_name = locked)]
     pub fn is_locked(this: &ReadableStream) -> bool;
