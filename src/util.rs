@@ -18,3 +18,25 @@ pub(crate) fn clamp_to_u32(value: usize) -> u32 {
         wrapped
     }
 }
+
+pub(crate) fn clamp_to_usize(value: u32) -> usize {
+    let wrapped = value as usize;
+    let overflow = value != (wrapped as u32);
+    if overflow {
+        usize::MAX
+    } else {
+        wrapped
+    }
+}
+
+pub(crate) fn checked_cast_to_u32(value: usize) -> u32 {
+    let wrapped = value as u32;
+    debug_assert_eq!(value, wrapped as usize);
+    wrapped
+}
+
+pub(crate) fn checked_cast_to_usize(value: u32) -> usize {
+    let wrapped = value as usize;
+    debug_assert_eq!(value, wrapped as u32);
+    wrapped
+}

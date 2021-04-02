@@ -8,6 +8,8 @@ use js_sys::{Error as JsError, Promise, Uint8Array};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
+use crate::util::{checked_cast_to_u32, clamp_to_usize};
+
 use super::sys;
 
 #[wasm_bindgen]
@@ -119,7 +121,7 @@ impl Inner {
         let mut request = ByobRequestGuard::new(controller.byob_request().unwrap_throw());
         // Resize the buffer to fit the BYOB request.
         let request_view = request.view();
-        let request_len = request_view.byte_length() as usize;
+        let request_len = clamp_to_usize(request_view.byte_length());
         if self.buffer.len() < request_len {
             self.buffer.resize(request_len, 0);
         }
@@ -133,15 +135,15 @@ impl Inner {
             Ok(bytes_read) => {
                 // Copy read bytes from buffer to BYOB request view
                 debug_assert!(bytes_read <= request_len);
+                let bytes_read_u32 = checked_cast_to_u32(bytes_read);
                 let dest = Uint8Array::new_with_byte_offset_and_length(
                     &request_view.buffer(),
                     request_view.byte_offset(),
-                    bytes_read as u32,
+                    bytes_read_u32,
                 );
                 dest.copy_from(&self.buffer[0..bytes_read]);
                 // Respond to BYOB request
-                debug_assert!(bytes_read <= u32::MAX as usize);
-                request.respond(bytes_read as u32);
+                request.respond(bytes_read_u32);
             }
             Err(err) => {
                 // The stream encountered an error, drop it.

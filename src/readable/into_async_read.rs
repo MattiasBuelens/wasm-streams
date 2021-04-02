@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
-use crate::util::clamp_to_u32;
+use crate::util::{checked_cast_to_usize, clamp_to_u32};
 
 use super::sys::{ArrayBufferView, ReadableStreamBYOBReadResult};
 use super::ReadableStreamBYOBReader;
@@ -91,12 +91,12 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                     Ok(0)
                 } else {
                     // Copy bytes to output buffer
-                    let filled_length = filled_view.byte_length() as usize;
+                    let filled_length = checked_cast_to_usize(filled_view.byte_length());
                     debug_assert!(filled_length <= buf.len());
                     filled_view.copy_to(&mut buf[0..filled_length]);
                     // Re-construct internal buffer with the new ArrayBuffer
                     self.buffer = Some(Uint8Array::new(&filled_view.buffer()));
-                    Ok(filled_view.byte_length() as usize)
+                    Ok(filled_length)
                 }
             }
             Err(js_value) => {

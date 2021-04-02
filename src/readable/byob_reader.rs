@@ -4,7 +4,7 @@ use js_sys::Uint8Array;
 use wasm_bindgen::{throw_val, JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
-use crate::util::{clamp_to_u32, promise_to_void_future};
+use crate::util::{checked_cast_to_usize, clamp_to_u32, promise_to_void_future};
 
 use super::{sys, IntoAsyncRead, ReadableStream};
 
@@ -114,7 +114,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let js_value = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamBYOBReadResult::from(js_value);
         let filled_view = result.value();
-        let filled_length = filled_view.byte_length() as usize;
+        let filled_length = checked_cast_to_usize(filled_view.byte_length());
         debug_assert!(filled_length <= dst.len());
         // Re-construct the original Uint8Array with the new ArrayBuffer.
         let new_buffer = Uint8Array::new_with_byte_offset_and_length(
