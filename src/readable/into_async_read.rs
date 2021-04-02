@@ -91,12 +91,12 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                     Ok(0)
                 } else {
                     // Copy bytes to output buffer
-                    let filled_length = checked_cast_to_usize(filled_view.byte_length());
-                    debug_assert!(filled_length <= buf.len());
-                    filled_view.copy_to(&mut buf[0..filled_length]);
+                    let filled_len = checked_cast_to_usize(filled_view.byte_length());
+                    debug_assert!(filled_len <= buf.len());
+                    filled_view.copy_to(&mut buf[0..filled_len]);
                     // Re-construct internal buffer with the new ArrayBuffer
                     self.buffer = Some(Uint8Array::new(&filled_view.buffer()));
-                    Ok(filled_length)
+                    Ok(filled_len)
                 }
             }
             Err(js_value) => {

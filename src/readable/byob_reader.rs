@@ -103,7 +103,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     ) -> Result<(usize, Uint8Array), JsValue> {
         // Save the original buffer's byte offset and length.
         let buffer_offset = buffer.byte_offset();
-        let byte_length = buffer.byte_length();
+        let buffer_len = buffer.byte_length();
         // Limit view to destination slice's length.
         let dst_len = clamp_to_u32(dst.len());
         let mut view = buffer
@@ -114,20 +114,20 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let js_value = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamBYOBReadResult::from(js_value);
         let filled_view = result.value();
-        let filled_length = checked_cast_to_usize(filled_view.byte_length());
-        debug_assert!(filled_length <= dst.len());
+        let filled_len = checked_cast_to_usize(filled_view.byte_length());
+        debug_assert!(filled_len <= dst.len());
         // Re-construct the original Uint8Array with the new ArrayBuffer.
         let new_buffer = Uint8Array::new_with_byte_offset_and_length(
             &filled_view.buffer(),
             buffer_offset,
-            byte_length,
+            buffer_len,
         );
         if result.is_done() {
-            debug_assert_eq!(filled_length, 0);
+            debug_assert_eq!(filled_len, 0);
         } else {
-            filled_view.copy_to(&mut dst[0..filled_length]);
+            filled_view.copy_to(&mut dst[0..filled_len]);
         }
-        Ok((filled_length, new_buffer))
+        Ok((filled_len, new_buffer))
     }
 
     /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
