@@ -1,6 +1,6 @@
 use std::pin::Pin;
 
-use futures::stream::{iter, StreamExt, TryStreamExt};
+use futures::stream::{iter, pending, StreamExt, TryStreamExt};
 use futures::task::Poll;
 use futures::{poll, FutureExt};
 use wasm_bindgen::prelude::*;
@@ -9,6 +9,7 @@ use wasm_bindgen_test::*;
 use wasm_streams::readable::*;
 
 use crate::js::*;
+use crate::util::*;
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_new() {
@@ -87,11 +88,14 @@ async fn test_readable_stream_from_stream() {
 #[wasm_bindgen_test]
 async fn test_readable_stream_from_stream_cancel() {
     let stream = iter(vec!["Hello", "world!"]).map(|s| Ok(JsValue::from(s)));
+    let (stream, observer) = observe_drop(stream);
     let mut readable = ReadableStream::from_stream(stream);
 
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
+    assert_eq!(observer.is_dropped(), false);
     assert_eq!(reader.cancel().await, Ok(()));
+    assert_eq!(observer.is_dropped(), true);
     reader.closed().await.unwrap();
 }
 
@@ -117,7 +121,9 @@ async fn test_readable_stream_multiple_readers() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_abort_read() {
-    let mut readable = ReadableStream::from_raw(new_noop_readable_stream());
+    let stream = pending();
+    let (stream, observer) = observe_drop(stream);
+    let mut readable = ReadableStream::from_stream(stream);
     let mut reader = readable.get_reader();
 
     // Start reading
@@ -135,7 +141,9 @@ async fn test_readable_stream_abort_read() {
         .expect_err("reader was released while there are pending reads");
 
     // Cancel all pending reads
+    assert_eq!(observer.is_dropped(), false);
     reader.cancel().await.unwrap();
+    assert_eq!(observer.is_dropped(), true);
 
     // Can release lock after cancelling
     reader.release_lock();
