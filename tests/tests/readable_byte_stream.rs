@@ -137,8 +137,11 @@ async fn test_readable_byte_stream_from_async_read() {
     let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
     assert_eq!(bytes_read, 3);
     assert_eq!(&dst, &[1, 2, 3]);
-    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
-    assert_eq!(bytes_read, 3);
+    let (bytes_read, buf) = reader.read_with_buffer(&mut dst[0..2], buf).await.unwrap();
+    assert_eq!(bytes_read, 2);
+    assert_eq!(&dst, &[4, 5, 3]);
+    let (bytes_read, buf) = reader.read_with_buffer(&mut dst[2..], buf).await.unwrap();
+    assert_eq!(bytes_read, 1);
     assert_eq!(&dst, &[4, 5, 6]);
     let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
     assert_eq!(bytes_read, 0);
