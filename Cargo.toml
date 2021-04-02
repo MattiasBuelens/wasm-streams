@@ -31,6 +31,7 @@ features = [
 [dev-dependencies]
 wasm-bindgen-test = "0.3.20"
 tokio = { version = "^1", features = ["macros", "rt"] }
+pin-project = "^1.0.6"
 
 [dev-dependencies.web-sys]
 version = "^0.3.47"
