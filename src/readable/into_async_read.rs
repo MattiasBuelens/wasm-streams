@@ -91,8 +91,9 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                     Ok(0)
                 } else {
                     // Copy bytes to output buffer
-                    debug_assert!(filled_view.byte_length() as usize <= buf.len());
-                    filled_view.copy_to(buf);
+                    let filled_length = filled_view.byte_length() as usize;
+                    debug_assert!(filled_length <= buf.len());
+                    filled_view.copy_to(&mut buf[0..filled_length]);
                     // Re-construct internal buffer with the new ArrayBuffer
                     self.buffer = Some(Uint8Array::new(&filled_view.buffer()));
                     Ok(filled_view.byte_length() as usize)

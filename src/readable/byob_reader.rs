@@ -114,7 +114,8 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let js_value = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamBYOBReadResult::from(js_value);
         let filled_view = result.value();
-        debug_assert!(filled_view.byte_length() as usize <= dst.len());
+        let filled_length = filled_view.byte_length() as usize;
+        debug_assert!(filled_length <= dst.len());
         // Re-construct the original Uint8Array with the new ArrayBuffer.
         let new_buffer = Uint8Array::new_with_byte_offset_and_length(
             &filled_view.buffer(),
@@ -122,12 +123,11 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
             byte_length,
         );
         if result.is_done() {
-            debug_assert_eq!(filled_view.byte_length(), 0);
-            Ok((0, new_buffer))
+            debug_assert_eq!(filled_length, 0);
         } else {
-            filled_view.copy_to(dst);
-            Ok((filled_view.byte_length() as usize, new_buffer))
+            filled_view.copy_to(&mut dst[0..filled_length]);
         }
+        Ok((filled_length, new_buffer))
     }
 
     /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the

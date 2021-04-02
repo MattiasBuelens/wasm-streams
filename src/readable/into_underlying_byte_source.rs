@@ -132,10 +132,11 @@ impl Inner {
             }
             Ok(bytes_read) => {
                 // Copy read bytes from buffer to BYOB request view
+                debug_assert!(bytes_read <= request_len);
                 let dest = Uint8Array::new_with_byte_offset_and_length(
                     &request_view.buffer(),
                     request_view.byte_offset(),
-                    request_view.byte_length(),
+                    bytes_read as u32,
                 );
                 let bytes = &self.buffer[0..bytes_read];
                 unsafe {
