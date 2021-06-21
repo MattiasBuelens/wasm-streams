@@ -90,6 +90,8 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                     self.discard_reader();
                     Ok(0)
                 } else {
+                    // Cannot be canceled, so view must exist
+                    let filled_view = filled_view.unwrap_throw();
                     // Copy bytes to output buffer
                     let filled_len = checked_cast_to_usize(filled_view.byte_length());
                     debug_assert!(filled_len <= buf.len());

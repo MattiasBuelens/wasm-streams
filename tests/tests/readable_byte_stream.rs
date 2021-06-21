@@ -45,14 +45,23 @@ async fn test_readable_byte_stream_read_with_buffer() {
 
     let mut reader = readable.get_byob_reader();
     let mut dst = [0u8; 3];
-    let buf = Uint8Array::new_with_length(3);
-    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
+    let buf = Some(Uint8Array::new_with_length(3));
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
     assert_eq!(bytes_read, 3);
     assert_eq!(&dst, &[1, 2, 3]);
-    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
     assert_eq!(bytes_read, 3);
     assert_eq!(&dst, &[4, 5, 6]);
-    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
     assert_eq!(bytes_read, 0);
     assert_eq!(&dst, &[4, 5, 6]);
     drop(buf);
@@ -133,17 +142,29 @@ async fn test_readable_byte_stream_from_async_read() {
 
     let mut reader = readable.get_byob_reader();
     let mut dst = [0u8; 3];
-    let buf = Uint8Array::new_with_length(3);
-    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
+    let buf = Some(Uint8Array::new_with_length(3));
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
     assert_eq!(bytes_read, 3);
     assert_eq!(&dst, &[1, 2, 3]);
-    let (bytes_read, buf) = reader.read_with_buffer(&mut dst[0..2], buf).await.unwrap();
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst[0..2], buf.unwrap())
+        .await
+        .unwrap();
     assert_eq!(bytes_read, 2);
     assert_eq!(&dst, &[4, 5, 3]);
-    let (bytes_read, buf) = reader.read_with_buffer(&mut dst[2..], buf).await.unwrap();
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst[2..], buf.unwrap())
+        .await
+        .unwrap();
     assert_eq!(bytes_read, 1);
     assert_eq!(&dst, &[4, 5, 6]);
-    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
     assert_eq!(bytes_read, 0);
     assert_eq!(&dst, &[4, 5, 6]);
     drop(buf);

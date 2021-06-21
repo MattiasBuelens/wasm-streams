@@ -66,13 +66,14 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     ///
     /// * If some bytes were read into `dst`, this returns `Ok(bytes_read)`.
     /// * If the stream closes and no more bytes are available, this returns `Ok(0)`.
+    /// * If the stream cancels, this returns `Ok(0)`.
     /// * If the stream encounters an `error`, this returns `Err(error)`.
     ///
     /// This always allocated a new temporary `Uint8Array` with the same size as `dst` to hold
     /// the result before copying to `dst`. We cannot pass a view on the backing WebAssembly memory
     /// directly, because:
     /// * `reader.read(view)` needs to transfer `view.buffer`, but `WebAssembly.Memory` buffers
-    ///    are non-transferable
+    ///    are non-transferable.
     /// * `view.buffer` can be invalidated if the WebAssembly memory grows while `read(view)`
     ///    is still in progress.
     ///
@@ -93,14 +94,16 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// reads without extra allocations. Note that the underlying `ArrayBuffer` is transferred
     /// in the process, so any other views on the original buffer will become unusable.
     ///
-    /// * If some bytes were read into `dst`, this returns `Ok((bytes_read, buffer))`.
-    /// * If the stream closes and no more bytes are available, this returns `Ok((0, buffer))`.
+    /// * If some bytes were read into `dst`, this returns `Ok((bytes_read, Some(buffer)))`.
+    /// * If the stream closes and no more bytes are available, this returns `Ok((0, Some(buffer)))`.
+    /// * If the stream cancels, this returns `Ok((0, None))`. In this case, the given buffer is
+    ///   not returned.
     /// * If the stream encounters an `error`, this returns `Err(error)`.
     pub async fn read_with_buffer(
         &mut self,
         dst: &mut [u8],
         buffer: Uint8Array,
-    ) -> Result<(usize, Uint8Array), JsValue> {
+    ) -> Result<(usize, Option<Uint8Array>), JsValue> {
         // Save the original buffer's byte offset and length.
         let buffer_offset = buffer.byte_offset();
         let buffer_len = buffer.byte_length();
@@ -113,7 +116,14 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let promise = self.as_raw().read(&mut view);
         let js_value = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamBYOBReadResult::from(js_value);
-        let filled_view = result.value();
+        let filled_view = match result.value() {
+            Some(view) => view,
+            None => {
+                // No new view was returned. The stream must have been canceled.
+                assert!(result.is_done());
+                return Ok((0, None));
+            }
+        };
         let filled_len = checked_cast_to_usize(filled_view.byte_length());
         debug_assert!(filled_len <= dst.len());
         // Re-construct the original Uint8Array with the new ArrayBuffer.
@@ -127,7 +137,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         } else {
             filled_view.copy_to(&mut dst[0..filled_len]);
         }
-        Ok((filled_len, new_buffer))
+        Ok((filled_len, Some(new_buffer)))
     }
 
     /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the

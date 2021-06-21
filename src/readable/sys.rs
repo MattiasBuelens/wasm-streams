@@ -192,7 +192,7 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
-    /// A result returned by [`ReadableStreamDefaultReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read).
+    /// A result returned by [`ReadableStreamBYOBReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read).
     #[derive(Clone, Debug)]
     pub type ReadableStreamBYOBReadResult;
 
@@ -200,7 +200,7 @@ extern "C" {
     pub fn is_done(this: &ReadableStreamBYOBReadResult) -> bool;
 
     #[wasm_bindgen(method, getter, js_name = value)]
-    pub fn value(this: &ReadableStreamBYOBReadResult) -> Uint8Array;
+    pub fn value(this: &ReadableStreamBYOBReadResult) -> Option<Uint8Array>;
 }
 
 #[wasm_bindgen]
