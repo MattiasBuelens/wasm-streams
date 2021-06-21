@@ -109,11 +109,11 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let buffer_len = buffer.byte_length();
         // Limit view to destination slice's length.
         let dst_len = clamp_to_u32(dst.len());
-        let mut view = buffer
+        let view = buffer
             .subarray(0, dst_len)
             .unchecked_into::<sys::ArrayBufferView>();
         // Read into view. This transfers `buffer.buffer()`.
-        let promise = self.as_raw().read(&mut view);
+        let promise = self.as_raw().read(&view);
         let js_value = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamBYOBReadResult::from(js_value);
         let filled_view = match result.value() {
