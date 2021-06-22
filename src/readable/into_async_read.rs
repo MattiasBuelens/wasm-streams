@@ -14,7 +14,8 @@ use crate::util::{checked_cast_to_usize, clamp_to_u32};
 use super::sys::{ArrayBufferView, ReadableStreamBYOBReadResult};
 use super::ReadableStreamBYOBReader;
 
-/// An [`AsyncRead`](AsyncRead) for the [`into_async_read`](super::ReadableStream::into_async_read) method.
+/// An [`AsyncRead`](futures::io::AsyncRead) for the
+/// [`into_async_read`](super::ReadableStream::into_async_read) method.
 ///
 /// This stream holds a reader, and therefore locks the [`ReadableStream`](super::ReadableStream).
 /// When this stream is dropped, it also drops its reader which in turn

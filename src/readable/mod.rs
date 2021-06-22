@@ -29,15 +29,15 @@ pub mod sys;
 /// A [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 ///
 /// `ReadableStream`s can be created from a [raw JavaScript stream](sys::ReadableStream) with
-/// [`from_raw`](Self::from_raw), or from a Rust [`Stream`](Stream)
+/// [`from_raw`](Self::from_raw), or from a Rust [`Stream`](futures::Stream)
 /// with [`from_stream`](Self::from_stream).
 ///
 /// They can be converted into a [raw JavaScript stream](sys::ReadableStream) with
-/// [`into_raw`](Self::into_raw), or into a Rust [`Stream`](Stream)
+/// [`into_raw`](Self::into_raw), or into a Rust [`Stream`](futures::Stream)
 /// with [`into_stream`](Self::into_stream).
 ///
 /// If the browser supports [readable byte streams](https://streams.spec.whatwg.org/#readable-byte-stream),
-/// then they can be created from a Rust [`AsyncRead`](AsyncRead) with
+/// then they can be created from a Rust [`AsyncRead`](futures::io::AsyncRead) with
 /// [`from_async_read`](Self::from_async_read), or converted into one with
 /// [`into_async_read`](Self::into_async_read).
 #[derive(Debug)]
@@ -52,7 +52,7 @@ impl ReadableStream {
         Self { raw }
     }
 
-    /// Creates a new `ReadableStream` from a [`Stream`](Stream).
+    /// Creates a new `ReadableStream` from a [`Stream`](futures::Stream).
     ///
     /// Items and errors must be represented as raw [`JsValue`](JsValue)s.
     /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
@@ -70,7 +70,7 @@ impl ReadableStream {
         Self { raw }
     }
 
-    /// Creates a new `ReadableStream` from an [`AsyncRead`](AsyncRead).
+    /// Creates a new `ReadableStream` from an [`AsyncRead`](futures::io::AsyncRead).
     ///
     /// This creates a readable byte stream whose `autoAllocateChunkSize` is `default_buffer_len`.
     /// Therefore, if a default reader is used to consume the stream, the given `async_read`
@@ -257,7 +257,7 @@ impl ReadableStream {
         ))
     }
 
-    /// Converts this `ReadableStream` into a [`Stream`](Stream).
+    /// Converts this `ReadableStream` into a [`Stream`](futures::Stream).
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
     /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
@@ -272,7 +272,7 @@ impl ReadableStream {
             .expect_throw("already locked to a reader")
     }
 
-    /// Try to convert this `ReadableStream` into a [`Stream`](Stream).
+    /// Try to convert this `ReadableStream` into a [`Stream`](futures::Stream).
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
     /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
@@ -286,7 +286,7 @@ impl ReadableStream {
         Ok(reader.into_stream())
     }
 
-    /// Converts this `ReadableStream` into an [`AsyncRead`](AsyncRead).
+    /// Converts this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
     ///
     /// **Panics** if the stream is already locked to a reader, or if this stream is not a readable
     /// byte stream. For a non-panicking variant, use [`try_into_async_read`](Self::try_into_async_read).
@@ -296,7 +296,7 @@ impl ReadableStream {
             .expect_throw("already locked to a reader, or not a readable byte stream")
     }
 
-    /// Try to convert this `ReadableStream` into an [`AsyncRead`](AsyncRead).
+    /// Try to convert this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
     ///
     /// If the stream is already locked to a reader, or if this stream is not a readable byte
     /// stream, then this returns an error along with the original `ReadableStream`.

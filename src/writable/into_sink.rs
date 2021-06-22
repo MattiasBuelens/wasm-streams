@@ -9,7 +9,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use super::WritableStreamDefaultWriter;
 
-/// A [`Sink`](Sink) for the [`into_sink`](super::WritableStream::into_sink) method.
+/// A [`Sink`](futures::Sink) for the [`into_sink`](super::WritableStream::into_sink) method.
 ///
 /// This sink holds a writer, and therefore locks the [`WritableStream`](super::WritableStream).
 /// When this sink is dropped, it also drops its writer which in turn

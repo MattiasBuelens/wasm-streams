@@ -10,7 +10,7 @@ use wasm_bindgen_futures::JsFuture;
 use super::sys::ReadableStreamReadResult;
 use super::ReadableStreamDefaultReader;
 
-/// A [`Stream`](Stream) for the [`into_stream`](super::ReadableStream::into_stream) method.
+/// A [`Stream`](futures::Stream) for the [`into_stream`](super::ReadableStream::into_stream) method.
 ///
 /// This stream holds a reader, and therefore locks the [`ReadableStream`](super::ReadableStream).
 /// When this stream is dropped, it also drops its reader which in turn

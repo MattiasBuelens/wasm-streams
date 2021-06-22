@@ -17,11 +17,11 @@ pub mod sys;
 /// A [`WritableStream`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
 ///
 /// `WritableStream`s can be created from a [raw JavaScript stream](sys::WritableStream) with
-/// [`from_raw`](Self::from_raw), or from a Rust [`Sink`](Sink)
+/// [`from_raw`](Self::from_raw), or from a Rust [`Sink`](futures::Sink)
 /// with [`from_sink`](Self::from_sink).
 ///
 /// They can be converted into a [raw JavaScript stream](sys::WritableStream) with
-/// [`into_raw`](Self::into_raw), or into a Rust [`Sink`](Sink)
+/// [`into_raw`](Self::into_raw), or into a Rust [`Sink`](futures::Sink)
 /// with [`into_sink`](Self::into_sink).
 #[derive(Debug)]
 pub struct WritableStream {
@@ -35,7 +35,7 @@ impl WritableStream {
         Self { raw }
     }
 
-    /// Creates a new `WritableStream` from a [`Sink`](Sink).
+    /// Creates a new `WritableStream` from a [`Sink`](futures::Sink).
     ///
     /// Items and errors must be represented as raw [`JsValue`](JsValue)s.
     /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)
@@ -110,7 +110,7 @@ impl WritableStream {
         WritableStreamDefaultWriter::new(self)
     }
 
-    /// Converts this `WritableStream` into a [`Sink`](Sink).
+    /// Converts this `WritableStream` into a [`Sink`](futures::Sink).
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
     /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)
@@ -124,7 +124,7 @@ impl WritableStream {
             .expect_throw("already locked to a writer")
     }
 
-    /// Try to convert this `WritableStream` into a [`Sink`](Sink).
+    /// Try to convert this `WritableStream` into a [`Sink`](futures::Sink).
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
     /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)

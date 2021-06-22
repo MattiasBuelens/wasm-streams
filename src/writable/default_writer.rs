@@ -107,7 +107,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
         promise_to_void_future(self.as_raw().close()).await
     }
 
-    /// Converts this `WritableStreamDefaultWriter` into a [`Sink`](Sink).
+    /// Converts this `WritableStreamDefaultWriter` into a [`Sink`](futures::Sink).
     ///
     /// This is similar to [`WritableStream.into_sink`](WritableStream::into_sink),
     /// except that after the returned `Sink` is dropped, the original `WritableStream` is still
