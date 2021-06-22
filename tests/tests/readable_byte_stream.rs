@@ -1,0 +1,243 @@
+use std::pin::Pin;
+
+use futures::io::AsyncReadExt;
+use futures::task::Poll;
+use futures::{poll, FutureExt};
+use js_sys::Uint8Array;
+use wasm_bindgen_test::*;
+
+use wasm_streams::readable::*;
+
+use crate::js::*;
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_new() {
+    let mut readable = ReadableStream::from_raw(new_readable_byte_stream_from_array(
+        vec![
+            Uint8Array::from(&[1, 2, 3][..]).into(),
+            Uint8Array::from(&[4, 5, 6][..]).into(),
+        ]
+        .into_boxed_slice(),
+    ));
+    assert!(!readable.is_locked());
+
+    let mut reader = readable.get_byob_reader();
+    let mut dst = [0u8; 3];
+    assert_eq!(reader.read(&mut dst).await.unwrap(), 3);
+    assert_eq!(&dst, &[1, 2, 3]);
+    assert_eq!(reader.read(&mut dst).await.unwrap(), 3);
+    assert_eq!(&dst, &[4, 5, 6]);
+    assert_eq!(reader.read(&mut dst).await.unwrap(), 0);
+    assert_eq!(&dst, &[4, 5, 6]);
+    reader.closed().await.unwrap();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_read_with_buffer() {
+    let mut readable = ReadableStream::from_raw(new_readable_byte_stream_from_array(
+        vec![
+            Uint8Array::from(&[1, 2, 3][..]).into(),
+            Uint8Array::from(&[4, 5, 6][..]).into(),
+        ]
+        .into_boxed_slice(),
+    ));
+    assert!(!readable.is_locked());
+
+    let mut reader = readable.get_byob_reader();
+    let mut dst = [0u8; 3];
+    let buf = Some(Uint8Array::new_with_length(3));
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
+    assert_eq!(bytes_read, 3);
+    assert_eq!(&dst, &[1, 2, 3]);
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
+    assert_eq!(bytes_read, 3);
+    assert_eq!(&dst, &[4, 5, 6]);
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
+    assert_eq!(bytes_read, 0);
+    assert_eq!(&dst, &[4, 5, 6]);
+    drop(buf);
+    reader.closed().await.unwrap();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_into_async_read() {
+    let readable = ReadableStream::from_raw(new_readable_byte_stream_from_array(
+        vec![
+            Uint8Array::from(&[1, 2, 3][..]).into(),
+            Uint8Array::from(&[4, 5, 6][..]).into(),
+        ]
+        .into_boxed_slice(),
+    ));
+    assert!(!readable.is_locked());
+
+    let mut async_read = readable.into_async_read();
+    let mut buf = [0u8; 3];
+    assert_eq!(async_read.read(&mut buf).await.unwrap(), 3);
+    assert_eq!(&buf, &[1, 2, 3]);
+    assert_eq!(async_read.read(&mut buf[..1]).await.unwrap(), 1);
+    assert_eq!(&buf, &[4, 2, 3]);
+    assert_eq!(async_read.read(&mut buf[1..]).await.unwrap(), 2);
+    assert_eq!(&buf, &[4, 5, 6]);
+    assert_eq!(async_read.read(&mut buf).await.unwrap(), 0);
+    assert_eq!(&buf, &[4, 5, 6]);
+}
+
+#[wasm_bindgen_test]
+fn test_readable_byte_stream_into_async_read_impl_unpin() {
+    let readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+    let async_read = readable.into_async_read();
+
+    let _ = Pin::new(&async_read); // must be Unpin for this to work
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_byob_reader_into_async_read() {
+    let mut readable = ReadableStream::from_raw(new_readable_byte_stream_from_array(
+        vec![
+            Uint8Array::from(&[1, 2, 3][..]).into(),
+            Uint8Array::from(&[4, 5, 6][..]).into(),
+        ]
+        .into_boxed_slice(),
+    ));
+    assert!(!readable.is_locked());
+
+    {
+        // Acquire a BYOB reader and wrap it in a Rust stream
+        let reader = readable.get_byob_reader();
+        let mut async_read = reader.into_async_read();
+
+        let mut buf = [0u8; 3];
+        assert_eq!(async_read.read(&mut buf).await.unwrap(), 3);
+        assert_eq!(&buf, &[1, 2, 3]);
+    }
+
+    // Dropping the wrapped stream should release the lock
+    assert!(!readable.is_locked());
+
+    {
+        // Can acquire a new reader after wrapped stream is dropped
+        let mut reader = readable.get_byob_reader();
+        let mut buf = [0u8; 3];
+        assert_eq!(reader.read(&mut buf).await.unwrap(), 3);
+        assert_eq!(&buf, &[4, 5, 6]);
+        assert_eq!(reader.read(&mut buf).await.unwrap(), 0);
+        reader.closed().await.unwrap();
+    }
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_from_async_read() {
+    static ASYNC_READ: [u8; 6] = [1, 2, 3, 4, 5, 6];
+    let mut readable = ReadableStream::from_async_read(&ASYNC_READ[..], 2);
+    assert!(!readable.is_locked());
+
+    let mut reader = readable.get_byob_reader();
+    let mut dst = [0u8; 3];
+    let buf = Some(Uint8Array::new_with_length(3));
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
+    assert_eq!(bytes_read, 3);
+    assert_eq!(&dst, &[1, 2, 3]);
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst[0..2], buf.unwrap())
+        .await
+        .unwrap();
+    assert_eq!(bytes_read, 2);
+    assert_eq!(&dst, &[4, 5, 3]);
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst[2..], buf.unwrap())
+        .await
+        .unwrap();
+    assert_eq!(bytes_read, 1);
+    assert_eq!(&dst, &[4, 5, 6]);
+    let (bytes_read, buf) = reader
+        .read_with_buffer(&mut dst, buf.unwrap())
+        .await
+        .unwrap();
+    assert_eq!(bytes_read, 0);
+    assert_eq!(&dst, &[4, 5, 6]);
+    drop(buf);
+    reader.closed().await.unwrap();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_from_async_read_cancel() {
+    static ASYNC_READ: [u8; 6] = [1, 2, 3, 4, 5, 6];
+    let mut readable = ReadableStream::from_async_read(&ASYNC_READ[..], 2);
+
+    let mut reader = readable.get_byob_reader();
+    let mut dst = [0u8; 3];
+    assert_eq!(reader.read(&mut dst).await.unwrap(), 3);
+    assert_eq!(&dst, &[1, 2, 3]);
+    assert_eq!(reader.cancel().await, Ok(()));
+    reader.closed().await.unwrap();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_multiple_byob_readers() {
+    let mut readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+    assert!(!readable.is_locked());
+
+    // Release explicitly
+    let reader = readable.get_byob_reader();
+    reader.release_lock();
+    assert!(!readable.is_locked());
+
+    // Release by drop
+    let reader = readable.get_byob_reader();
+    drop(reader);
+    assert!(!readable.is_locked());
+
+    let reader = readable.get_byob_reader();
+    reader.release_lock();
+    assert!(!readable.is_locked());
+}
+
+async fn test_readable_byte_stream_abort_read(mut readable: ReadableStream) {
+    let mut reader = readable.get_byob_reader();
+
+    // Start reading
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let mut dst = [0u8; 3];
+    let mut fut = reader.read(&mut dst).boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert_eq!(poll_result, Poll::Pending);
+    // Drop the future, to regain control over the reader
+    drop(fut);
+
+    // Cannot release the lock while there are pending reads
+    let (_err, mut reader) = reader
+        .try_release_lock()
+        .expect_err("reader was released while there are pending reads");
+
+    // Cancel all pending reads
+    reader.cancel().await.unwrap();
+
+    // Can release lock after cancelling
+    reader.release_lock();
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_abort_read_from_raw() {
+    let readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+    test_readable_byte_stream_abort_read(readable).await
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_abort_read_from_async_read() {
+    static ASYNC_READ: [u8; 6] = [1, 2, 3, 4, 5, 6];
+    let readable = ReadableStream::from_async_read(&ASYNC_READ[..], 2);
+    test_readable_byte_stream_abort_read(readable).await
+}

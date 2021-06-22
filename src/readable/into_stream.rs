@@ -1,6 +1,6 @@
 use core::pin::Pin;
 
-use futures::future::Future;
+use futures::future::FutureExt;
 use futures::ready;
 use futures::stream::{FusedStream, Stream};
 use futures::task::{Context, Poll};
@@ -44,11 +44,11 @@ impl<'reader> Stream for IntoStream<'reader> {
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         if self.fut.is_none() {
             // No pending read, start reading the next chunk
-            match self.reader.as_ref() {
+            match &self.reader {
                 Some(reader) => {
                     // Read a chunk and store its future
                     let fut = JsFuture::from(reader.as_raw().read());
-                    self.as_mut().fut = Some(fut);
+                    self.fut = Some(fut);
                 }
                 None => {
                     // Reader was already dropped
@@ -58,8 +58,8 @@ impl<'reader> Stream for IntoStream<'reader> {
         }
 
         // Poll the future for the pending read
-        let js_result = ready!(Pin::new(self.as_mut().fut.as_mut().unwrap_throw()).poll(cx));
-        self.as_mut().fut = None;
+        let js_result = ready!(self.as_mut().fut.as_mut().unwrap_throw().poll_unpin(cx));
+        self.fut = None;
 
         // Read completed
         Poll::Ready(match js_result {
@@ -67,7 +67,7 @@ impl<'reader> Stream for IntoStream<'reader> {
                 let result = ReadableStreamReadResult::from(js_value);
                 if result.is_done() {
                     // End of stream, drop reader
-                    self.as_mut().reader = None;
+                    self.reader = None;
                     None
                 } else {
                     Some(Ok(result.value()))
@@ -75,7 +75,7 @@ impl<'reader> Stream for IntoStream<'reader> {
             }
             Err(js_value) => {
                 // Error, drop reader
-                self.as_mut().reader = None;
+                self.reader = None;
                 Some(Err(js_value))
             }
         })

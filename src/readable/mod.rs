@@ -1,21 +1,27 @@
 //! Bindings and conversions for
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use std::marker::PhantomData;
-
+use futures::io::AsyncRead;
 use futures::stream::Stream;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::{throw_val, JsCast};
-use wasm_bindgen_futures::JsFuture;
+use wasm_bindgen::JsCast;
 
+pub use byob_reader::ReadableStreamBYOBReader;
+pub use default_reader::ReadableStreamDefaultReader;
+pub use into_async_read::IntoAsyncRead;
 pub use into_stream::IntoStream;
 use into_underlying_source::IntoUnderlyingSource;
 pub use pipe_options::PipeOptions;
 
 use crate::queuing_strategy::QueuingStrategy;
+use crate::readable::into_underlying_byte_source::IntoUnderlyingByteSource;
 use crate::util::promise_to_void_future;
 use crate::writable::WritableStream;
 
+mod byob_reader;
+mod default_reader;
+mod into_async_read;
 mod into_stream;
+mod into_underlying_byte_source;
 mod into_underlying_source;
 mod pipe_options;
 pub mod sys;
@@ -29,6 +35,11 @@ pub mod sys;
 /// They can be converted into a [raw JavaScript stream](sys::ReadableStream) with
 /// [`into_raw`](Self::into_raw), or into a Rust [`Stream`](Stream)
 /// with [`into_stream`](Self::into_stream).
+///
+/// If the browser supports [readable byte streams](https://streams.spec.whatwg.org/#readable-byte-stream),
+/// then they can be created from a Rust [`AsyncRead`](AsyncRead) with
+/// [`from_async_read`](Self::from_async_read), or converted into one with
+/// [`into_async_read`](Self::into_async_read).
 #[derive(Debug)]
 pub struct ReadableStream {
     raw: sys::ReadableStream,
@@ -56,6 +67,25 @@ impl ReadableStream {
         // since the original Rust stream is better suited to handle that.
         let strategy = QueuingStrategy::new(0.0);
         let raw = sys::ReadableStream::new_with_source(source, strategy);
+        Self { raw }
+    }
+
+    /// Creates a new `ReadableStream` from an [`AsyncRead`](AsyncRead).
+    ///
+    /// This creates a readable byte stream whose `autoAllocateChunkSize` is `default_buffer_len`.
+    /// Therefore, if a default reader is used to consume the stream, the given `async_read`
+    /// will be [polled](AsyncRead::poll_read) with a buffer of this size. If a BYOB reader is used,
+    /// then it will be polled with a buffer of the same size as the BYOB read request instead.
+    ///
+    /// **Panics** if readable byte streams are not supported by the browser.
+    // TODO Non-panicking variant?
+    pub fn from_async_read<R>(async_read: R, default_buffer_len: usize) -> Self
+    where
+        R: AsyncRead + 'static,
+    {
+        let source = IntoUnderlyingByteSource::new(Box::new(async_read), default_buffer_len);
+        let raw = sys::ReadableStream::new_with_byte_source(source)
+            .expect_throw("readable byte streams not supported");
         Self { raw }
     }
 
@@ -115,10 +145,29 @@ impl ReadableStream {
     ///
     /// If the stream is already locked to a reader, then this returns an error.
     pub fn try_get_reader(&mut self) -> Result<ReadableStreamDefaultReader, js_sys::Error> {
-        Ok(ReadableStreamDefaultReader {
-            raw: self.as_raw().get_reader()?,
-            _stream: PhantomData,
-        })
+        ReadableStreamDefaultReader::new(self)
+    }
+
+    /// Creates a [BYOB reader](ReadableStreamBYOBReader) and
+    /// [locks](https://streams.spec.whatwg.org/#lock) the stream to the new reader.
+    ///
+    /// While the stream is locked, no other reader can be acquired until this one is released.
+    ///
+    /// **Panics** if the stream is already locked to a reader, or if this stream is not a readable
+    /// byte stream. For a non-panicking variant, use [`try_get_reader`](Self::try_get_reader).
+    pub fn get_byob_reader(&mut self) -> ReadableStreamBYOBReader {
+        self.try_get_byob_reader()
+            .expect_throw("already locked to a reader, or not a readable byte stream")
+    }
+
+    /// Try to create a [BYOB reader](ReadableStreamBYOBReader) and
+    /// [lock](https://streams.spec.whatwg.org/#lock) the stream to the new reader.
+    ///
+    /// While the stream is locked, no other reader can be acquired until this one is released.
+    ///
+    /// If the stream is already locked to a reader, then this returns an error.
+    pub fn try_get_byob_reader(&mut self) -> Result<ReadableStreamBYOBReader, js_sys::Error> {
+        ReadableStreamBYOBReader::new(self)
     }
 
     /// [Pipes](https://streams.spec.whatwg.org/#piping) this readable stream to a given
@@ -199,10 +248,7 @@ impl ReadableStream {
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
     pub fn try_tee(self) -> Result<(ReadableStream, ReadableStream), (js_sys::Error, Self)> {
-        let branches = match self.as_raw().tee() {
-            Ok(branches) => branches,
-            Err(err) => return Err((err, self)),
-        };
+        let branches = self.as_raw().tee().map_err(|err| (err, self))?;
         debug_assert_eq!(branches.length(), 2);
         let (left, right) = (branches.get(0), branches.get(1));
         Ok((
@@ -235,16 +281,28 @@ impl ReadableStream {
     ///
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
-    pub fn try_into_stream(self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
-        let raw_reader = match self.as_raw().get_reader() {
-            Ok(raw_reader) => raw_reader,
-            Err(err) => return Err((err, self)),
-        };
-        let reader = ReadableStreamDefaultReader {
-            raw: raw_reader,
-            _stream: PhantomData,
-        };
+    pub fn try_into_stream(mut self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
+        let reader = ReadableStreamDefaultReader::new(&mut self).map_err(|err| (err, self))?;
         Ok(reader.into_stream())
+    }
+
+    /// Converts this `ReadableStream` into an [`AsyncRead`](AsyncRead).
+    ///
+    /// **Panics** if the stream is already locked to a reader, or if this stream is not a readable
+    /// byte stream. For a non-panicking variant, use [`try_into_async_read`](Self::try_into_async_read).
+    #[inline]
+    pub fn into_async_read(self) -> IntoAsyncRead<'static> {
+        self.try_into_async_read()
+            .expect_throw("already locked to a reader, or not a readable byte stream")
+    }
+
+    /// Try to convert this `ReadableStream` into an [`AsyncRead`](AsyncRead).
+    ///
+    /// If the stream is already locked to a reader, or if this stream is not a readable byte
+    /// stream, then this returns an error along with the original `ReadableStream`.
+    pub fn try_into_async_read(mut self) -> Result<IntoAsyncRead<'static>, (js_sys::Error, Self)> {
+        let reader = ReadableStreamBYOBReader::new(&mut self).map_err(|err| (err, self))?;
+        Ok(reader.into_async_read())
     }
 }
 
@@ -256,111 +314,5 @@ where
     #[inline]
     fn from(stream: St) -> Self {
         Self::from_stream(stream)
-    }
-}
-
-/// A [`ReadableStreamDefaultReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader)
-/// that can be used to read chunks from a [`ReadableStream`](ReadableStream).
-///
-/// This is returned by the [`get_reader`](ReadableStream::get_reader) method.
-///
-/// When the reader is dropped, it automatically [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
-#[derive(Debug)]
-pub struct ReadableStreamDefaultReader<'stream> {
-    raw: sys::ReadableStreamDefaultReader,
-    _stream: PhantomData<&'stream mut ReadableStream>,
-}
-
-impl<'stream> ReadableStreamDefaultReader<'stream> {
-    /// Acquires a reference to the underlying [JavaScript reader](sys::ReadableStreamDefaultReader).
-    #[inline]
-    pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {
-        &self.raw
-    }
-
-    /// Waits for the stream to become closed.
-    ///
-    /// This returns an error if the stream ever errors, or if the reader's lock is
-    /// [released](https://streams.spec.whatwg.org/#release-a-lock) before the stream finishes
-    /// closing.
-    pub async fn closed(&self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().closed()).await
-    }
-
-    /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
-    /// signaling a loss of interest in the stream by a consumer.
-    ///
-    /// Equivalent to [`ReadableStream.cancel`](ReadableStream::cancel).
-    pub async fn cancel(&mut self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().cancel()).await
-    }
-
-    /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
-    /// signaling a loss of interest in the stream by a consumer.
-    ///
-    /// Equivalent to [`ReadableStream.cancel_with_reason`](ReadableStream::cancel_with_reason).
-    pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().cancel_with_reason(reason)).await
-    }
-
-    /// Reads the next chunk from the stream's internal queue.
-    ///
-    /// * If a next `chunk` becomes available, this returns `Ok(Some(chunk))`.
-    /// * If the stream closes and no more chunks are available, this returns `Ok(None)`.
-    /// * If the stream encounters an `error`, this returns `Err(error)`.
-    pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
-        let promise = self.as_raw().read();
-        let js_value = JsFuture::from(promise).await?;
-        let result = sys::ReadableStreamReadResult::from(js_value);
-        if result.is_done() {
-            Ok(None)
-        } else {
-            Ok(Some(result.value()))
-        }
-    }
-
-    /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
-    /// corresponding stream.
-    ///
-    /// **Panics** if the reader still has a pending read request, i.e. if a future returned
-    /// by [`read`](Self::read) is not yet ready. For a non-panicking variant,
-    /// use [`try_release_lock`](Self::try_release_lock).
-    #[inline]
-    pub fn release_lock(mut self) {
-        self.release_lock_mut()
-    }
-
-    fn release_lock_mut(&mut self) {
-        self.as_raw()
-            .release_lock()
-            .unwrap_or_else(|error| throw_val(error.into()))
-    }
-
-    /// Try to [release](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
-    /// corresponding stream.
-    ///
-    /// The lock cannot be released while the reader still has a pending read request, i.e.
-    /// if a future returned by [`read`](Self::read) is not yet ready. Attempting to do so will
-    /// return an error and leave the reader locked to the stream.
-    #[inline]
-    pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
-        self.as_raw().release_lock().map_err(|error| (error, self))
-    }
-
-    /// Converts this `ReadableStreamDefaultReader` into a [`Stream`](Stream).
-    ///
-    /// This is similar to [`ReadableStream.into_stream`](ReadableStream::into_stream),
-    /// except that after the returned `Stream` is dropped, the original `ReadableStream` is still
-    /// usable. This allows reading only a few chunks from the `Stream`, while still allowing
-    /// another reader to read the remaining chunks later on.
-    #[inline]
-    pub fn into_stream(self) -> IntoStream<'stream> {
-        IntoStream::new(self)
-    }
-}
-
-impl Drop for ReadableStreamDefaultReader<'_> {
-    fn drop(&mut self) {
-        self.release_lock_mut();
     }
 }

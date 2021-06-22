@@ -57,7 +57,7 @@ impl IntoUnderlyingSource {
 impl Drop for IntoUnderlyingSource {
     fn drop(&mut self) {
         // Abort the pending pull, if any.
-        if let Some(handle) = &mut self.pull_handle {
+        if let Some(handle) = self.pull_handle.take() {
             handle.abort();
         }
     }
