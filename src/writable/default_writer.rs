@@ -2,8 +2,9 @@ use std::marker::PhantomData;
 
 use wasm_bindgen::JsValue;
 
-use super::{sys, IntoSink, WritableStream};
 use crate::util::promise_to_void_future;
+
+use super::{sys, IntoSink, WritableStream};
 
 /// A [`WritableStreamDefaultWriter`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStreamDefaultWriter)
 /// that can be used to write chunks to a [`WritableStream`](WritableStream).

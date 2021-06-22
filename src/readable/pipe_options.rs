@@ -1,5 +1,6 @@
-use super::sys;
 use web_sys::AbortSignal;
+
+use super::sys;
 
 /// Options for [`pipe_to_with_options`](super::ReadableStream::pipe_to_with_options).
 #[derive(Clone, Debug, Default)]
