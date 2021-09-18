@@ -179,7 +179,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// allowing another reader to read the remaining bytes later on.
     #[inline]
     pub fn into_async_read(self) -> IntoAsyncRead<'stream> {
-        IntoAsyncRead::new(self)
+        IntoAsyncRead::new(self, false)
     }
 }
 

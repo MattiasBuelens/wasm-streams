@@ -283,7 +283,7 @@ impl ReadableStream {
     /// along with the original `ReadableStream`.
     pub fn try_into_stream(mut self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
         let reader = ReadableStreamDefaultReader::new(&mut self).map_err(|err| (err, self))?;
-        Ok(reader.into_stream())
+        Ok(IntoStream::new(reader, true))
     }
 
     /// Converts this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
@@ -302,7 +302,7 @@ impl ReadableStream {
     /// stream, then this returns an error along with the original `ReadableStream`.
     pub fn try_into_async_read(mut self) -> Result<IntoAsyncRead<'static>, (js_sys::Error, Self)> {
         let reader = ReadableStreamBYOBReader::new(&mut self).map_err(|err| (err, self))?;
-        Ok(reader.into_async_read())
+        Ok(IntoAsyncRead::new(reader, true))
     }
 }
 

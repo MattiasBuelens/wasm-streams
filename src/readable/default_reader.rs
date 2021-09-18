@@ -113,7 +113,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// another reader to read the remaining chunks later on.
     #[inline]
     pub fn into_stream(self) -> IntoStream<'stream> {
-        IntoStream::new(self)
+        IntoStream::new(self, false)
     }
 }
 
