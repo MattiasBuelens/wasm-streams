@@ -30,6 +30,24 @@ impl<'reader> IntoStream<'reader> {
             fut: None,
         }
     }
+
+    /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
+    /// signaling a loss of interest in the stream by a consumer.
+    pub async fn cancel(mut self) -> Result<(), JsValue> {
+        if let Some(mut reader) = self.reader.take() {
+            reader.cancel().await?
+        }
+        Ok(())
+    }
+
+    /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
+    /// signaling a loss of interest in the stream by a consumer.
+    pub async fn cancel_with_reason(mut self, reason: &JsValue) -> Result<(), JsValue> {
+        if let Some(mut reader) = self.reader.take() {
+            reader.cancel_with_reason(reason).await?
+        }
+        Ok(())
+    }
 }
 
 impl FusedStream for IntoStream<'_> {
