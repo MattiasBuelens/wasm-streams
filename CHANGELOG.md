@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.2.1 (2021-09-23)
 
 * `ReadableStream::into_stream()` and `ReadableStream::into_async_read()` now automatically 
   cancel the stream when dropped ([#7](https://github.com/MattiasBuelens/wasm-streams/issues/7), [#8](https://github.com/MattiasBuelens/wasm-streams/pull/8))
