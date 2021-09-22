@@ -131,7 +131,7 @@ async fn test_readable_stream_abort_read() {
     let mut fut = reader.read().boxed_local();
     // We need to poll the future at least once to start the read
     let poll_result = poll!(&mut fut);
-    assert_eq!(poll_result, Poll::Pending);
+    assert!(matches!(poll_result, Poll::Pending));
     // Drop the future, to regain control over the reader
     drop(fut);
 
@@ -190,4 +190,54 @@ async fn test_readable_stream_tee() {
 
     assert_eq!(left_chunks, chunks);
     assert_eq!(right_chunks, chunks);
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_into_stream_auto_cancel() {
+    let raw_readable = new_noop_readable_stream();
+    let readable = ReadableStream::from_raw(raw_readable.clone());
+    let mut stream = readable.into_stream();
+
+    // Start reading
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let mut fut = stream.next().boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert!(matches!(poll_result, Poll::Pending));
+    // Drop the future, to regain control over the stream
+    drop(fut);
+
+    // Drop the stream
+    drop(stream);
+
+    // Stream must be unlocked and cancelled
+    let mut readable = ReadableStream::from_raw(raw_readable);
+    assert_eq!(readable.is_locked(), false);
+    let mut reader = readable.get_reader();
+    assert_eq!(reader.read().await.unwrap(), None);
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_into_stream_manual_cancel() {
+    let raw_readable = new_noop_readable_stream();
+    let readable = ReadableStream::from_raw(raw_readable.clone());
+    let mut stream = readable.into_stream();
+
+    // Start reading
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let mut fut = stream.next().boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert!(matches!(poll_result, Poll::Pending));
+    // Drop the future, to regain control over the stream
+    drop(fut);
+
+    // Cancel the stream
+    stream.cancel().await.unwrap();
+
+    // Stream must be unlocked and cancelled
+    let mut readable = ReadableStream::from_raw(raw_readable);
+    assert_eq!(readable.is_locked(), false);
+    let mut reader = readable.get_reader();
+    assert_eq!(reader.read().await.unwrap(), None);
 }

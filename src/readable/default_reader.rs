@@ -13,6 +13,9 @@ use super::{sys, IntoStream, ReadableStream};
 /// This is returned by the [`get_reader`](ReadableStream::get_reader) method.
 ///
 /// When the reader is dropped, it automatically [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+/// If the reader still has a pending read request at this point (i.e. if a future returned
+/// by [`read`](Self::read) is not yet ready), then this will **panic**. You must either `await`
+/// all `read` futures, or [`cancel`](Self::cancel) the stream to discard any pending `read` futures.
 #[derive(Debug)]
 pub struct ReadableStreamDefaultReader<'stream> {
     raw: sys::ReadableStreamDefaultReader,
@@ -110,7 +113,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// another reader to read the remaining chunks later on.
     #[inline]
     pub fn into_stream(self) -> IntoStream<'stream> {
-        IntoStream::new(self)
+        IntoStream::new(self, false)
     }
 }
 

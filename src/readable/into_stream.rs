@@ -12,22 +12,49 @@ use super::ReadableStreamDefaultReader;
 
 /// A [`Stream`](futures::Stream) for the [`into_stream`](super::ReadableStream::into_stream) method.
 ///
-/// This stream holds a reader, and therefore locks the [`ReadableStream`](super::ReadableStream).
-/// When this stream is dropped, it also drops its reader which in turn
+/// This `Stream` holds a reader, and therefore locks the [`ReadableStream`](super::ReadableStream).
+/// When this `Stream` is dropped, it also drops its reader which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+///
+/// When used through [`ReadableStream::into_stream`](super::ReadableStream::into_stream),
+/// the stream is automatically cancelled before dropping the reader, discarding any pending read requests.
+/// When used through [`ReadableStreamDefaultReader::into_stream`](super::ReadableStreamDefaultReader::into_stream),
+/// it is up to the user to either manually [cancel](Self::cancel) the stream,
+/// or to ensure that there are no pending read requests when dropped.
+/// See the documentation on [`ReadableStreamDefaultReader`] for more details on the drop behavior.
 #[must_use = "streams do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoStream<'reader> {
     reader: Option<ReadableStreamDefaultReader<'reader>>,
     fut: Option<JsFuture>,
+    cancel_on_drop: bool,
 }
 
 impl<'reader> IntoStream<'reader> {
     #[inline]
-    pub(super) fn new(reader: ReadableStreamDefaultReader) -> IntoStream {
+    pub(super) fn new(reader: ReadableStreamDefaultReader, cancel_on_drop: bool) -> IntoStream {
         IntoStream {
             reader: Some(reader),
             fut: None,
+            cancel_on_drop,
+        }
+    }
+
+    /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
+    /// signaling a loss of interest in the stream by a consumer.
+    pub async fn cancel(mut self) -> Result<(), JsValue> {
+        match self.reader.take() {
+            Some(mut reader) => reader.cancel().await,
+            None => Ok(()),
+        }
+    }
+
+    /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
+    /// signaling a loss of interest in the stream by a consumer.
+    pub async fn cancel_with_reason(mut self, reason: &JsValue) -> Result<(), JsValue> {
+        match self.reader.take() {
+            Some(mut reader) => reader.cancel_with_reason(reason).await,
+            None => Ok(()),
         }
     }
 }
@@ -79,5 +106,15 @@ impl<'reader> Stream for IntoStream<'reader> {
                 Some(Err(js_value))
             }
         })
+    }
+}
+
+impl<'reader> Drop for IntoStream<'reader> {
+    fn drop(&mut self) {
+        if self.cancel_on_drop {
+            if let Some(reader) = self.reader.take() {
+                let _ = reader.as_raw().cancel().catch(&Closure::once(|_| {}));
+            }
+        }
     }
 }

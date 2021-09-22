@@ -14,6 +14,9 @@ use super::{sys, IntoAsyncRead, ReadableStream};
 /// This is returned by the [`get_byob_reader`](ReadableStream::get_byob_reader) method.
 ///
 /// When the reader is dropped, it automatically [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+/// If the reader still has a pending read request at this point (i.e. if a future returned
+/// by [`read`](Self::read) is not yet ready), then this will **panic**. You must either `await`
+/// all `read` futures, or [`cancel`](Self::cancel) the stream to discard any pending `read` futures.
 #[derive(Debug)]
 pub struct ReadableStreamBYOBReader<'stream> {
     raw: sys::ReadableStreamBYOBReader,
@@ -176,7 +179,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// allowing another reader to read the remaining bytes later on.
     #[inline]
     pub fn into_async_read(self) -> IntoAsyncRead<'stream> {
-        IntoAsyncRead::new(self)
+        IntoAsyncRead::new(self, false)
     }
 }
 

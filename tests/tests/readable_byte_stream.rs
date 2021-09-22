@@ -213,7 +213,7 @@ async fn test_readable_byte_stream_abort_read(mut readable: ReadableStream) {
     let mut fut = reader.read(&mut dst).boxed_local();
     // We need to poll the future at least once to start the read
     let poll_result = poll!(&mut fut);
-    assert_eq!(poll_result, Poll::Pending);
+    assert!(matches!(poll_result, Poll::Pending));
     // Drop the future, to regain control over the reader
     drop(fut);
 
@@ -240,4 +240,56 @@ async fn test_readable_byte_stream_abort_read_from_async_read() {
     static ASYNC_READ: [u8; 6] = [1, 2, 3, 4, 5, 6];
     let readable = ReadableStream::from_async_read(&ASYNC_READ[..], 2);
     test_readable_byte_stream_abort_read(readable).await
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_into_async_read_auto_cancel() {
+    let raw_readable = new_noop_readable_byte_stream();
+    let readable = ReadableStream::from_raw(raw_readable.clone());
+    let mut async_read = readable.into_async_read();
+
+    // Start reading
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let mut buf = [0u8; 1];
+    let mut fut = async_read.read(&mut buf).boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert!(matches!(poll_result, Poll::Pending));
+    // Drop the future, to regain control over the AsyncRead
+    drop(fut);
+
+    // Drop the AsyncRead
+    drop(async_read);
+
+    // Stream must be unlocked and cancelled
+    let mut readable = ReadableStream::from_raw(raw_readable);
+    assert_eq!(readable.is_locked(), false);
+    let mut reader = readable.get_reader();
+    assert_eq!(reader.read().await.unwrap(), None);
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_into_async_read_manual_cancel() {
+    let raw_readable = new_noop_readable_byte_stream();
+    let readable = ReadableStream::from_raw(raw_readable.clone());
+    let mut async_read = readable.into_async_read();
+
+    // Start reading
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let mut buf = [0u8; 1];
+    let mut fut = async_read.read(&mut buf).boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert!(matches!(poll_result, Poll::Pending));
+    // Drop the future, to regain control over the AsyncRead
+    drop(fut);
+
+    // Cancel the AsyncRead
+    async_read.cancel().await.unwrap();
+
+    // Stream must be unlocked and cancelled
+    let mut readable = ReadableStream::from_raw(raw_readable);
+    assert_eq!(readable.is_locked(), false);
+    let mut reader = readable.get_reader();
+    assert_eq!(reader.read().await.unwrap(), None);
 }
