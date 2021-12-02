@@ -37,7 +37,7 @@ async fn test_writable_stream_into_sink() {
 
     assert_eq!(
         recording_stream.events(),
-        vec![
+        [
             RecordedEvent::Write(JsValue::from("Hello")),
             RecordedEvent::Write(JsValue::from("world!")),
             RecordedEvent::Close
@@ -69,7 +69,7 @@ async fn test_writable_stream_writer_into_sink() {
 
     assert_eq!(
         recording_stream.events(),
-        vec![RecordedEvent::Write(JsValue::from("Hello")),]
+        [RecordedEvent::Write(JsValue::from("Hello")),]
     );
 
     // Dropping the wrapped sink should release the lock
@@ -84,7 +84,7 @@ async fn test_writable_stream_writer_into_sink() {
 
     assert_eq!(
         recording_stream.events(),
-        vec![
+        [
             RecordedEvent::Write(JsValue::from("Hello")),
             RecordedEvent::Write(JsValue::from("world!")),
             RecordedEvent::Close
@@ -143,7 +143,7 @@ async fn test_writable_stream_multiple_writers() {
 
     assert_eq!(
         recording_stream.events(),
-        vec![
+        [
             RecordedEvent::Write(JsValue::from("Hello")),
             RecordedEvent::Write(JsValue::from("world!")),
             RecordedEvent::Close
@@ -169,7 +169,7 @@ async fn test_writable_stream_into_async_write() {
 
     assert_eq!(
         recording_stream.events(),
-        vec![
+        [
             RecordedEvent::Write(Uint8Array::from(&[1, 2, 3][..]).into()),
             RecordedEvent::Write(Uint8Array::from(&[4, 5, 6][..]).into()),
             RecordedEvent::Write(Uint8Array::from(&[7, 8][..]).into()),

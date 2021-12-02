@@ -44,7 +44,7 @@ async fn test_pipe_rust_to_js() {
     // All chunks must be sent to sink
     assert_eq!(
         recording_stream.events(),
-        vec![
+        [
             RecordedEvent::Write(JsValue::from("Hello")),
             RecordedEvent::Write(JsValue::from("world!")),
             RecordedEvent::Close
@@ -74,7 +74,7 @@ async fn test_pipe_prevent_close() {
     // All chunks must be sent to sink, without closing it
     assert_eq!(
         recording_stream.events(),
-        vec![
+        [
             RecordedEvent::Write(JsValue::from("Hello")),
             RecordedEvent::Write(JsValue::from("world!"))
         ]
