@@ -140,11 +140,23 @@ impl WritableStream {
         Ok(writer.into_sink())
     }
 
+    /// Converts this `WritableStream` into an [`AsyncWrite`](futures::AsyncWrite).
+    ///
+    /// The writable stream must accept [`Uint8Array`](js_sys::Uint8Array) chunks.
+    ///
+    /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
+    /// use [`try_into_async_write`](Self::try_into_async_write).
     pub fn into_async_write(self) -> IntoAsyncWrite<'static> {
         self.try_into_async_write()
             .expect_throw("already locked to a writer")
     }
 
+    /// Try to convert this `WritableStream` into an [`AsyncWrite`](futures::AsyncWrite).
+    ///
+    /// The writable stream must accept [`Uint8Array`](js_sys::Uint8Array) chunks.
+    ///
+    /// If the stream is already locked to a writer, then this returns an error
+    /// along with the original `WritableStream`.
     pub fn try_into_async_write(self) -> Result<IntoAsyncWrite<'static>, (js_sys::Error, Self)> {
         Ok(IntoAsyncWrite::new(self.try_into_sink()?))
     }

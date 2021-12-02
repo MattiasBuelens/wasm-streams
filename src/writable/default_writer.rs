@@ -119,6 +119,14 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
         IntoSink::new(self)
     }
 
+    /// Converts this `WritableStreamDefaultWriter` into an [`AsyncWrite`](futures::AsyncWrite).
+    ///
+    /// The writable stream must accept [`Uint8Array`](js_sys::Uint8Array) chunks.
+    ///
+    /// This is similar to [`WritableStream.into_async_write`](WritableStream::into_async_write),
+    /// except that after the returned `AsyncWrite` is dropped, the original `WritableStream` is
+    /// still usable. This allows writing only a few bytes through the `AsyncWrite`, while still
+    /// allowing another writer to write more bytes later on.
     #[inline]
     pub fn into_async_write(self) -> IntoAsyncWrite<'stream> {
         IntoAsyncWrite::new(self.into_sink())
