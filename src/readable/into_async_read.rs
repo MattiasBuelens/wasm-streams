@@ -27,7 +27,7 @@ use super::ReadableStreamBYOBReader;
 /// it is up to the user to either manually [cancel](Self::cancel) the stream,
 /// or to ensure that there are no pending read requests when dropped.
 /// See the documentation on [`ReadableStreamBYOBReader`] for more details on the drop behavior.
-#[must_use = "streams do nothing unless polled"]
+#[must_use = "readers do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoAsyncRead<'reader> {
     reader: Option<ReadableStreamBYOBReader<'reader>>,

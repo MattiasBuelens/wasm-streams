@@ -10,8 +10,13 @@ use crate::util::js_to_io_error;
 
 use super::IntoSink;
 
-#[derive(Debug)]
+/// An [`AsyncWrite`](futures::AsyncWrite) for the [`into_async_write`](super::WritableStream::into_async_write) method.
+///
+/// This `AsyncWrite` holds a writer, and therefore locks the [`WritableStream`](super::WritableStream).
+/// When this `AsyncWrite` is dropped, it also drops its writer which in turn
+/// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 #[must_use = "writers do nothing unless polled"]
+#[derive(Debug)]
 pub struct IntoAsyncWrite<'writer> {
     sink: IntoSink<'writer>,
 }
