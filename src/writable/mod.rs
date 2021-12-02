@@ -5,11 +5,11 @@ use futures::Sink;
 use wasm_bindgen::prelude::*;
 
 pub use default_writer::WritableStreamDefaultWriter;
+pub use into_async_write::IntoAsyncWrite;
 pub use into_sink::IntoSink;
 use into_underlying_sink::IntoUnderlyingSink;
 
 use crate::util::promise_to_void_future;
-use crate::writable::into_async_write::IntoAsyncWrite;
 
 mod default_writer;
 mod into_async_write;

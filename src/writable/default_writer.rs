@@ -4,7 +4,7 @@ use wasm_bindgen::JsValue;
 
 use crate::util::promise_to_void_future;
 
-use super::{sys, IntoSink, WritableStream};
+use super::{sys, IntoAsyncWrite, IntoSink, WritableStream};
 
 /// A [`WritableStreamDefaultWriter`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStreamDefaultWriter)
 /// that can be used to write chunks to a [`WritableStream`](WritableStream).
@@ -117,6 +117,11 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     #[inline]
     pub fn into_sink(self) -> IntoSink<'stream> {
         IntoSink::new(self)
+    }
+
+    #[inline]
+    pub fn into_async_write(self) -> IntoAsyncWrite<'stream> {
+        IntoAsyncWrite::new(self.into_sink())
     }
 }
 
