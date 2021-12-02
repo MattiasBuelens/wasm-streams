@@ -177,3 +177,11 @@ async fn test_writable_stream_into_async_write() {
         ]
     );
 }
+
+#[wasm_bindgen_test]
+fn test_writable_stream_into_async_write_impl_unpin() {
+    let writable = WritableStream::from_raw(new_noop_writable_stream());
+    let async_write: IntoAsyncWrite = writable.into_async_write();
+
+    let _ = Pin::new(&async_write); // must be Unpin for this to work
+}
