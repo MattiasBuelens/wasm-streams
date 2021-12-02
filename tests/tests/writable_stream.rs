@@ -17,9 +17,9 @@ async fn test_writable_stream_new() {
     assert!(!writable.is_locked());
 
     let mut writer = writable.get_writer();
-    assert_eq!(writer.write(JsValue::from("Hello")).await.unwrap(), ());
-    assert_eq!(writer.write(JsValue::from("world!")).await.unwrap(), ());
-    assert_eq!(writer.close().await.unwrap(), ());
+    assert_eq!(writer.write(JsValue::from("Hello")).await, Ok(()));
+    assert_eq!(writer.write(JsValue::from("world!")).await, Ok(()));
+    assert_eq!(writer.close().await, Ok(()));
     writer.closed().await.unwrap();
 }
 
@@ -78,8 +78,8 @@ async fn test_writable_stream_writer_into_sink() {
     {
         // Can acquire a new writer after wrapped sink is dropped
         let mut writer = writable.get_writer();
-        assert_eq!(writer.write(JsValue::from("world!")).await.unwrap(), ());
-        assert_eq!(writer.close().await.unwrap(), ());
+        assert_eq!(writer.write(JsValue::from("world!")).await, Ok(()));
+        assert_eq!(writer.close().await, Ok(()));
     }
 
     assert_eq!(
@@ -99,9 +99,9 @@ async fn test_writable_stream_from_sink() {
     let mut writable = WritableStream::from_sink(sink);
 
     let mut writer = writable.get_writer();
-    assert_eq!(writer.write(JsValue::from("Hello")).await.unwrap(), ());
-    assert_eq!(writer.write(JsValue::from("world!")).await.unwrap(), ());
-    assert_eq!(writer.close().await.unwrap(), ());
+    assert_eq!(writer.write(JsValue::from("Hello")).await, Ok(()));
+    assert_eq!(writer.write(JsValue::from("world!")).await, Ok(()));
+    assert_eq!(writer.close().await, Ok(()));
     writer.closed().await.unwrap();
 
     let output = stream.collect::<Vec<_>>().await;
@@ -165,7 +165,7 @@ async fn test_writable_stream_into_async_write() {
     assert_eq!(async_write.write(&buf).await.unwrap(), 3);
     buf = [7, 8, 9];
     assert_eq!(async_write.write(&buf[0..2]).await.unwrap(), 2);
-    assert_eq!(async_write.close().await.unwrap(), ());
+    async_write.close().await.unwrap();
 
     assert_eq!(
         recording_stream.events(),
