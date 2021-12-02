@@ -60,7 +60,7 @@ async fn test_writable_stream_writer_into_sink() {
     assert!(!writable.is_locked());
 
     {
-        // Acquire a writer and wrap it in a Rust sink
+        // Acquire a writer and wrap it in a Rust Sink
         let writer = writable.get_writer();
         let mut sink = writer.into_sink();
 
@@ -72,11 +72,11 @@ async fn test_writable_stream_writer_into_sink() {
         [RecordedEvent::Write(JsValue::from("Hello")),]
     );
 
-    // Dropping the wrapped sink should release the lock
+    // Dropping the wrapped Sink should release the lock
     assert!(!writable.is_locked());
 
     {
-        // Can acquire a new writer after wrapped sink is dropped
+        // Can acquire a new writer after wrapped Sink is dropped
         let mut writer = writable.get_writer();
         assert_eq!(writer.write(JsValue::from("world!")).await, Ok(()));
         assert_eq!(writer.close().await, Ok(()));

@@ -58,14 +58,14 @@ async fn test_readable_stream_reader_into_stream() {
     assert!(!readable.is_locked());
 
     {
-        // Acquire a reader and wrap it in a Rust stream
+        // Acquire a reader and wrap it in a Rust Stream
         let reader = readable.get_reader();
         let mut stream = reader.into_stream();
 
         assert_eq!(stream.next().await, Some(Ok(JsValue::from("Hello"))));
     }
 
-    // Dropping the wrapped stream should release the lock
+    // Dropping the wrapped Stream should release the lock
     assert!(!readable.is_locked());
 
     {
