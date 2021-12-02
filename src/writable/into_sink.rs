@@ -34,6 +34,24 @@ impl<'writer> IntoSink<'writer> {
             close_fut: None,
         }
     }
+
+    /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream,
+    /// signaling that the producer can no longer successfully write to the stream.
+    pub async fn abort(mut self) -> Result<(), JsValue> {
+        match self.writer.take() {
+            Some(mut writer) => writer.abort().await,
+            None => Ok(()),
+        }
+    }
+
+    /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream,
+    /// signaling that the producer can no longer successfully write to the stream.
+    pub async fn abort_with_reason(mut self, reason: &JsValue) -> Result<(), JsValue> {
+        match self.writer.take() {
+            Some(mut writer) => writer.abort_with_reason(reason).await,
+            None => Ok(()),
+        }
+    }
 }
 
 impl<'writer> Sink<JsValue> for IntoSink<'writer> {

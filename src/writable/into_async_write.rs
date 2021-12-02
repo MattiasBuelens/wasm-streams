@@ -5,6 +5,7 @@ use futures::io::AsyncWrite;
 use futures::ready;
 use futures::sink::SinkExt;
 use js_sys::Uint8Array;
+use wasm_bindgen::JsValue;
 
 use crate::util::js_to_io_error;
 
@@ -25,6 +26,18 @@ impl<'writer> IntoAsyncWrite<'writer> {
     #[inline]
     pub(super) fn new(sink: IntoSink<'writer>) -> Self {
         Self { sink }
+    }
+
+    /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream,
+    /// signaling that the producer can no longer successfully write to the stream.
+    pub async fn abort(self) -> Result<(), JsValue> {
+        self.sink.abort().await
+    }
+
+    /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream,
+    /// signaling that the producer can no longer successfully write to the stream.
+    pub async fn abort_with_reason(self, reason: &JsValue) -> Result<(), JsValue> {
+        self.sink.abort_with_reason(reason).await
     }
 }
 
