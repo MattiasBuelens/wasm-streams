@@ -1,15 +1,15 @@
 use core::pin::Pin;
 
 use futures::future::FutureExt;
-use futures::io::{AsyncRead, Error, ErrorKind};
+use futures::io::{AsyncRead, Error};
 use futures::ready;
 use futures::task::{Context, Poll};
-use js_sys::{Object, Uint8Array};
+use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
-use crate::util::{checked_cast_to_usize, clamp_to_u32};
+use crate::util::{checked_cast_to_usize, clamp_to_u32, js_to_io_error};
 
 use super::sys::{ArrayBufferView, ReadableStreamBYOBReadResult};
 use super::ReadableStreamBYOBReader;
@@ -132,11 +132,7 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
             Err(js_value) => {
                 // Error
                 self.discard_reader();
-                let error = match Object::try_from(&js_value) {
-                    Some(js_object) => js_object.to_string().as_string().unwrap_throw(),
-                    None => "Unknown error".to_string(),
-                };
-                Err(Error::new(ErrorKind::Other, error))
+                Err(js_to_io_error(js_value))
             }
         })
     }
