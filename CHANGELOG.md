@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+* Added `WritableStream::into_async_write()` to turn a `WritableStream` accepting `Uint8Array`s 
+  into an `AsyncWrite` ([#9](https://github.com/MattiasBuelens/wasm-streams/issues/9),
+  [#10](https://github.com/MattiasBuelens/wasm-streams/pull/10))
+* Added `IntoSink::abort()` ([#10](https://github.com/MattiasBuelens/wasm-streams/pull/10))
+
 ## v0.2.1 (2021-09-23)
 
 * `ReadableStream::into_stream()` and `ReadableStream::into_async_read()` now automatically 
