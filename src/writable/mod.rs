@@ -1,11 +1,7 @@
 //! Bindings and conversions for
 //! [writable streams](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
 
-use std::io::ErrorKind;
-
-use futures::future::{ready, Ready};
-use futures::{AsyncWrite, Sink, SinkExt};
-use js_sys::Uint8Array;
+use futures::Sink;
 use wasm_bindgen::prelude::*;
 
 pub use default_writer::WritableStreamDefaultWriter;
@@ -144,14 +140,13 @@ impl WritableStream {
         Ok(writer.into_sink())
     }
 
-    pub fn into_async_write(self) -> impl AsyncWrite {
-        let sink = self
-            .into_sink()
-            .with(|buf: Box<[u8]>| -> Ready<Result<JsValue, JsValue>> {
-                ready(Ok(Uint8Array::from(buf.as_ref()).into()))
-            })
-            .sink_map_err(|_err| std::io::Error::new(ErrorKind::Other, "unknown error"));
-        IntoAsyncWrite::new(sink)
+    pub fn into_async_write(self) -> IntoAsyncWrite<'static> {
+        self.try_into_async_write()
+            .expect_throw("already locked to a writer")
+    }
+
+    pub fn try_into_async_write(self) -> Result<IntoAsyncWrite<'static>, (js_sys::Error, Self)> {
+        Ok(IntoAsyncWrite::new(self.try_into_sink()?))
     }
 }
 
