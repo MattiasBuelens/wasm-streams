@@ -51,7 +51,7 @@ impl RecordingWritableStream {
     pub fn events(&self) -> Vec<RecordedEvent> {
         self.raw
             .events()
-            .into_iter()
+            .iter()
             .map(|x| RecordedEvent::from(x.unchecked_ref::<JsRecordedEvent>()))
             .collect::<Vec<_>>()
     }
@@ -81,7 +81,7 @@ impl PartialEq for RecordedEvent {
                 if left_val.eq(right_val) {
                     true
                 } else {
-                    equal_uint8_array(&left_val, &right_val)
+                    equal_uint8_array(left_val, right_val)
                 }
             }
             (RecordedEvent::Close, RecordedEvent::Close) => true,

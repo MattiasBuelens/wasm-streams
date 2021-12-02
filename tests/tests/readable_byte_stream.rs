@@ -263,7 +263,7 @@ async fn test_readable_byte_stream_into_async_read_auto_cancel() {
 
     // Stream must be unlocked and cancelled
     let mut readable = ReadableStream::from_raw(raw_readable);
-    assert_eq!(readable.is_locked(), false);
+    assert!(!readable.is_locked());
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), None);
 }
@@ -289,7 +289,7 @@ async fn test_readable_byte_stream_into_async_read_manual_cancel() {
 
     // Stream must be unlocked and cancelled
     let mut readable = ReadableStream::from_raw(raw_readable);
-    assert_eq!(readable.is_locked(), false);
+    assert!(!readable.is_locked());
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), None);
 }

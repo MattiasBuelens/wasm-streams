@@ -96,9 +96,9 @@ async fn test_readable_stream_from_stream_cancel() {
 
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), Some(JsValue::from("Hello")));
-    assert_eq!(observer.is_dropped(), false);
+    assert!(!observer.is_dropped());
     assert_eq!(reader.cancel().await, Ok(()));
-    assert_eq!(observer.is_dropped(), true);
+    assert!(observer.is_dropped());
     reader.closed().await.unwrap();
 }
 
@@ -144,9 +144,9 @@ async fn test_readable_stream_abort_read() {
         .expect_err("reader was released while there are pending reads");
 
     // Cancel all pending reads
-    assert_eq!(observer.is_dropped(), false);
+    assert!(!observer.is_dropped());
     reader.cancel().await.unwrap();
-    assert_eq!(observer.is_dropped(), true);
+    assert!(observer.is_dropped());
 
     // Can release lock after cancelling
     reader.release_lock();
@@ -215,7 +215,7 @@ async fn test_readable_stream_into_stream_auto_cancel() {
 
     // Stream must be unlocked and cancelled
     let mut readable = ReadableStream::from_raw(raw_readable);
-    assert_eq!(readable.is_locked(), false);
+    assert!(!readable.is_locked());
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), None);
 }
@@ -240,14 +240,14 @@ async fn test_readable_stream_into_stream_manual_cancel() {
 
     // Stream must be unlocked and cancelled
     let mut readable = ReadableStream::from_raw(raw_readable);
-    assert_eq!(readable.is_locked(), false);
+    assert!(!readable.is_locked());
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), None);
 }
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_into_stream_then_into_async_read() {
-    let mut readable = ReadableStream::from_raw(new_readable_stream_from_array(
+    let readable = ReadableStream::from_raw(new_readable_stream_from_array(
         vec![
             Uint8Array::from(&[1, 2, 3][..]).into(),
             Uint8Array::from(&[4, 5, 6][..]).into(),
@@ -259,7 +259,7 @@ async fn test_readable_stream_into_stream_then_into_async_read() {
     let mut async_read = readable
         .into_stream()
         .map_ok(|value| value.dyn_into::<Uint8Array>().unwrap().to_vec())
-        .map_err(|err| std::io::Error::from(std::io::ErrorKind::Other))
+        .map_err(|_err| std::io::Error::from(std::io::ErrorKind::Other))
         .into_async_read();
     let mut buf = [0u8; 3];
     assert_eq!(async_read.read(&mut buf).await.unwrap(), 3);

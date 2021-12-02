@@ -161,9 +161,9 @@ async fn test_writable_stream_into_async_write() {
 
     let mut buf = [1, 2, 3];
     assert_eq!(async_write.write(&buf).await.unwrap(), 3);
-    *(&mut buf) = [4, 5, 6];
+    buf = [4, 5, 6];
     assert_eq!(async_write.write(&buf).await.unwrap(), 3);
-    *(&mut buf) = [7, 8, 9];
+    buf = [7, 8, 9];
     assert_eq!(async_write.write(&buf[0..2]).await.unwrap(), 2);
     assert_eq!(async_write.close().await.unwrap(), ());
 
