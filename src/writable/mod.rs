@@ -1,6 +1,11 @@
 //! Bindings and conversions for
 //! [writable streams](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
-use futures::Sink;
+
+use std::io::ErrorKind;
+
+use futures::future::{ready, Ready};
+use futures::{AsyncWrite, Sink, SinkExt};
+use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 
 pub use default_writer::WritableStreamDefaultWriter;
@@ -8,8 +13,10 @@ pub use into_sink::IntoSink;
 use into_underlying_sink::IntoUnderlyingSink;
 
 use crate::util::promise_to_void_future;
+use crate::writable::into_async_write::IntoAsyncWrite;
 
 mod default_writer;
+mod into_async_write;
 mod into_sink;
 mod into_underlying_sink;
 pub mod sys;
@@ -135,6 +142,16 @@ impl WritableStream {
     pub fn try_into_sink(mut self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
         let writer = WritableStreamDefaultWriter::new(&mut self).map_err(|err| (err, self))?;
         Ok(writer.into_sink())
+    }
+
+    pub fn into_async_write(self) -> impl AsyncWrite {
+        let sink = self
+            .into_sink()
+            .with(|buf: Box<[u8]>| -> Ready<Result<JsValue, JsValue>> {
+                ready(Ok(Uint8Array::from(buf.as_ref()).into()))
+            })
+            .sink_map_err(|_err| std::io::Error::new(ErrorKind::Other, "unknown error"));
+        IntoAsyncWrite::new(sink)
     }
 }
 
