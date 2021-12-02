@@ -229,3 +229,24 @@ async fn test_writable_stream_writer_into_async_write() {
         ]
     );
 }
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_into_async_write_then_into_sink() {
+    let recording_stream = RecordingWritableStream::new();
+    let writable = WritableStream::from_raw(recording_stream.stream());
+    assert!(!writable.is_locked());
+
+    let mut sink = writable.into_async_write().into_sink();
+    sink.send(vec![1, 2, 3]).await.unwrap();
+    sink.send(vec![4, 5, 6]).await.unwrap();
+    sink.close().await.unwrap();
+
+    assert_eq!(
+        recording_stream.events(),
+        [
+            RecordedEvent::Write(Uint8Array::from(&[1, 2, 3][..]).into()),
+            RecordedEvent::Write(Uint8Array::from(&[4, 5, 6][..]).into()),
+            RecordedEvent::Close
+        ]
+    );
+}
