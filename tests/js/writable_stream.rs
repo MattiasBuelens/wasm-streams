@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Formatter};
+
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -55,7 +57,6 @@ impl RecordingWritableStream {
     }
 }
 
-#[derive(Debug)]
 pub enum RecordedEvent {
     Write(JsValue),
     Close,
@@ -96,5 +97,23 @@ fn equal_uint8_array(left: &JsValue, right: &JsValue) -> bool {
     match (left.dyn_ref::<Uint8Array>(), right.dyn_ref::<Uint8Array>()) {
         (Some(left_array), Some(right_array)) => left_array.to_vec().eq(&right_array.to_vec()),
         _ => false,
+    }
+}
+
+impl Debug for RecordedEvent {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RecordedEvent::Write(value) => {
+                let mut tuple = f.debug_tuple("Write");
+                if let Some(array) = value.dyn_ref::<Uint8Array>() {
+                    tuple.field(&array.to_vec())
+                } else {
+                    tuple.field(value)
+                };
+                tuple.finish()
+            }
+            RecordedEvent::Close => f.debug_tuple("Close").finish(),
+            RecordedEvent::Abort(value) => f.debug_tuple("Abort").field(value).finish(),
+        }
     }
 }
