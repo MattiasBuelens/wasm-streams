@@ -36,7 +36,14 @@ impl RecordingWritableStream {
         self.raw
             .events()
             .into_iter()
-            .map(|x| x.as_string().unwrap())
+            .map(|x| js_to_string(x).expect_throw("not a string or object"))
             .collect::<Vec<_>>()
     }
+}
+
+fn js_to_string(js_value: &JsValue) -> Option<String> {
+    js_value.as_string().or_else(|| {
+        js_sys::Object::try_from(js_value)
+            .map(|js_object| js_object.to_string().as_string().unwrap_throw())
+    })
 }

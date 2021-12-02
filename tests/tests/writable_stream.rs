@@ -2,7 +2,8 @@ use std::pin::Pin;
 
 use futures::channel::*;
 use futures::stream::iter;
-use futures::{SinkExt, StreamExt};
+use futures::{AsyncWriteExt, SinkExt, StreamExt};
+use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
@@ -132,5 +133,27 @@ async fn test_writable_stream_multiple_writers() {
     assert_eq!(
         recording_stream.events(),
         vec!["write", "Hello", "write", "world!", "close"]
+    );
+}
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_into_async_write() {
+    let recording_stream = RecordingWritableStream::new();
+    let writable = WritableStream::from_raw(recording_stream.stream());
+    assert!(!writable.is_locked());
+
+    let mut async_write = writable.into_async_write();
+
+    let mut buf = [1, 2, 3];
+    assert_eq!(async_write.write(&buf).await.unwrap(), 3);
+    *(&mut buf) = [4, 5, 6];
+    assert_eq!(async_write.write(&buf).await.unwrap(), 3);
+    *(&mut buf) = [7, 8, 9];
+    assert_eq!(async_write.write(&buf[0..2]).await.unwrap(), 2);
+    assert_eq!(async_write.close().await.unwrap(), ());
+
+    assert_eq!(
+        recording_stream.events(),
+        vec!["write", "1,2,3", "write", "4,5,6", "write", "7,8", "close"]
     );
 }

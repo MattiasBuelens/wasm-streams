@@ -42,13 +42,13 @@ pub(crate) fn checked_cast_to_usize(value: u32) -> usize {
 }
 
 pub(crate) fn js_to_io_error(js_value: JsValue) -> std::io::Error {
-    let message = get_error_message(js_value).unwrap_or_else(|| "Unknown error".to_string());
+    let message = js_to_string(&js_value).unwrap_or_else(|| "Unknown error".to_string());
     std::io::Error::new(std::io::ErrorKind::Other, message)
 }
 
-fn get_error_message(js_value: JsValue) -> Option<String> {
+fn js_to_string(js_value: &JsValue) -> Option<String> {
     js_value.as_string().or_else(|| {
-        js_sys::Object::try_from(&js_value)
+        js_sys::Object::try_from(js_value)
             .map(|js_object| js_object.to_string().as_string().unwrap_throw())
     })
 }
