@@ -185,3 +185,47 @@ fn test_writable_stream_into_async_write_impl_unpin() {
 
     let _ = Pin::new(&async_write); // must be Unpin for this to work
 }
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_writer_into_async_write() {
+    let recording_stream = RecordingWritableStream::new();
+    let mut writable = WritableStream::from_raw(recording_stream.stream());
+    assert!(!writable.is_locked());
+
+    {
+        // Acquire a writer and wrap it in a Rust AsyncWrite
+        let writer = writable.get_writer();
+        let mut async_write = writer.into_async_write();
+
+        async_write.write(&[1, 2, 3]).await.unwrap();
+    }
+
+    assert_eq!(
+        recording_stream.events(),
+        [RecordedEvent::Write(
+            Uint8Array::from(&[1, 2, 3][..]).into()
+        ),]
+    );
+
+    // Dropping the wrapped AsyncWrite should release the lock
+    assert!(!writable.is_locked());
+
+    {
+        // Can acquire a new writer after wrapped sink is dropped
+        let mut writer = writable.get_writer();
+        assert_eq!(
+            writer.write(Uint8Array::from(&[4, 5, 6][..]).into()).await,
+            Ok(())
+        );
+        assert_eq!(writer.close().await, Ok(()));
+    }
+
+    assert_eq!(
+        recording_stream.events(),
+        [
+            RecordedEvent::Write(Uint8Array::from(&[1, 2, 3][..]).into()),
+            RecordedEvent::Write(Uint8Array::from(&[4, 5, 6][..]).into()),
+            RecordedEvent::Close
+        ]
+    );
+}
