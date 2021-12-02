@@ -45,7 +45,6 @@ impl<'writer> AsyncWrite for IntoAsyncWrite<'writer> {
         self.as_mut()
             .sink
             .poll_flush_unpin(cx)
-            .map_ok(|_| ())
             .map_err(js_to_io_error)
     }
 
@@ -53,7 +52,6 @@ impl<'writer> AsyncWrite for IntoAsyncWrite<'writer> {
         self.as_mut()
             .sink
             .poll_close_unpin(cx)
-            .map_ok(|_| ())
             .map_err(js_to_io_error)
     }
 }
