@@ -24,7 +24,7 @@ impl AsyncRead for ByteChannel {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<std::io::Result<usize>> {
-        if self.queue.is_empty() && self.closed {
+        if buf.is_empty() || (self.queue.is_empty() && self.closed) {
             return Poll::Ready(Ok(0));
         }
         let num_read = min(self.queue.len(), buf.len());
@@ -139,6 +139,15 @@ mod tests {
         assert_eq!(reader.read(&mut read_buf).await.unwrap(), 3);
         assert_eq!(&read_buf, &[1, 2, 3]);
         // should read EOF
+        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_read_into_empty_buffer() {
+        let channel = ByteChannel::new();
+        let (mut reader, _writer) = channel.split();
+
+        let mut read_buf = [0u8; 0];
         assert_eq!(reader.read(&mut read_buf).await.unwrap(), 0);
     }
 }
