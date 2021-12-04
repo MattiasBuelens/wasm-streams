@@ -5,6 +5,7 @@ use std::task::{Context, Poll, Waker};
 
 use futures::{AsyncRead, AsyncWrite};
 
+#[derive(Debug, Default)]
 pub struct ByteChannel {
     queue: VecDeque<u8>,
     waker: Option<Waker>,
@@ -13,11 +14,7 @@ pub struct ByteChannel {
 
 impl ByteChannel {
     pub fn new() -> Self {
-        Self {
-            queue: VecDeque::new(),
-            waker: None,
-            closed: false,
-        }
+        Self::default()
     }
 }
 
