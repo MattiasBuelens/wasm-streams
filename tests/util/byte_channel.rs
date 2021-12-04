@@ -77,17 +77,17 @@ mod tests {
         let channel = ByteChannel::new();
         let (mut reader, mut writer) = channel.split();
 
-        let mut read_buf = [0u8; 3];
+        let mut buf = [0u8; 3];
         writer.write_all(&[1, 2, 3, 4]).await.unwrap();
-        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 3);
-        assert_eq!(&read_buf, &[1, 2, 3]);
+        assert_eq!(reader.read(&mut buf).await.unwrap(), 3);
+        assert_eq!(&buf, &[1, 2, 3]);
 
         writer.write_all(&[5, 6]).await.unwrap();
-        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 3);
-        assert_eq!(&read_buf, &[4, 5, 6]);
+        assert_eq!(reader.read(&mut buf).await.unwrap(), 3);
+        assert_eq!(&buf, &[4, 5, 6]);
 
         writer.close().await.unwrap();
-        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 0);
+        assert_eq!(reader.read(&mut buf).await.unwrap(), 0);
     }
 
     #[tokio::test]
@@ -97,9 +97,9 @@ mod tests {
 
         join(
             async {
-                let mut read_buf = [0u8; 3];
-                assert_eq!(reader.read(&mut read_buf).await.unwrap(), 3);
-                assert_eq!(&read_buf, &[1, 2, 3]);
+                let mut buf = [0u8; 3];
+                assert_eq!(reader.read(&mut buf).await.unwrap(), 3);
+                assert_eq!(&buf, &[1, 2, 3]);
             },
             async {
                 writer.write_all(&[1, 2, 3, 4]).await.unwrap();
@@ -115,9 +115,9 @@ mod tests {
 
         join(
             async {
-                let mut read_buf = [0u8; 3];
-                assert_eq!(reader.read(&mut read_buf).await.unwrap(), 0);
-                assert_eq!(&read_buf, &[0, 0, 0]);
+                let mut buf = [0u8; 3];
+                assert_eq!(reader.read(&mut buf).await.unwrap(), 0);
+                assert_eq!(&buf, &[0, 0, 0]);
             },
             async {
                 writer.close().await.unwrap();
@@ -135,11 +135,11 @@ mod tests {
         writer.close().await.unwrap();
 
         // should still read bytes from queue
-        let mut read_buf = [0u8; 3];
-        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 3);
-        assert_eq!(&read_buf, &[1, 2, 3]);
+        let mut buf = [0u8; 3];
+        assert_eq!(reader.read(&mut buf).await.unwrap(), 3);
+        assert_eq!(&buf, &[1, 2, 3]);
         // should read EOF
-        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 0);
+        assert_eq!(reader.read(&mut buf).await.unwrap(), 0);
     }
 
     #[tokio::test]
@@ -147,7 +147,7 @@ mod tests {
         let channel = ByteChannel::new();
         let (mut reader, _writer) = channel.split();
 
-        let mut read_buf = [0u8; 0];
-        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 0);
+        let mut buf = [0u8; 0];
+        assert_eq!(reader.read(&mut buf).await.unwrap(), 0);
     }
 }
