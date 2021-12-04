@@ -128,4 +128,20 @@ mod tests {
         )
         .await;
     }
+
+    #[tokio::test]
+    async fn test_close_then_read() {
+        let channel = ByteChannel::new();
+        let (mut reader, mut writer) = channel.split();
+
+        writer.write_all(&[1, 2, 3]).await.unwrap();
+        writer.close().await.unwrap();
+
+        // should still read bytes from queue
+        let mut read_buf = [0u8; 3];
+        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 3);
+        assert_eq!(&read_buf, &[1, 2, 3]);
+        // should read EOF
+        assert_eq!(reader.read(&mut read_buf).await.unwrap(), 0);
+    }
 }
