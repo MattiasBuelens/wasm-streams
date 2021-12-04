@@ -2,14 +2,16 @@ use std::pin::Pin;
 
 use futures::channel::*;
 use futures::stream::iter;
-use futures::{AsyncWriteExt, SinkExt, StreamExt};
+use futures::{AsyncReadExt, AsyncWriteExt, SinkExt, StreamExt};
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 
 use wasm_streams::writable::*;
 
 use crate::js::*;
+use crate::util::*;
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_new() {
@@ -249,4 +251,35 @@ async fn test_writable_stream_into_async_write_then_into_sink() {
             RecordedEvent::Close
         ]
     );
+}
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_from_async_write() {
+    let (mut async_read, async_write) = ByteChannel::new().split();
+    let sink = async_write
+        .into_sink()
+        .with(
+            |js_value: JsValue| -> futures::future::Ready<std::io::Result<Vec<u8>>> {
+                futures::future::ready(Ok(js_value.dyn_into::<Uint8Array>().unwrap().to_vec()))
+            },
+        )
+        .sink_map_err(|_| JsValue::undefined());
+    let mut writable = WritableStream::from_sink(Box::new(sink));
+    assert!(!writable.is_locked());
+
+    let mut writer = writable.get_writer();
+    assert_eq!(
+        writer.write(Uint8Array::from(&[1, 2, 3][..]).into()).await,
+        Ok(())
+    );
+    assert_eq!(
+        writer.write(Uint8Array::from(&[4, 5, 6][..]).into()).await,
+        Ok(())
+    );
+    assert_eq!(writer.close().await, Ok(()));
+    writer.closed().await.unwrap();
+
+    let mut dest = vec![];
+    assert_eq!(async_read.read_to_end(&mut dest).await.unwrap(), 6);
+    assert_eq!(dest, [1, 2, 3, 4, 5, 6]);
 }
