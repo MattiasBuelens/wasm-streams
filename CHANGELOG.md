@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.2.2 (2021-12-09)
 
 * Added `WritableStream::into_async_write()` to turn a `WritableStream` accepting `Uint8Array`s 
   into an `AsyncWrite` ([#9](https://github.com/MattiasBuelens/wasm-streams/issues/9),
