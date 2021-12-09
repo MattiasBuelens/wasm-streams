@@ -59,7 +59,7 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
 
     fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         if self.ready_fut.is_none() {
-            // No pending ready future, start reading the next chunk
+            // No pending ready future yet
             match &self.writer {
                 Some(writer) => {
                     // Create future for ready promise
