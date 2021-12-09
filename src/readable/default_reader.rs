@@ -105,12 +105,14 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
         self.as_raw().release_lock().map_err(|error| (error, self))
     }
 
-    /// Converts this `ReadableStreamDefaultReader` into a [`Stream`](futures::stream::Stream).
+    /// Converts this `ReadableStreamDefaultReader` into a [`Stream`].
     ///
     /// This is similar to [`ReadableStream.into_stream`](ReadableStream::into_stream),
     /// except that after the returned `Stream` is dropped, the original `ReadableStream` is still
     /// usable. This allows reading only a few chunks from the `Stream`, while still allowing
     /// another reader to read the remaining chunks later on.
+    ///
+    /// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
     #[inline]
     pub fn into_stream(self) -> IntoStream<'stream> {
         IntoStream::new(self, false)

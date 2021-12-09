@@ -10,7 +10,7 @@ use wasm_bindgen_futures::JsFuture;
 use super::sys::ReadableStreamReadResult;
 use super::ReadableStreamDefaultReader;
 
-/// A [`Stream`](futures::Stream) for the [`into_stream`](super::ReadableStream::into_stream) method.
+/// A [`Stream`] for the [`into_stream`](super::ReadableStream::into_stream) method.
 ///
 /// This `Stream` holds a reader, and therefore locks the [`ReadableStream`](super::ReadableStream).
 /// When this `Stream` is dropped, it also drops its reader which in turn
@@ -22,6 +22,8 @@ use super::ReadableStreamDefaultReader;
 /// it is up to the user to either manually [cancel](Self::cancel) the stream,
 /// or to ensure that there are no pending read requests when dropped.
 /// See the documentation on [`ReadableStreamDefaultReader`] for more details on the drop behavior.
+///
+/// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
 #[must_use = "streams do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoStream<'reader> {

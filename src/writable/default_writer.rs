@@ -108,18 +108,20 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
         promise_to_void_future(self.as_raw().close()).await
     }
 
-    /// Converts this `WritableStreamDefaultWriter` into a [`Sink`](futures::Sink).
+    /// Converts this `WritableStreamDefaultWriter` into a [`Sink`].
     ///
     /// This is similar to [`WritableStream.into_sink`](WritableStream::into_sink),
     /// except that after the returned `Sink` is dropped, the original `WritableStream` is still
     /// usable. This allows writing only a few chunks through the `Sink`, while still allowing
     /// another writer to write more chunks later on.
+    ///
+    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
     #[inline]
     pub fn into_sink(self) -> IntoSink<'stream> {
         IntoSink::new(self)
     }
 
-    /// Converts this `WritableStreamDefaultWriter` into an [`AsyncWrite`](futures::AsyncWrite).
+    /// Converts this `WritableStreamDefaultWriter` into an [`AsyncWrite`].
     ///
     /// The writable stream must accept [`Uint8Array`](js_sys::Uint8Array) chunks.
     ///
@@ -127,6 +129,8 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// except that after the returned `AsyncWrite` is dropped, the original `WritableStream` is
     /// still usable. This allows writing only a few bytes through the `AsyncWrite`, while still
     /// allowing another writer to write more bytes later on.
+    ///
+    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncWrite.html
     #[inline]
     pub fn into_async_write(self) -> IntoAsyncWrite<'stream> {
         IntoAsyncWrite::new(self.into_sink())

@@ -9,12 +9,13 @@ use wasm_bindgen_futures::JsFuture;
 
 use super::WritableStreamDefaultWriter;
 
-/// A [`Sink`](futures::Sink) for the [`into_sink`](super::WritableStream::into_sink) method.
+/// A [`Sink`] for the [`into_sink`](super::WritableStream::into_sink) method.
 ///
 /// This sink holds a writer, and therefore locks the [`WritableStream`](super::WritableStream).
 /// When this sink is dropped, it also drops its writer which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
-/// TODO
+///
+/// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
 #[must_use = "sinks do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoSink<'writer> {

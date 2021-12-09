@@ -171,12 +171,14 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         self.as_raw().release_lock().map_err(|error| (error, self))
     }
 
-    /// Converts this `ReadableStreamBYOBReader` into an [`AsyncRead`](futures::io::AsyncRead).
+    /// Converts this `ReadableStreamBYOBReader` into an [`AsyncRead`].
     ///
     /// This is similar to [`ReadableStream.into_async_read`](ReadableStream::into_async_read),
     /// except that after the returned `AsyncRead` is dropped, the original `ReadableStream` is
     /// still usable. This allows reading only a few bytes from the `AsyncRead`, while still
     /// allowing another reader to read the remaining bytes later on.
+    ///
+    /// [`AsyncRead`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncRead.html
     #[inline]
     pub fn into_async_read(self) -> IntoAsyncRead<'stream> {
         IntoAsyncRead::new(self, false)

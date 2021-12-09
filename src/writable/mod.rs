@@ -20,12 +20,12 @@ pub mod sys;
 /// A [`WritableStream`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
 ///
 /// `WritableStream`s can be created from a [raw JavaScript stream](sys::WritableStream) with
-/// [`from_raw`](Self::from_raw), or from a Rust [`Sink`](futures::Sink)
-/// with [`from_sink`](Self::from_sink).
+/// [`from_raw`](Self::from_raw), or from a Rust [`Sink`] with [`from_sink`](Self::from_sink).
 ///
 /// They can be converted into a [raw JavaScript stream](sys::WritableStream) with
-/// [`into_raw`](Self::into_raw), or into a Rust [`Sink`](futures::Sink)
-/// with [`into_sink`](Self::into_sink).
+/// [`into_raw`](Self::into_raw), or into a Rust [`Sink`] with [`into_sink`](Self::into_sink).
+///
+/// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
 #[derive(Debug)]
 pub struct WritableStream {
     raw: sys::WritableStream,
@@ -38,11 +38,15 @@ impl WritableStream {
         Self { raw }
     }
 
-    /// Creates a new `WritableStream` from a [`Sink`](futures::Sink).
+    /// Creates a new `WritableStream` from a [`Sink`].
     ///
     /// Items and errors must be represented as raw [`JsValue`](JsValue)s.
-    /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)
-    /// to convert a sink's items to a `JsValue` before passing it to this function.
+    /// Use [`with`] and/or [`sink_map_err`] to convert a sink's items to a `JsValue`
+    /// before passing it to this function.
+    ///
+    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+    /// [`with`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.with
+    /// [`sink_map_err`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.sink_map_err
     pub fn from_sink<Si>(sink: Si) -> Self
     where
         Si: Sink<JsValue, Error = JsValue> + 'static,
@@ -113,50 +117,62 @@ impl WritableStream {
         WritableStreamDefaultWriter::new(self)
     }
 
-    /// Converts this `WritableStream` into a [`Sink`](futures::Sink).
+    /// Converts this `WritableStream` into a [`Sink`].
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
-    /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)
-    /// on the returned stream to convert them to a more appropriate type.
+    /// Use [`with`] and/or [`sink_map_err`] on the returned stream to convert them to a more
+    /// appropriate type.
     ///
     /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
     /// use [`try_into_sink`](Self::try_into_sink).
+    ///
+    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+    /// [`with`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.with
+    /// [`sink_map_err`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.sink_map_err
     #[inline]
     pub fn into_sink(self) -> IntoSink<'static> {
         self.try_into_sink()
             .expect_throw("already locked to a writer")
     }
 
-    /// Try to convert this `WritableStream` into a [`Sink`](futures::Sink).
+    /// Try to convert this `WritableStream` into a [`Sink`].
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
-    /// Use [`with`](futures::SinkExt::with) and/or [`sink_map_err`](futures::SinkExt::sink_map_err)
-    /// on the returned stream to convert them to a more appropriate type.
+    /// Use [`with`] and/or [`sink_map_err`] on the returned stream to convert them to a more
+    /// appropriate type.
     ///
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
+    ///
+    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+    /// [`with`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.with
+    /// [`sink_map_err`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.sink_map_err
     pub fn try_into_sink(mut self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
         let writer = WritableStreamDefaultWriter::new(&mut self).map_err(|err| (err, self))?;
         Ok(writer.into_sink())
     }
 
-    /// Converts this `WritableStream` into an [`AsyncWrite`](futures::AsyncWrite).
+    /// Converts this `WritableStream` into an [`AsyncWrite`].
     ///
     /// The writable stream must accept [`Uint8Array`](js_sys::Uint8Array) chunks.
     ///
     /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
     /// use [`try_into_async_write`](Self::try_into_async_write).
+    ///
+    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncWrite.html
     pub fn into_async_write(self) -> IntoAsyncWrite<'static> {
         self.try_into_async_write()
             .expect_throw("already locked to a writer")
     }
 
-    /// Try to convert this `WritableStream` into an [`AsyncWrite`](futures::AsyncWrite).
+    /// Try to convert this `WritableStream` into an [`AsyncWrite`].
     ///
     /// The writable stream must accept [`Uint8Array`](js_sys::Uint8Array) chunks.
     ///
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
+    ///
+    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncWrite.html
     pub fn try_into_async_write(self) -> Result<IntoAsyncWrite<'static>, (js_sys::Error, Self)> {
         Ok(IntoAsyncWrite::new(self.try_into_sink()?))
     }

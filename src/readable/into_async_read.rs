@@ -14,8 +14,7 @@ use crate::util::{checked_cast_to_usize, clamp_to_u32, js_to_io_error};
 use super::sys::{ArrayBufferView, ReadableStreamBYOBReadResult};
 use super::ReadableStreamBYOBReader;
 
-/// An [`AsyncRead`](futures::io::AsyncRead) for the
-/// [`into_async_read`](super::ReadableStream::into_async_read) method.
+/// An [`AsyncRead`] for the [`into_async_read`](super::ReadableStream::into_async_read) method.
 ///
 /// This `AsyncRead` holds a reader, and therefore locks the [`ReadableStream`](super::ReadableStream).
 /// When this `AsyncRead` is dropped, it also drops its reader which in turn
@@ -27,6 +26,8 @@ use super::ReadableStreamBYOBReader;
 /// it is up to the user to either manually [cancel](Self::cancel) the stream,
 /// or to ensure that there are no pending read requests when dropped.
 /// See the documentation on [`ReadableStreamBYOBReader`] for more details on the drop behavior.
+///
+/// [`AsyncRead`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncRead.html
 #[must_use = "readers do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoAsyncRead<'reader> {

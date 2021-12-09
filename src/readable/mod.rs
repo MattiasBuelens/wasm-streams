@@ -29,17 +29,17 @@ pub mod sys;
 /// A [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 ///
 /// `ReadableStream`s can be created from a [raw JavaScript stream](sys::ReadableStream) with
-/// [`from_raw`](Self::from_raw), or from a Rust [`Stream`](futures::Stream)
-/// with [`from_stream`](Self::from_stream).
+/// [`from_raw`](Self::from_raw), or from a Rust [`Stream`] with [`from_stream`](Self::from_stream).
 ///
 /// They can be converted into a [raw JavaScript stream](sys::ReadableStream) with
-/// [`into_raw`](Self::into_raw), or into a Rust [`Stream`](futures::Stream)
-/// with [`into_stream`](Self::into_stream).
+/// [`into_raw`](Self::into_raw), or into a Rust [`Stream`] with [`into_stream`](Self::into_stream).
 ///
 /// If the browser supports [readable byte streams](https://streams.spec.whatwg.org/#readable-byte-stream),
-/// then they can be created from a Rust [`AsyncRead`](futures::io::AsyncRead) with
-/// [`from_async_read`](Self::from_async_read), or converted into one with
-/// [`into_async_read`](Self::into_async_read).
+/// then they can be created from a Rust [`AsyncRead`] with [`from_async_read`](Self::from_async_read),
+/// or converted into one with [`into_async_read`](Self::into_async_read).
+///
+/// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
+/// [`AsyncRead`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncRead.html
 #[derive(Debug)]
 pub struct ReadableStream {
     raw: sys::ReadableStream,
@@ -52,12 +52,16 @@ impl ReadableStream {
         Self { raw }
     }
 
-    /// Creates a new `ReadableStream` from a [`Stream`](futures::Stream).
+    /// Creates a new `ReadableStream` from a [`Stream`].
     ///
     /// Items and errors must be represented as raw [`JsValue`](JsValue)s.
-    /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
-    /// [`map_err`](futures::TryStreamExt::map_err) to convert a stream's items to a `JsValue`
+    /// Use [`map`], [`map_ok`] and/or [`map_err`] to convert a stream's items to a `JsValue`
     /// before passing it to this function.
+    ///
+    /// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
+    /// [`map`]: https://docs.rs/futures/0.3.18/futures/stream/trait.StreamExt.html#method.map
+    /// [`map_ok`]: https://docs.rs/futures/0.3.18/futures/stream/trait.TryStreamExt.html#method.map_ok
+    /// [`map_err`]: https://docs.rs/futures/0.3.18/futures/stream/trait.TryStreamExt.html#method.map_err
     pub fn from_stream<St>(stream: St) -> Self
     where
         St: Stream<Item = Result<JsValue, JsValue>> + 'static,
@@ -70,14 +74,17 @@ impl ReadableStream {
         Self { raw }
     }
 
-    /// Creates a new `ReadableStream` from an [`AsyncRead`](futures::io::AsyncRead).
+    /// Creates a new `ReadableStream` from an [`AsyncRead`].
     ///
     /// This creates a readable byte stream whose `autoAllocateChunkSize` is `default_buffer_len`.
     /// Therefore, if a default reader is used to consume the stream, the given `async_read`
-    /// will be [polled](AsyncRead::poll_read) with a buffer of this size. If a BYOB reader is used,
+    /// will be [polled][AsyncRead::poll_read] with a buffer of this size. If a BYOB reader is used,
     /// then it will be polled with a buffer of the same size as the BYOB read request instead.
     ///
     /// **Panics** if readable byte streams are not supported by the browser.
+    ///
+    /// [`AsyncRead`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncRead.html
+    /// [AsyncRead::poll_read]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncRead.html#tymethod.poll_read
     // TODO Non-panicking variant?
     pub fn from_async_read<R>(async_read: R, default_buffer_len: usize) -> Self
     where
@@ -257,49 +264,61 @@ impl ReadableStream {
         ))
     }
 
-    /// Converts this `ReadableStream` into a [`Stream`](futures::Stream).
+    /// Converts this `ReadableStream` into a [`Stream`].
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
-    /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
-    /// [`map_err`](futures::TryStreamExt::map_err) on the returned stream to convert them to a more
+    /// Use [`map`], [`map_ok`] and/or [`map_err`] on the returned stream to convert them to a more
     /// appropriate type.
     ///
     /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
     /// use [`try_into_stream`](Self::try_into_stream).
+    ///
+    /// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
+    /// [`map`]: https://docs.rs/futures/0.3.18/futures/stream/trait.StreamExt.html#method.map
+    /// [`map_ok`]: https://docs.rs/futures/0.3.18/futures/stream/trait.TryStreamExt.html#method.map_ok
+    /// [`map_err`]: https://docs.rs/futures/0.3.18/futures/stream/trait.TryStreamExt.html#method.map_err
     #[inline]
     pub fn into_stream(self) -> IntoStream<'static> {
         self.try_into_stream()
             .expect_throw("already locked to a reader")
     }
 
-    /// Try to convert this `ReadableStream` into a [`Stream`](futures::Stream).
+    /// Try to convert this `ReadableStream` into a [`Stream`].
     ///
     /// Items and errors are represented by their raw [`JsValue`](JsValue).
-    /// Use [`map`](futures::StreamExt::map), [`map_ok`](futures::TryStreamExt::map_ok) and/or
-    /// [`map_err`](futures::TryStreamExt::map_err) on the returned stream to convert them to a more
+    /// Use [`map`], [`map_ok`] and/or [`map_err`] on the returned stream to convert them to a more
     /// appropriate type.
     ///
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
+    ///
+    /// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
+    /// [`map`]: https://docs.rs/futures/0.3.18/futures/stream/trait.StreamExt.html#method.map
+    /// [`map_ok`]: https://docs.rs/futures/0.3.18/futures/stream/trait.TryStreamExt.html#method.map_ok
+    /// [`map_err`]: https://docs.rs/futures/0.3.18/futures/stream/trait.TryStreamExt.html#method.map_err
     pub fn try_into_stream(mut self) -> Result<IntoStream<'static>, (js_sys::Error, Self)> {
         let reader = ReadableStreamDefaultReader::new(&mut self).map_err(|err| (err, self))?;
         Ok(IntoStream::new(reader, true))
     }
 
-    /// Converts this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
+    /// Converts this `ReadableStream` into an [`AsyncRead`].
     ///
     /// **Panics** if the stream is already locked to a reader, or if this stream is not a readable
     /// byte stream. For a non-panicking variant, use [`try_into_async_read`](Self::try_into_async_read).
+    ///
+    /// [`AsyncRead`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncRead.html
     #[inline]
     pub fn into_async_read(self) -> IntoAsyncRead<'static> {
         self.try_into_async_read()
             .expect_throw("already locked to a reader, or not a readable byte stream")
     }
 
-    /// Try to convert this `ReadableStream` into an [`AsyncRead`](futures::io::AsyncRead).
+    /// Try to convert this `ReadableStream` into an [`AsyncRead`].
     ///
     /// If the stream is already locked to a reader, or if this stream is not a readable byte
     /// stream, then this returns an error along with the original `ReadableStream`.
+    ///
+    /// [`AsyncRead`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncRead.html
     pub fn try_into_async_read(mut self) -> Result<IntoAsyncRead<'static>, (js_sys::Error, Self)> {
         let reader = ReadableStreamBYOBReader::new(&mut self).map_err(|err| (err, self))?;
         Ok(IntoAsyncRead::new(reader, true))
