@@ -81,29 +81,29 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
         let read_fut = match self.fut.as_mut() {
             Some(fut) => fut,
             None => {
-            // No pending read, start reading the next bytes
-            let buf_len = clamp_to_u32(buf.len());
-            let buffer = match self.buffer.take() {
-                // Re-use the internal buffer if it is large enough,
-                // otherwise allocate a new one
-                Some(buffer) if buffer.byte_length() >= buf_len => buffer,
-                _ => Uint8Array::new_with_length(buf_len),
-            };
-            // Limit to output buffer size
-            let buffer = buffer
-                .subarray(0, buf_len)
-                .unchecked_into::<ArrayBufferView>();
-            match &self.reader {
-                Some(reader) => {
-                    // Read into internal buffer and store its future
-                    let fut = JsFuture::from(reader.as_raw().read(&buffer));
-                    self.fut.insert(fut)
+                // No pending read, start reading the next bytes
+                let buf_len = clamp_to_u32(buf.len());
+                let buffer = match self.buffer.take() {
+                    // Re-use the internal buffer if it is large enough,
+                    // otherwise allocate a new one
+                    Some(buffer) if buffer.byte_length() >= buf_len => buffer,
+                    _ => Uint8Array::new_with_length(buf_len),
+                };
+                // Limit to output buffer size
+                let buffer = buffer
+                    .subarray(0, buf_len)
+                    .unchecked_into::<ArrayBufferView>();
+                match &self.reader {
+                    Some(reader) => {
+                        // Read into internal buffer and store its future
+                        let fut = JsFuture::from(reader.as_raw().read(&buffer));
+                        self.fut.insert(fut)
+                    }
+                    None => {
+                        // Reader was already dropped
+                        return Poll::Ready(Ok(0));
+                    }
                 }
-                None => {
-                    // Reader was already dropped
-                    return Poll::Ready(Ok(0));
-                }
-            }
             }
         };
 
