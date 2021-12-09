@@ -115,14 +115,13 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
         Poll::Ready(match js_result {
             Ok(js_value) => {
                 let result = ReadableStreamBYOBReadResult::from(js_value);
-                let filled_view = result.value();
                 if result.is_done() {
                     // End of stream
                     self.discard_reader();
                     Ok(0)
                 } else {
                     // Cannot be canceled, so view must exist
-                    let filled_view = filled_view.unwrap_throw();
+                    let filled_view = result.value().unwrap_throw();
                     // Copy bytes to output buffer
                     let filled_len = checked_cast_to_usize(filled_view.byte_length());
                     debug_assert!(filled_len <= buf.len());
