@@ -1,15 +1,18 @@
 //! Bindings and conversions for
 //! [writable streams](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
+
 use futures::Sink;
 use wasm_bindgen::prelude::*;
 
 pub use default_writer::WritableStreamDefaultWriter;
+pub use into_async_write::IntoAsyncWrite;
 pub use into_sink::IntoSink;
 use into_underlying_sink::IntoUnderlyingSink;
 
 use crate::util::promise_to_void_future;
 
 mod default_writer;
+mod into_async_write;
 mod into_sink;
 mod into_underlying_sink;
 pub mod sys;
@@ -135,6 +138,27 @@ impl WritableStream {
     pub fn try_into_sink(mut self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
         let writer = WritableStreamDefaultWriter::new(&mut self).map_err(|err| (err, self))?;
         Ok(writer.into_sink())
+    }
+
+    /// Converts this `WritableStream` into an [`AsyncWrite`](futures::AsyncWrite).
+    ///
+    /// The writable stream must accept [`Uint8Array`](js_sys::Uint8Array) chunks.
+    ///
+    /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
+    /// use [`try_into_async_write`](Self::try_into_async_write).
+    pub fn into_async_write(self) -> IntoAsyncWrite<'static> {
+        self.try_into_async_write()
+            .expect_throw("already locked to a writer")
+    }
+
+    /// Try to convert this `WritableStream` into an [`AsyncWrite`](futures::AsyncWrite).
+    ///
+    /// The writable stream must accept [`Uint8Array`](js_sys::Uint8Array) chunks.
+    ///
+    /// If the stream is already locked to a writer, then this returns an error
+    /// along with the original `WritableStream`.
+    pub fn try_into_async_write(self) -> Result<IntoAsyncWrite<'static>, (js_sys::Error, Self)> {
+        Ok(IntoAsyncWrite::new(self.try_into_sink()?))
     }
 }
 

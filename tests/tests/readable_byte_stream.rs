@@ -111,7 +111,7 @@ async fn test_readable_byte_stream_byob_reader_into_async_read() {
     assert!(!readable.is_locked());
 
     {
-        // Acquire a BYOB reader and wrap it in a Rust stream
+        // Acquire a BYOB reader and wrap it in a Rust Stream
         let reader = readable.get_byob_reader();
         let mut async_read = reader.into_async_read();
 
@@ -120,11 +120,11 @@ async fn test_readable_byte_stream_byob_reader_into_async_read() {
         assert_eq!(&buf, &[1, 2, 3]);
     }
 
-    // Dropping the wrapped stream should release the lock
+    // Dropping the wrapped Stream should release the lock
     assert!(!readable.is_locked());
 
     {
-        // Can acquire a new reader after wrapped stream is dropped
+        // Can acquire a new reader after wrapped Stream is dropped
         let mut reader = readable.get_byob_reader();
         let mut buf = [0u8; 3];
         assert_eq!(reader.read(&mut buf).await.unwrap(), 3);
@@ -263,7 +263,7 @@ async fn test_readable_byte_stream_into_async_read_auto_cancel() {
 
     // Stream must be unlocked and cancelled
     let mut readable = ReadableStream::from_raw(raw_readable);
-    assert_eq!(readable.is_locked(), false);
+    assert!(!readable.is_locked());
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), None);
 }
@@ -289,7 +289,7 @@ async fn test_readable_byte_stream_into_async_read_manual_cancel() {
 
     // Stream must be unlocked and cancelled
     let mut readable = ReadableStream::from_raw(raw_readable);
-    assert_eq!(readable.is_locked(), false);
+    assert!(!readable.is_locked());
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), None);
 }

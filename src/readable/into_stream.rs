@@ -69,23 +69,24 @@ impl<'reader> Stream for IntoStream<'reader> {
     type Item = Result<JsValue, JsValue>;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        if self.fut.is_none() {
-            // No pending read, start reading the next chunk
-            match &self.reader {
+        let read_fut = match self.fut.as_mut() {
+            Some(fut) => fut,
+            None => match &self.reader {
                 Some(reader) => {
-                    // Read a chunk and store its future
+                    // No pending read
+                    // Start reading the next chunk and create future from read promise
                     let fut = JsFuture::from(reader.as_raw().read());
-                    self.fut = Some(fut);
+                    self.fut.insert(fut)
                 }
                 None => {
                     // Reader was already dropped
                     return Poll::Ready(None);
                 }
-            }
-        }
+            },
+        };
 
         // Poll the future for the pending read
-        let js_result = ready!(self.as_mut().fut.as_mut().unwrap_throw().poll_unpin(cx));
+        let js_result = ready!(read_fut.poll_unpin(cx));
         self.fut = None;
 
         // Read completed
