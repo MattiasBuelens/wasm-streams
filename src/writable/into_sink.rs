@@ -58,29 +58,24 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
     type Error = JsValue;
 
     fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        if self.ready_fut.is_none() {
-            // No pending ready future yet
-            match &self.writer {
+        let ready_fut = match self.ready_fut.as_mut() {
+            Some(fut) => fut,
+            None => match &self.writer {
                 Some(writer) => {
-                    // Create future for ready promise
+                    // No pending ready future yet, create one from ready promise
                     let fut = JsFuture::from(writer.as_raw().ready());
-                    self.ready_fut = Some(fut);
+                    self.ready_fut.insert(fut)
                 }
                 None => {
                     // Writer was already dropped
                     // TODO Return error?
                     return Poll::Ready(Ok(()));
                 }
-            }
-        }
+            },
+        };
 
         // Poll the ready future
-        let js_result = ready!(self
-            .as_mut()
-            .ready_fut
-            .as_mut()
-            .unwrap_throw()
-            .poll_unpin(cx));
+        let js_result = ready!(ready_fut.poll_unpin(cx));
         self.ready_fut = None;
 
         // Ready future completed
@@ -113,18 +108,16 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        // If we're not writing, then there's nothing to flush
-        if self.write_fut.is_none() {
-            return Poll::Ready(Ok(()));
-        }
+        let write_fut = match self.write_fut.as_mut() {
+            Some(fut) => fut,
+            None => {
+                // If we're not writing, then there's nothing to flush
+                return Poll::Ready(Ok(()));
+            }
+        };
 
         // Poll the write future
-        let js_result = ready!(self
-            .as_mut()
-            .write_fut
-            .as_mut()
-            .unwrap_throw()
-            .poll_unpin(cx));
+        let js_result = ready!(write_fut.poll_unpin(cx));
         self.write_fut = None;
 
         // Write future completed
@@ -142,29 +135,25 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
     }
 
     fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        if self.close_fut.is_none() {
-            // No pending close future, start closing the stream
-            match &self.writer {
+        let close_fut = match self.close_fut.as_mut() {
+            Some(fut) => fut,
+            None => match &self.writer {
                 Some(writer) => {
-                    // Create future for close promise
+                    // No pending close future
+                    // Start closing the stream and create future from close promise
                     let fut = JsFuture::from(writer.as_raw().close());
-                    self.close_fut = Some(fut);
+                    self.close_fut.insert(fut)
                 }
                 None => {
                     // Writer was already dropped
                     // TODO Return error?
                     return Poll::Ready(Ok(()));
                 }
-            }
-        }
+            },
+        };
 
         // Poll the close future
-        let js_result = ready!(self
-            .as_mut()
-            .close_fut
-            .as_mut()
-            .unwrap_throw()
-            .poll_unpin(cx));
+        let js_result = ready!(close_fut.poll_unpin(cx));
         self.close_fut = None;
 
         // Close future completed

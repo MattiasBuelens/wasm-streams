@@ -78,7 +78,9 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<Result<usize, Error>> {
-        if self.fut.is_none() {
+        let read_fut = match self.fut.as_mut() {
+            Some(fut) => fut,
+            None => {
             // No pending read, start reading the next bytes
             let buf_len = clamp_to_u32(buf.len());
             let buffer = match self.buffer.take() {
@@ -95,17 +97,18 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                 Some(reader) => {
                     // Read into internal buffer and store its future
                     let fut = JsFuture::from(reader.as_raw().read(&buffer));
-                    self.fut = Some(fut);
+                    self.fut.insert(fut)
                 }
                 None => {
                     // Reader was already dropped
                     return Poll::Ready(Ok(0));
                 }
             }
-        }
+            }
+        };
 
         // Poll the future for the pending read
-        let js_result = ready!(self.as_mut().fut.as_mut().unwrap_throw().poll_unpin(cx));
+        let js_result = ready!(read_fut.poll_unpin(cx));
         self.fut = None;
 
         // Read completed
