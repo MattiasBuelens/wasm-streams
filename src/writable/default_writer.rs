@@ -38,7 +38,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// [released](https://streams.spec.whatwg.org/#release-a-lock) before the stream finishes
     /// closing.
     pub async fn closed(&self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().closed()).await
+        self.as_raw().closed().await
     }
 
     /// Returns the desired size to fill the stream's internal queue.
@@ -71,7 +71,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     ///
     /// Equivalent to [`WritableStream.abort`](WritableStream::abort).
     pub async fn abort(&mut self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().abort()).await
+        self.as_raw().abort().await
     }
 
     /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream with the
@@ -79,7 +79,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     ///
     /// Equivalent to [`WritableStream.abort_with_reason`](WritableStream::abort_with_reason).
     pub async fn abort_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().abort_with_reason(reason)).await
+        self.as_raw().abort_with_reason(reason).await
     }
 
     /// Writes the given `chunk` to the writable stream, by waiting until any previous writes

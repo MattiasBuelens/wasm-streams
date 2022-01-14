@@ -9,8 +9,6 @@ pub use into_async_write::IntoAsyncWrite;
 pub use into_sink::IntoSink;
 use into_underlying_sink::IntoUnderlyingSink;
 
-use crate::util::promise_to_void_future;
-
 mod default_writer;
 mod into_async_write;
 mod into_sink;
@@ -82,7 +80,7 @@ impl WritableStream {
     ///
     /// If the stream is currently locked to a writer, then this returns an error.
     pub async fn abort(&mut self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().abort()).await
+        self.as_raw().abort().await
     }
 
     /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream with the
@@ -91,7 +89,7 @@ impl WritableStream {
     ///
     /// If the stream is currently locked to a writer, then this returns an error.
     pub async fn abort_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().abort_with_reason(reason)).await
+        self.as_raw().abort_with_reason(reason).await
     }
 
     /// Creates a [writer](WritableStreamDefaultWriter) and

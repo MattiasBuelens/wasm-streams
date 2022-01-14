@@ -21,11 +21,11 @@ extern "C" {
     #[wasm_bindgen(method, getter, js_name = locked)]
     pub fn is_locked(this: &WritableStream) -> bool;
 
-    #[wasm_bindgen(method, js_name = abort)]
-    pub fn abort(this: &WritableStream) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = abort)]
+    pub async fn abort(this: &WritableStream) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(method, js_name = abort)]
-    pub fn abort_with_reason(this: &WritableStream, reason: &JsValue) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = abort)]
+    pub async fn abort_with_reason(this: &WritableStream, reason: &JsValue) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method, catch, js_name = getWriter)]
     pub fn get_writer(this: &WritableStream) -> Result<WritableStreamDefaultWriter, Error>;
@@ -37,8 +37,8 @@ extern "C" {
     #[derive(Clone, Debug)]
     pub type WritableStreamDefaultWriter;
 
-    #[wasm_bindgen(method, getter, js_name = closed)]
-    pub fn closed(this: &WritableStreamDefaultWriter) -> Promise;
+    #[wasm_bindgen(method, getter, catch, js_name = closed)]
+    pub async fn closed(this: &WritableStreamDefaultWriter) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method, getter, js_name = desiredSize)]
     pub fn desired_size(this: &WritableStreamDefaultWriter) -> Option<f64>;
@@ -46,11 +46,14 @@ extern "C" {
     #[wasm_bindgen(method, getter, js_name = ready)]
     pub fn ready(this: &WritableStreamDefaultWriter) -> Promise;
 
-    #[wasm_bindgen(method, js_name = abort)]
-    pub fn abort(this: &WritableStreamDefaultWriter) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = abort)]
+    pub async fn abort(this: &WritableStreamDefaultWriter) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(method, js_name = abort)]
-    pub fn abort_with_reason(this: &WritableStreamDefaultWriter, reason: &JsValue) -> Promise;
+    #[wasm_bindgen(method, catch, js_name = abort)]
+    pub async fn abort_with_reason(
+        this: &WritableStreamDefaultWriter,
+        reason: &JsValue,
+    ) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method, js_name = close)]
     pub fn close(this: &WritableStreamDefaultWriter) -> Promise;
