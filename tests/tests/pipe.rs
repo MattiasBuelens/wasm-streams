@@ -1,4 +1,3 @@
-use futures::channel::mpsc;
 use futures_util::stream::iter;
 use futures_util::{SinkExt, StreamExt};
 use wasm_bindgen::prelude::*;
@@ -8,6 +7,7 @@ use wasm_streams::readable::*;
 use wasm_streams::writable::*;
 
 use crate::js::*;
+use crate::util::*;
 
 #[wasm_bindgen_test]
 async fn test_pipe_js_to_rust() {
@@ -16,7 +16,7 @@ async fn test_pipe_js_to_rust() {
         chunks.clone().into_boxed_slice(),
     ));
 
-    let (sink, stream) = mpsc::unbounded::<JsValue>();
+    let (sink, stream) = SimpleChannel::<JsValue>::new().split();
     let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
     let mut writable = WritableStream::from_sink(sink);
 

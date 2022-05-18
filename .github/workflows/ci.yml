@@ -22,6 +22,12 @@ jobs:
           command: check
           args: --target=wasm32-unknown-unknown
 
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --target=x86_64-unknown-linux-gnu
+
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
@@ -54,4 +60,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --target wasm32-unknown-unknown
+          args: --target=wasm32-unknown-unknown

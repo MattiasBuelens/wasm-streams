@@ -1,6 +1,5 @@
 use std::pin::Pin;
 
-use futures::channel::mpsc;
 use futures_util::stream::iter;
 use futures_util::{AsyncReadExt, AsyncWriteExt, SinkExt, StreamExt};
 use js_sys::Uint8Array;
@@ -96,7 +95,7 @@ async fn test_writable_stream_writer_into_sink() {
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_from_sink() {
-    let (sink, stream) = mpsc::unbounded::<JsValue>();
+    let (sink, stream) = SimpleChannel::<JsValue>::new().split();
     let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
     let mut writable = WritableStream::from_sink(sink);
 
@@ -115,7 +114,7 @@ async fn test_writable_stream_from_sink() {
 
 #[wasm_bindgen_test]
 async fn test_writable_stream_from_sink_then_into_sink() {
-    let (sink, stream) = mpsc::unbounded::<JsValue>();
+    let (sink, stream) = SimpleChannel::<JsValue>::new().split();
     let sink = sink.sink_map_err(|_| JsValue::from_str("cannot happen"));
     let writable = WritableStream::from_sink(sink);
     let mut sink = writable.into_sink();
