@@ -1,6 +1,6 @@
 use std::pin::Pin;
 
-use futures_channel::*;
+use futures_channel::mpsc;
 use futures_util::stream::iter;
 use futures_util::{AsyncReadExt, AsyncWriteExt, SinkExt, StreamExt};
 use js_sys::Uint8Array;
