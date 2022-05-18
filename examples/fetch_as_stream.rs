@@ -3,7 +3,7 @@
 //! This example makes an HTTP request using `fetch()` from `web-sys`,
 //! and then consumes the response body as a Rust `Stream`.
 
-use futures::StreamExt;
+use futures_util::StreamExt;
 use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{console, window, Response};
