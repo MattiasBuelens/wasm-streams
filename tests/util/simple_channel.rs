@@ -136,7 +136,7 @@ mod tests {
     #[tokio::test]
     async fn test_close_then_read() {
         let channel = SimpleChannel::<u32>::new();
-        let (mut sink, mut stream) = channel.split();
+        let (mut sink, stream) = channel.split();
 
         send_many(&mut sink, vec![1, 2, 3]).await.unwrap();
         sink.close().await.unwrap();
