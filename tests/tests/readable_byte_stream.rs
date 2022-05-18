@@ -1,8 +1,8 @@
 use std::pin::Pin;
+use std::task::Poll;
 
-use futures::io::AsyncReadExt;
-use futures::task::Poll;
-use futures::{poll, FutureExt};
+use futures_util::AsyncReadExt;
+use futures_util::{poll, FutureExt};
 use js_sys::Uint8Array;
 use wasm_bindgen_test::*;
 

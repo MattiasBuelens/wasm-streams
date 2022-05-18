@@ -3,7 +3,7 @@ use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll};
 
-use futures::{Sink, Stream};
+use futures_util::{Sink, Stream};
 use pin_project::{pin_project, pinned_drop};
 
 #[pin_project(PinnedDrop)]

@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use std::pin::Pin;
 use std::task::{Context, Poll, Waker};
 
-use futures::{AsyncRead, AsyncWrite};
+use futures_util::{AsyncRead, AsyncWrite};
 
 #[derive(Debug, Default)]
 pub struct ByteChannel {
@@ -67,8 +67,8 @@ impl AsyncWrite for ByteChannel {
 
 #[cfg(test)]
 mod tests {
-    use futures::future::join;
-    use futures::io::{AsyncReadExt, AsyncWriteExt};
+    use futures_util::future::join;
+    use futures_util::{AsyncReadExt, AsyncWriteExt};
 
     use super::*;
 

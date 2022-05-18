@@ -1,7 +1,7 @@
 //! Bindings and conversions for
 //! [writable streams](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
 
-use futures::Sink;
+use futures_util::Sink;
 use wasm_bindgen::prelude::*;
 
 pub use default_writer::WritableStreamDefaultWriter;

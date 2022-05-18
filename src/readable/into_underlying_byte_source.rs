@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::pin::Pin;
 use std::rc::Rc;
 
-use futures::future::{abortable, AbortHandle, TryFutureExt};
-use futures::io::{AsyncRead, AsyncReadExt};
+use futures_util::future::{abortable, AbortHandle, TryFutureExt};
+use futures_util::io::{AsyncRead, AsyncReadExt};
 use js_sys::{Error as JsError, Promise, Uint8Array};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;

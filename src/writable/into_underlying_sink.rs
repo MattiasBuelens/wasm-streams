@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::pin::Pin;
 use std::rc::Rc;
 
-use futures::sink::{Sink, SinkExt};
+use futures_util::{Sink, SinkExt};
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;

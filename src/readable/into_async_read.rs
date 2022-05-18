@@ -1,9 +1,9 @@
 use core::pin::Pin;
+use core::task::{Context, Poll};
 
-use futures::future::FutureExt;
-use futures::io::{AsyncRead, Error};
-use futures::ready;
-use futures::task::{Context, Poll};
+use futures_util::io::{AsyncRead, Error};
+use futures_util::ready;
+use futures_util::FutureExt;
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
