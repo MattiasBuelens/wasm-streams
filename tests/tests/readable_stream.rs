@@ -2,7 +2,7 @@ use std::pin::Pin;
 use std::task::Poll;
 
 use futures_util::stream::{iter, pending, StreamExt, TryStreamExt};
-use futures_util::{AsyncReadExt, FutureExt, poll};
+use futures_util::{poll, AsyncReadExt, FutureExt};
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;

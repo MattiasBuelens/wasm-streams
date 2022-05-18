@@ -1,8 +1,8 @@
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use futures_util::ready;
 use futures_util::io::AsyncWrite;
+use futures_util::ready;
 use futures_util::sink::SinkExt;
 use js_sys::Uint8Array;
 use wasm_bindgen::JsValue;
