@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.2.3 (2022-05-18)
 
 * Replaced `futures` dependency with `futures-util` to improve compilation times ([#11](https://github.com/MattiasBuelens/wasm-streams/pull/11), [#12](https://github.com/MattiasBuelens/wasm-streams/pull/12))
 
