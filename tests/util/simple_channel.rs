@@ -72,3 +72,86 @@ impl<T> Sink<T> for SimpleChannel<T> {
         Poll::Ready(Ok(()))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use futures_util::future::join;
+    use futures_util::stream::iter;
+    use futures_util::{SinkExt, StreamExt};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_write_then_read() {
+        let channel = SimpleChannel::<u32>::new();
+        let (mut sink, mut stream) = channel.split();
+
+        send_many(&mut sink, vec![1, 2, 3]).await.unwrap();
+        assert_eq!(stream.next().await.unwrap(), 1);
+        assert_eq!(stream.next().await.unwrap(), 2);
+
+        send_many(&mut sink, vec![4, 5]).await.unwrap();
+        assert_eq!(stream.next().await.unwrap(), 3);
+        assert_eq!(stream.next().await.unwrap(), 4);
+        assert_eq!(stream.next().await.unwrap(), 5);
+
+        sink.close().await.unwrap();
+        assert_eq!(stream.next().await, None);
+    }
+
+    #[tokio::test]
+    async fn test_read_then_write() {
+        let channel = SimpleChannel::<u32>::new();
+        let (mut sink, mut stream) = channel.split();
+
+        join(
+            async {
+                assert_eq!(stream.next().await.unwrap(), 1);
+                assert_eq!(stream.next().await.unwrap(), 2);
+                assert_eq!(stream.next().await.unwrap(), 3);
+            },
+            async {
+                send_many(&mut sink, vec![1, 2, 3, 4]).await.unwrap();
+            },
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_read_then_close() {
+        let channel = SimpleChannel::<u32>::new();
+        let (mut sink, mut stream) = channel.split();
+
+        join(
+            async {
+                assert_eq!(stream.next().await, None);
+            },
+            async {
+                sink.close().await.unwrap();
+            },
+        )
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_close_then_read() {
+        let channel = SimpleChannel::<u32>::new();
+        let (mut sink, mut stream) = channel.split();
+
+        send_many(&mut sink, vec![1, 2, 3]).await.unwrap();
+        sink.close().await.unwrap();
+
+        // should still read items from queue
+        assert_eq!(stream.collect::<Vec<_>>().await, vec![1, 2, 3]);
+    }
+
+    async fn send_many<T, Si>(
+        sink: &mut Si,
+        values: impl IntoIterator<Item = T>,
+    ) -> Result<(), Si::Error>
+    where
+        Si: Sink<T> + Unpin,
+    {
+        sink.send_all(&mut iter(values).map(Ok)).await
+    }
+}
