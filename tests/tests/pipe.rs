@@ -1,6 +1,6 @@
-use futures::channel::mpsc;
-use futures::stream::iter;
-use futures::{SinkExt, StreamExt};
+use futures_channel::mpsc;
+use futures_util::stream::iter;
+use futures_util::{SinkExt, StreamExt};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 

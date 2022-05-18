@@ -1,8 +1,8 @@
 use std::pin::Pin;
 
-use futures::channel::*;
-use futures::stream::iter;
-use futures::{AsyncReadExt, AsyncWriteExt, SinkExt, StreamExt};
+use futures_channel::*;
+use futures_util::stream::iter;
+use futures_util::{AsyncReadExt, AsyncWriteExt, SinkExt, StreamExt};
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -259,12 +259,12 @@ async fn test_writable_stream_from_async_write() {
     let sink = async_write
         .into_sink()
         .with(
-            |js_value: JsValue| -> futures::future::Ready<std::io::Result<Vec<u8>>> {
-                futures::future::ready(Ok(js_value.dyn_into::<Uint8Array>().unwrap().to_vec()))
+            |js_value: JsValue| -> std::future::Ready<std::io::Result<Vec<u8>>> {
+                std::future::ready(Ok(js_value.dyn_into::<Uint8Array>().unwrap().to_vec()))
             },
         )
         .sink_map_err(|_| JsValue::undefined());
-    let mut writable = WritableStream::from_sink(Box::new(sink));
+    let mut writable = WritableStream::from_sink(sink);
     assert!(!writable.is_locked());
 
     let mut writer = writable.get_writer();

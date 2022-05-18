@@ -1,4 +1,4 @@
-use futures::future::join;
+use futures_util::future::join;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
