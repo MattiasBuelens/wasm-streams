@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::pin::Pin;
 use std::rc::Rc;
 
-use futures::future::{abortable, AbortHandle, TryFutureExt};
-use futures::stream::{Stream, TryStreamExt};
+use futures_util::future::{abortable, AbortHandle, TryFutureExt};
+use futures_util::stream::{Stream, TryStreamExt};
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;

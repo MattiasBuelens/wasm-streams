@@ -1,9 +1,8 @@
 use core::pin::Pin;
+use core::task::{Context, Poll};
 
-use futures::future::FutureExt;
-use futures::ready;
-use futures::sink::Sink;
-use futures::task::{Context, Poll};
+use futures_util::{FutureExt, ready};
+use futures_util::Sink;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
