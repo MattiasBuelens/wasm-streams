@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* Replaced `futures` dependency with `futures-util` to improve compilation times ([#11](https://github.com/MattiasBuelens/wasm-streams/pull/11), [#12](https://github.com/MattiasBuelens/wasm-streams/pull/12))
+
 ## v0.2.2 (2021-12-09)
 
 * Added `WritableStream::into_async_write()` to turn a `WritableStream` accepting `Uint8Array`s 
