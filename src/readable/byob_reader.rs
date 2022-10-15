@@ -143,7 +143,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
     /// corresponding stream.
     ///
-    /// [As of January 2021](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5),
+    /// [As of January 2022](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5),
     /// the Streams standard allows the lock to be released even when there are still pending read
     /// requests. Such requests will automatically become rejected, and this function will always
     /// succeed.
@@ -165,7 +165,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// Try to [release](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
     /// corresponding stream.
     ///
-    /// [As of January 2021](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5),
+    /// [As of January 2022](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5),
     /// the Streams standard allows the lock to be released even when there are still pending read
     /// requests. Such requests will automatically become rejected, and this function will always
     /// return `Ok(())`.
