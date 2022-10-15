@@ -34,6 +34,9 @@ jobs:
       - name: Test on Chrome
         run: wasm-pack test --headless --chrome
 
+      - name: Test on Firefox
+        run: wasm-pack test --headless --firefox
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
