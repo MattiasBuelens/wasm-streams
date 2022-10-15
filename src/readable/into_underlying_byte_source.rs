@@ -31,24 +31,12 @@ impl IntoUnderlyingByteSource {
     }
 }
 
-#[wasm_bindgen(inline_js = "export function bytes_literal() { return \"bytes\"; }")]
-extern "C" {
-    fn bytes_literal() -> JsValue;
-}
-
 #[allow(clippy::await_holding_refcell_ref)]
 #[wasm_bindgen]
 impl IntoUnderlyingByteSource {
-    // Chromium has a bug where it only recognizes `new ReadableStream({ type: "bytes" })`,
-    // not `new ReadableStream({ type: "by" + "tes" })` or any other non-literal string
-    // that equals "bytes". Therefore, we cannot return a Rust `String` here, since
-    // that needs to be converted to a JavaScript string at runtime.
-    // Instead, we call a function that returns the desired string literal as a `JsValue`
-    // and pass that value around. It looks silly, but it works.
-    // See https://crbug.com/1187774
     #[wasm_bindgen(getter, js_name = type)]
-    pub fn type_(&self) -> JsValue {
-        bytes_literal()
+    pub fn type_(&self) -> String {
+        "bytes".into()
     }
 
     #[wasm_bindgen(getter, js_name = autoAllocateChunkSize)]
