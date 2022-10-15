@@ -204,7 +204,7 @@ async fn test_readable_byte_stream_multiple_byob_readers() {
     assert!(!readable.is_locked());
 }
 
-async fn test_readable_byte_stream_abort_read(mut readable: ReadableStream) {
+async fn test_readable_byte_stream_abort_read(readable: ReadableStream) {
     if supports_release_lock_with_pending_read() {
         test_readable_byte_stream_abort_read_new(readable).await;
     } else {

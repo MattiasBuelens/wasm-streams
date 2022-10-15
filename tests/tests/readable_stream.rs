@@ -132,7 +132,6 @@ async fn test_readable_stream_abort_read() {
 
 async fn test_readable_stream_abort_read_new() {
     let stream = pending();
-    let (stream, observer) = observe_drop(stream);
     let mut readable = ReadableStream::from_stream(stream);
     let mut reader = readable.get_reader();
 
