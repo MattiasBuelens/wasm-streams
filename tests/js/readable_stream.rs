@@ -8,4 +8,5 @@ extern "C" {
     pub fn new_noop_readable_byte_stream() -> sys::ReadableStream;
     pub fn new_readable_stream_from_array(chunks: Box<[JsValue]>) -> sys::ReadableStream;
     pub fn new_readable_byte_stream_from_array(chunks: Box<[JsValue]>) -> sys::ReadableStream;
+    pub fn supports_release_lock_with_pending_read() -> bool;
 }

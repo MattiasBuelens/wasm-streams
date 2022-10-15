@@ -123,6 +123,35 @@ async fn test_readable_stream_multiple_readers() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_abort_read() {
+    if supports_release_lock_with_pending_read() {
+        test_readable_stream_abort_read_new().await;
+    } else {
+        test_readable_stream_abort_read_old().await;
+    }
+}
+
+async fn test_readable_stream_abort_read_new() {
+    let stream = pending();
+    let (stream, observer) = observe_drop(stream);
+    let mut readable = ReadableStream::from_stream(stream);
+    let mut reader = readable.get_reader();
+
+    // Start reading
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let mut fut = reader.read().boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert!(matches!(poll_result, Poll::Pending));
+    // Drop the future, to regain control over the reader
+    drop(fut);
+
+    // Releasing the lock should work even while there are pending reads
+    reader
+        .try_release_lock()
+        .expect("releasing the reader should work even while there are pending reads");
+}
+
+async fn test_readable_stream_abort_read_old() {
     let stream = pending();
     let (stream, observer) = observe_drop(stream);
     let mut readable = ReadableStream::from_stream(stream);

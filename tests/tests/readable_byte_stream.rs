@@ -205,6 +205,33 @@ async fn test_readable_byte_stream_multiple_byob_readers() {
 }
 
 async fn test_readable_byte_stream_abort_read(mut readable: ReadableStream) {
+    if supports_release_lock_with_pending_read() {
+        test_readable_byte_stream_abort_read_new(readable).await;
+    } else {
+        test_readable_byte_stream_abort_read_old(readable).await;
+    }
+}
+
+async fn test_readable_byte_stream_abort_read_new(mut readable: ReadableStream) {
+    let mut reader = readable.get_byob_reader();
+
+    // Start reading
+    // Since the stream will never produce a chunk, this read will remain pending forever
+    let mut dst = [0u8; 3];
+    let mut fut = reader.read(&mut dst).boxed_local();
+    // We need to poll the future at least once to start the read
+    let poll_result = poll!(&mut fut);
+    assert!(matches!(poll_result, Poll::Pending));
+    // Drop the future, to regain control over the reader
+    drop(fut);
+
+    // Releasing the lock should work even while there are pending reads
+    reader
+        .try_release_lock()
+        .expect("releasing the reader should work even while there are pending reads");
+}
+
+async fn test_readable_byte_stream_abort_read_old(mut readable: ReadableStream) {
     let mut reader = readable.get_byob_reader();
 
     // Start reading

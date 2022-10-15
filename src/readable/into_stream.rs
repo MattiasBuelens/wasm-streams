@@ -16,13 +16,6 @@ use super::ReadableStreamDefaultReader;
 /// When this `Stream` is dropped, it also drops its reader which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 ///
-/// When used through [`ReadableStream::into_stream`](super::ReadableStream::into_stream),
-/// the stream is automatically cancelled before dropping the reader, discarding any pending read requests.
-/// When used through [`ReadableStreamDefaultReader::into_stream`](super::ReadableStreamDefaultReader::into_stream),
-/// it is up to the user to either manually [cancel](Self::cancel) the stream,
-/// or to ensure that there are no pending read requests when dropped.
-/// See the documentation on [`ReadableStreamDefaultReader`] for more details on the drop behavior.
-///
 /// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
 #[must_use = "streams do nothing unless polled"]
 #[derive(Debug)]

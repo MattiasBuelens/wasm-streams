@@ -20,13 +20,6 @@ use super::ReadableStreamBYOBReader;
 /// When this `AsyncRead` is dropped, it also drops its reader which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 ///
-/// When used through [`ReadableStream::into_async_read`](super::ReadableStream::into_async_read),
-/// the stream is automatically cancelled before dropping the reader, discarding any pending read requests.
-/// When used through [`ReadableStreamBYOBReader::into_async_read`](super::ReadableStreamBYOBReader::into_async_read),
-/// it is up to the user to either manually [cancel](Self::cancel) the stream,
-/// or to ensure that there are no pending read requests when dropped.
-/// See the documentation on [`ReadableStreamBYOBReader`] for more details on the drop behavior.
-///
 /// [`AsyncRead`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncRead.html
 #[must_use = "readers do nothing unless polled"]
 #[derive(Debug)]
