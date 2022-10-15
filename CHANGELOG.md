@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+* Updated documentation of `ReadableStream(Default|BYOB)Reader::release_lock()` around the expected behavior when there are pending read requests.
+  See the corresponding [Streams specification change](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5) for details. 
+
 ## v0.2.3 (2022-05-18)
 
 * Replaced `futures` dependency with `futures-util` to improve compilation times ([#11](https://github.com/MattiasBuelens/wasm-streams/pull/11), [#12](https://github.com/MattiasBuelens/wasm-streams/pull/12))
