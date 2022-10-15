@@ -2,8 +2,11 @@
 
 ## Unreleased
 
+* Added support for web workers, by removing usage of [JavaScript snippets](https://rustwasm.github.io/docs/wasm-bindgen/reference/js-snippets.html). ([#13](https://github.com/MattiasBuelens/wasm-streams/issues/13), [#14](https://github.com/MattiasBuelens/wasm-streams/pull/14))
+* ⚠ **Breaking change:** This removes a workaround for [Chromium bug #1187774](https://crbug.com/1187774) that was previously needed for `ReadableStream::from_async_read`. This bug was fixed upstream in March 2021 with Chrome 91. ([#14](https://github.com/MattiasBuelens/wasm-streams/pull/14))
 * Updated documentation of `ReadableStream(Default|BYOB)Reader::release_lock()` around the expected behavior when there are pending read requests.
-  See the corresponding [Streams specification change](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5) for details. 
+  See the corresponding [Streams specification change](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5) for details.
+  ([#15](https://github.com/MattiasBuelens/wasm-streams/pull/15)) 
 
 ## v0.2.3 (2022-05-18)
 
