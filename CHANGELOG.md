@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.3.0 (2022-10-16)
 
 * Added support for web workers, by removing usage of [JavaScript snippets](https://rustwasm.github.io/docs/wasm-bindgen/reference/js-snippets.html). ([#13](https://github.com/MattiasBuelens/wasm-streams/issues/13), [#14](https://github.com/MattiasBuelens/wasm-streams/pull/14))
 * ⚠ **Breaking change:** This removes a workaround for [Chromium bug #1187774](https://crbug.com/1187774) that was previously needed for `ReadableStream::from_async_read`. This bug was fixed upstream in March 2021 with Chrome 91. ([#14](https://github.com/MattiasBuelens/wasm-streams/pull/14))
