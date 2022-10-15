@@ -146,9 +146,14 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
     /// corresponding stream.
     ///
-    /// **Panics** if the reader still has a pending read request, i.e. if a future returned
-    /// by [`read`](Self::read) is not yet ready. For a non-panicking variant,
-    /// use [`try_release_lock`](Self::try_release_lock).
+    /// [As of January 2021](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5),
+    /// the Streams standard allows the lock to be released even when there are still pending read
+    /// requests. Such requests will automatically become rejected, and this function will always
+    /// succeed.
+    ///
+    /// However, if the Streams implementation is not yet up-to-date with this change, then
+    /// releasing the lock while there are pending read requests will **panic**. For a non-panicking
+    /// variant, use [`try_release_lock`](Self::try_release_lock).
     #[inline]
     pub fn release_lock(mut self) {
         self.release_lock_mut()
@@ -163,8 +168,13 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// Try to [release](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
     /// corresponding stream.
     ///
-    /// The lock cannot be released while the reader still has a pending read request, i.e.
-    /// if a future returned by [`read`](Self::read) is not yet ready. Attempting to do so will
+    /// [As of January 2021](https://github.com/whatwg/streams/commit/d5f92d9f17306d31ba6b27424d23d58e89bf64a5),
+    /// the Streams standard allows the lock to be released even when there are still pending read
+    /// requests. Such requests will automatically become rejected, and this function will always
+    /// return `Ok(())`.
+    ///
+    /// However, if the Streams implementation is not yet up-to-date with this change, then
+    /// the lock cannot be released while there are pending read requests. Attempting to do so will
     /// return an error and leave the reader locked to the stream.
     #[inline]
     pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
