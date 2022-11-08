@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* Stop calling `byobRequest.respond(0)` on cancel ([#16](https://github.com/MattiasBuelens/wasm-streams/pull/16))
+
 ## v0.3.0 (2022-10-16)
 
 * Added support for web workers, by removing usage of [JavaScript snippets](https://rustwasm.github.io/docs/wasm-bindgen/reference/js-snippets.html). ([#13](https://github.com/MattiasBuelens/wasm-streams/issues/13), [#14](https://github.com/MattiasBuelens/wasm-streams/pull/14))

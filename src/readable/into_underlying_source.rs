@@ -82,11 +82,11 @@ impl Inner {
         // after the stream has closed or encountered an error.
         let stream = self.stream.as_mut().unwrap_throw();
         match stream.try_next().await {
-            Ok(Some(chunk)) => controller.enqueue(&chunk),
+            Ok(Some(chunk)) => controller.enqueue(&chunk)?,
             Ok(None) => {
                 // The stream has closed, drop it.
                 self.stream = None;
-                controller.close();
+                controller.close()?;
             }
             Err(err) => {
                 // The stream encountered an error, drop it.

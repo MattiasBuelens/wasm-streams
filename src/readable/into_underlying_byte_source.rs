@@ -78,10 +78,6 @@ impl Drop for IntoUnderlyingByteSource {
         if let Some(handle) = self.pull_handle.take() {
             handle.abort();
         }
-        // Close the pending BYOB request, if any. This is necessary for cancellation.
-        if let Some(request) = self.controller.take().and_then(|c| c.byob_request()) {
-            request.respond(0);
-        }
     }
 }
 
@@ -106,9 +102,9 @@ impl Inner {
         // after the stream has closed or encountered an error.
         let async_read = self.async_read.as_mut().unwrap_throw();
         // We set autoAllocateChunkSize, so there should always be a BYOB request.
-        let mut request = ByobRequestGuard::new(controller.byob_request().unwrap_throw());
+        let request = controller.byob_request().unwrap_throw();
         // Resize the buffer to fit the BYOB request.
-        let request_view = request.view();
+        let request_view = request.view().unwrap_throw();
         let request_len = clamp_to_usize(request_view.byte_length());
         if self.buffer.len() < request_len {
             self.buffer.resize(request_len, 0);
@@ -117,8 +113,8 @@ impl Inner {
             Ok(0) => {
                 // The stream has closed, drop it.
                 self.discard();
-                controller.close();
-                request.respond(0);
+                controller.close()?;
+                request.respond(0)?;
             }
             Ok(bytes_read) => {
                 // Copy read bytes from buffer to BYOB request view
@@ -131,7 +127,7 @@ impl Inner {
                 );
                 dest.copy_from(&self.buffer[0..bytes_read]);
                 // Respond to BYOB request
-                request.respond(bytes_read_u32);
+                request.respond(bytes_read_u32)?;
             }
             Err(err) => {
                 // The stream encountered an error, drop it.
@@ -146,31 +142,5 @@ impl Inner {
     fn discard(&mut self) {
         self.async_read = None;
         self.buffer = Vec::new();
-    }
-}
-
-#[derive(Debug)]
-struct ByobRequestGuard(Option<sys::ReadableStreamBYOBRequest>);
-
-impl ByobRequestGuard {
-    fn new(request: sys::ReadableStreamBYOBRequest) -> Self {
-        Self(Some(request))
-    }
-
-    fn view(&mut self) -> sys::ArrayBufferView {
-        self.0.as_mut().unwrap_throw().view().unwrap_throw()
-    }
-
-    fn respond(mut self, bytes_read: u32) {
-        self.0.take().unwrap_throw().respond(bytes_read);
-    }
-}
-
-impl Drop for ByobRequestGuard {
-    fn drop(&mut self) {
-        // Close the BYOB request, if still pending. This is necessary for cancellation.
-        if let Some(request) = self.0.take() {
-            request.respond(0);
-        }
     }
 }
