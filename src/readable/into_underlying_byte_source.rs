@@ -113,8 +113,8 @@ impl Inner {
             Ok(0) => {
                 // The stream has closed, drop it.
                 self.discard();
-                controller.close();
-                request.respond(0);
+                controller.close()?;
+                request.respond(0)?;
             }
             Ok(bytes_read) => {
                 // Copy read bytes from buffer to BYOB request view
@@ -127,7 +127,7 @@ impl Inner {
                 );
                 dest.copy_from(&self.buffer[0..bytes_read]);
                 // Respond to BYOB request
-                request.respond(bytes_read_u32);
+                request.respond(bytes_read_u32)?;
             }
             Err(err) => {
                 // The stream encountered an error, drop it.

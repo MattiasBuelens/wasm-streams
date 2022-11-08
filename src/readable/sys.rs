@@ -72,11 +72,11 @@ extern "C" {
     #[wasm_bindgen(method, getter, js_name = desiredSize)]
     pub fn desired_size(this: &ReadableStreamDefaultController) -> Option<f64>;
 
-    #[wasm_bindgen(method, js_name = close)]
-    pub fn close(this: &ReadableStreamDefaultController);
+    #[wasm_bindgen(method, catch, js_name = close)]
+    pub fn close(this: &ReadableStreamDefaultController) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(method, js_name = enqueue)]
-    pub fn enqueue(this: &ReadableStreamDefaultController, chunk: &JsValue);
+    #[wasm_bindgen(method, catch, js_name = enqueue)]
+    pub fn enqueue(this: &ReadableStreamDefaultController, chunk: &JsValue) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method, js_name = error)]
     pub fn error(this: &ReadableStreamDefaultController, error: &JsValue);
@@ -94,11 +94,14 @@ extern "C" {
     #[wasm_bindgen(method, getter, js_name = desiredSize)]
     pub fn desired_size(this: &ReadableByteStreamController) -> Option<f64>;
 
-    #[wasm_bindgen(method, js_name = close)]
-    pub fn close(this: &ReadableByteStreamController);
+    #[wasm_bindgen(method, catch, js_name = close)]
+    pub fn close(this: &ReadableByteStreamController) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(method, js_name = enqueue)]
-    pub fn enqueue(this: &ReadableByteStreamController, chunk: &ArrayBufferView);
+    #[wasm_bindgen(method, catch, js_name = enqueue)]
+    pub fn enqueue(
+        this: &ReadableByteStreamController,
+        chunk: &ArrayBufferView,
+    ) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method, js_name = error)]
     pub fn error(this: &ReadableByteStreamController, error: &JsValue);
@@ -113,11 +116,14 @@ extern "C" {
     #[wasm_bindgen(method, getter, js_name = view)]
     pub fn view(this: &ReadableStreamBYOBRequest) -> Option<ArrayBufferView>;
 
-    #[wasm_bindgen(method, js_name = respond)]
-    pub fn respond(this: &ReadableStreamBYOBRequest, bytes_written: u32);
+    #[wasm_bindgen(method, catch, js_name = respond)]
+    pub fn respond(this: &ReadableStreamBYOBRequest, bytes_written: u32) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(method, js_name = respondWithNewView)]
-    pub fn respond_with_new_view(this: &ReadableStreamBYOBRequest, view: &ArrayBufferView);
+    #[wasm_bindgen(method, catch, js_name = respondWithNewView)]
+    pub fn respond_with_new_view(
+        this: &ReadableStreamBYOBRequest,
+        view: &ArrayBufferView,
+    ) -> Result<(), JsValue>;
 }
 
 #[wasm_bindgen]
