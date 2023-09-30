@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
 
-use wasm_bindgen::{JsValue, throw_val};
+use wasm_bindgen::{throw_val, JsValue};
 
 use crate::util::promise_to_void_future;
 
-use super::{IntoAsyncWrite, IntoSink, sys, WritableStream};
+use super::{sys, IntoAsyncWrite, IntoSink, WritableStream};
 
 /// A [`WritableStreamDefaultWriter`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStreamDefaultWriter)
 /// that can be used to write chunks to a [`WritableStream`](WritableStream).
@@ -50,7 +50,9 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// * It will return zero if the stream is closed.
     #[inline]
     pub fn desired_size(&self) -> Option<f64> {
-        self.as_raw().desired_size().unwrap_or_else(|error| throw_val(error.into()))
+        self.as_raw()
+            .desired_size()
+            .unwrap_or_else(|error| throw_val(error))
     }
 
     /// Waits until the desired size to fill the stream's internal queue transitions

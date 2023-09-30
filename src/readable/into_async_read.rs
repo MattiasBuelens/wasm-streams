@@ -1,18 +1,18 @@
 use core::pin::Pin;
 use core::task::{Context, Poll};
 
-use futures_util::FutureExt;
 use futures_util::io::{AsyncRead, Error};
 use futures_util::ready;
+use futures_util::FutureExt;
 use js_sys::{Object, Uint8Array};
-use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
 use crate::util::{checked_cast_to_usize, clamp_to_u32, js_to_io_error};
 
-use super::ReadableStreamBYOBReader;
 use super::sys::ReadableStreamBYOBReadResult;
+use super::ReadableStreamBYOBReader;
 
 /// An [`AsyncRead`] for the [`into_async_read`](super::ReadableStream::into_async_read) method.
 ///
@@ -84,13 +84,12 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                     _ => Uint8Array::new_with_length(buf_len),
                 };
                 // Limit to output buffer size
-                let buffer = buffer
-                    .subarray(0, buf_len)
-                    .unchecked_into::<Object>();
+                let buffer = buffer.subarray(0, buf_len).unchecked_into::<Object>();
                 match &self.reader {
                     Some(reader) => {
                         // Read into internal buffer and store its future
-                        let fut = JsFuture::from(reader.as_raw().read_with_array_buffer_view(&buffer));
+                        let fut =
+                            JsFuture::from(reader.as_raw().read_with_array_buffer_view(&buffer));
                         self.fut.insert(fut)
                     }
                     None => {

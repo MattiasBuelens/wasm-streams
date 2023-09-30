@@ -1,12 +1,12 @@
 use std::marker::PhantomData;
 
-use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 
 use crate::util::promise_to_void_future;
 
-use super::{IntoStream, ReadableStream, sys};
+use super::{sys, IntoStream, ReadableStream};
 
 /// A [`ReadableStreamDefaultReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader)
 /// that can be used to read chunks from a [`ReadableStream`](ReadableStream).
@@ -111,7 +111,8 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// return an error and leave the reader locked to the stream.
     #[inline]
     pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
-        Ok(self.as_raw().release_lock())
+        self.as_raw().release_lock();
+        Ok(())
     }
 
     /// Converts this `ReadableStreamDefaultReader` into a [`Stream`].

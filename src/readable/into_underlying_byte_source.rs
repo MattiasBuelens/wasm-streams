@@ -108,10 +108,7 @@ impl Inner {
         // We set autoAllocateChunkSize, so there should always be a BYOB request.
         let request = controller.byob_request().unwrap_throw();
         // Resize the buffer to fit the BYOB request.
-        let request_view = request
-            .view()
-            .unwrap_throw()
-            .unchecked_into::<Uint8Array>();
+        let request_view = request.view().unwrap_throw().unchecked_into::<Uint8Array>();
         let request_len = clamp_to_usize(request_view.byte_length());
         if self.buffer.len() < request_len {
             self.buffer.resize(request_len, 0);

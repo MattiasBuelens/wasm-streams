@@ -26,10 +26,13 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
             return Err(js_sys::Error::new("Already locked"));
         }
         Ok(Self {
-            raw: stream.as_raw().get_reader_with_options(
-                &sys::ReadableStreamGetReaderOptions::new()
-                    .mode(sys::ReadableStreamReaderMode::Byob),
-            ).unchecked_into(),
+            raw: stream
+                .as_raw()
+                .get_reader_with_options(
+                    sys::ReadableStreamGetReaderOptions::new()
+                        .mode(sys::ReadableStreamReaderMode::Byob),
+                )
+                .unchecked_into(),
             _stream: PhantomData,
         })
     }
@@ -175,7 +178,8 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// return an error and leave the reader locked to the stream.
     #[inline]
     pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
-        Ok(self.as_raw().release_lock())
+        self.as_raw().release_lock();
+        Ok(())
     }
 
     /// Converts this `ReadableStreamBYOBReader` into an [`AsyncRead`].

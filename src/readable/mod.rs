@@ -74,7 +74,7 @@ impl ReadableStream {
             &source.into_raw(),
             &strategy.into_raw().unchecked_into(),
         )
-        .unwrap_or_else(|error| throw_val(error.into()));
+        .unwrap_or_else(|error| throw_val(error));
         Self { raw }
     }
 
