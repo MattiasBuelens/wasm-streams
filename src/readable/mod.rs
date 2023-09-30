@@ -259,10 +259,11 @@ impl ReadableStream {
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
     pub fn try_tee(self) -> Result<(ReadableStream, ReadableStream), (js_sys::Error, Self)> {
-        if self.is_locked() {
-            return Err((js_sys::Error::new("Already locked"), self));
-        }
-        let branches = self.as_raw().tee();
+        let branches = self
+            .as_raw()
+            .unchecked_ref::<sys::ReadableStreamExt>()
+            .try_tee()
+            .map_err(|err| (err, self))?;
         debug_assert_eq!(branches.length(), 2);
         let (left, right) = (branches.get(0), branches.get(1));
         Ok((

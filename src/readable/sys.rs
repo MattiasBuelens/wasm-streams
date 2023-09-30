@@ -1,7 +1,7 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 //! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.64/web_sys/struct.ReadableStream.html).
-use js_sys::{Error, Object, Uint8Array};
+use js_sys::{Array, Error, Object, Uint8Array};
 use wasm_bindgen::prelude::*;
 pub use web_sys::ReadableByteStreamController;
 // Re-export from web-sys
@@ -27,6 +27,9 @@ extern "C" {
         this: &ReadableStreamExt,
         options: &ReadableStreamGetReaderOptions,
     ) -> Result<Object, Error>;
+
+    #[wasm_bindgen(method, catch, js_name = tee)]
+    pub(crate) fn try_tee(this: &ReadableStreamExt) -> Result<Array, Error>;
 }
 
 #[wasm_bindgen]
