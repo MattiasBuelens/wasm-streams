@@ -22,11 +22,12 @@ pub struct ReadableStreamDefaultReader<'stream> {
 
 impl<'stream> ReadableStreamDefaultReader<'stream> {
     pub(crate) fn new(stream: &mut ReadableStream) -> Result<Self, js_sys::Error> {
-        if stream.is_locked() {
-            return Err(js_sys::Error::new("Already locked"));
-        }
         Ok(Self {
-            raw: stream.as_raw().get_reader().unchecked_into(),
+            raw: stream
+                .as_raw()
+                .unchecked_ref::<sys::ReadableStreamExt>()
+                .try_get_reader()?
+                .unchecked_into(),
             _stream: PhantomData,
         })
     }

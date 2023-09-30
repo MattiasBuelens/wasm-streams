@@ -22,16 +22,14 @@ pub struct ReadableStreamBYOBReader<'stream> {
 
 impl<'stream> ReadableStreamBYOBReader<'stream> {
     pub(crate) fn new(stream: &mut ReadableStream) -> Result<Self, js_sys::Error> {
-        if stream.is_locked() {
-            return Err(js_sys::Error::new("Already locked"));
-        }
         Ok(Self {
             raw: stream
                 .as_raw()
-                .get_reader_with_options(
+                .unchecked_ref::<sys::ReadableStreamExt>()
+                .try_get_reader_with_options(
                     sys::ReadableStreamGetReaderOptions::new()
                         .mode(sys::ReadableStreamReaderMode::Byob),
-                )
+                )?
                 .unchecked_into(),
             _stream: PhantomData,
         })
