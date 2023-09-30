@@ -18,6 +18,10 @@ impl IntoUnderlyingSink {
             inner: Rc::new(RefCell::new(Inner::new(sink))),
         }
     }
+
+    pub fn into_raw(self) -> js_sys::Object {
+        JsValue::from(self).unchecked_into()
+    }
 }
 
 #[allow(clippy::await_holding_refcell_ref)]

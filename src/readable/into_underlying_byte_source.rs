@@ -29,6 +29,10 @@ impl IntoUnderlyingByteSource {
             pull_handle: None,
         }
     }
+
+    pub fn into_raw(self) -> js_sys::Object {
+        JsValue::from(self).unchecked_into()
+    }
 }
 
 #[allow(clippy::await_holding_refcell_ref)]
@@ -104,7 +108,10 @@ impl Inner {
         // We set autoAllocateChunkSize, so there should always be a BYOB request.
         let request = controller.byob_request().unwrap_throw();
         // Resize the buffer to fit the BYOB request.
-        let request_view = request.view().unwrap_throw();
+        let request_view = request
+            .view()
+            .unwrap_throw()
+            .unchecked_into::<Uint8Array>();
         let request_len = clamp_to_usize(request_view.byte_length());
         if self.buffer.len() < request_len {
             self.buffer.resize(request_len, 0);
@@ -114,7 +121,7 @@ impl Inner {
                 // The stream has closed, drop it.
                 self.discard();
                 controller.close()?;
-                request.respond(0)?;
+                request.respond_with_u32(0)?;
             }
             Ok(bytes_read) => {
                 // Copy read bytes from buffer to BYOB request view
@@ -127,7 +134,7 @@ impl Inner {
                 );
                 dest.copy_from(&self.buffer[0..bytes_read]);
                 // Respond to BYOB request
-                request.respond(bytes_read_u32)?;
+                request.respond_with_u32(bytes_read_u32)?;
             }
             Err(err) => {
                 // The stream encountered an error, drop it.

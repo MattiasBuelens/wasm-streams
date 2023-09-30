@@ -26,6 +26,27 @@ futures-util = { version = "0.3.28", features = ["io", "sink"] }
 version = "^0.3.64"
 features = [
     "AbortSignal",
+    "QueuingStrategy",
+    "ReadableStream",
+    "ReadableStreamType",
+    "ReadableWritablePair",
+    "ReadableStreamByobReader",
+    "ReadableStreamReaderMode",
+    "ReadableStreamReadResult",
+    "ReadableStreamByobRequest",
+    "ReadableStreamDefaultReader",
+    "ReadableByteStreamController",
+    "ReadableStreamGetReaderOptions",
+    "ReadableStreamDefaultController",
+    "StreamPipeOptions",
+    "TransformStream",
+    "TransformStreamDefaultController",
+    "Transformer",
+    "UnderlyingSink",
+    "UnderlyingSource",
+    "WritableStream",
+    "WritableStreamDefaultController",
+    "WritableStreamDefaultWriter",
 ]
 
 [dev-dependencies]

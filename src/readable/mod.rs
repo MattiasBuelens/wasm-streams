@@ -3,7 +3,7 @@
 use futures_util::io::AsyncRead;
 use futures_util::Stream;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{throw_val, JsCast};
 
 pub use byob_reader::ReadableStreamBYOBReader;
 pub use default_reader::ReadableStreamDefaultReader;
@@ -70,7 +70,11 @@ impl ReadableStream {
         // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
         // since the original Rust stream is better suited to handle that.
         let strategy = QueuingStrategy::new(0.0);
-        let raw = sys::ReadableStream::new_with_source(source, strategy);
+        let raw = sys::ReadableStream::new_with_underlying_source_and_strategy(
+            &source.into_raw(),
+            &strategy.into_raw().unchecked_into(),
+        )
+        .unwrap_or_else(|error| throw_val(error.into()));
         Self { raw }
     }
 
@@ -91,7 +95,7 @@ impl ReadableStream {
         R: AsyncRead + 'static,
     {
         let source = IntoUnderlyingByteSource::new(Box::new(async_read), default_buffer_len);
-        let raw = sys::ReadableStream::new_with_byte_source(source)
+        let raw = sys::ReadableStream::new_with_underlying_source(&source.into_raw())
             .expect_throw("readable byte streams not supported");
         Self { raw }
     }
@@ -111,7 +115,7 @@ impl ReadableStream {
     /// Returns `true` if the stream is [locked to a reader](https://streams.spec.whatwg.org/#lock).
     #[inline]
     pub fn is_locked(&self) -> bool {
-        self.as_raw().is_locked()
+        self.as_raw().locked()
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -218,7 +222,7 @@ impl ReadableStream {
     ) -> Result<(), JsValue> {
         let promise = self
             .as_raw()
-            .pipe_to(dest.as_raw(), options.clone().into_raw());
+            .pipe_to_with_options(dest.as_raw(), &options.clone().into_raw());
         promise_to_void_future(promise).await
     }
 
@@ -255,7 +259,10 @@ impl ReadableStream {
     /// If the stream is already locked to a reader, then this returns an error
     /// along with the original `ReadableStream`.
     pub fn try_tee(self) -> Result<(ReadableStream, ReadableStream), (js_sys::Error, Self)> {
-        let branches = self.as_raw().tee().map_err(|err| (err, self))?;
+        if self.is_locked() {
+            return Err((js_sys::Error::new("Already locked"), self));
+        }
+        let branches = self.as_raw().tee();
         debug_assert_eq!(branches.length(), 2);
         let (left, right) = (branches.get(0), branches.get(1));
         Ok((

@@ -1,11 +1,12 @@
 use std::marker::PhantomData;
 
-use wasm_bindgen::{throw_val, JsValue};
+use wasm_bindgen::JsValue;
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
 use crate::util::promise_to_void_future;
 
-use super::{sys, IntoStream, ReadableStream};
+use super::{IntoStream, ReadableStream, sys};
 
 /// A [`ReadableStreamDefaultReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader)
 /// that can be used to read chunks from a [`ReadableStream`](ReadableStream).
@@ -21,8 +22,11 @@ pub struct ReadableStreamDefaultReader<'stream> {
 
 impl<'stream> ReadableStreamDefaultReader<'stream> {
     pub(crate) fn new(stream: &mut ReadableStream) -> Result<Self, js_sys::Error> {
+        if stream.is_locked() {
+            return Err(js_sys::Error::new("Already locked"));
+        }
         Ok(Self {
-            raw: stream.as_raw().get_reader()?,
+            raw: stream.as_raw().get_reader().unchecked_into(),
             _stream: PhantomData,
         })
     }
@@ -91,9 +95,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     }
 
     fn release_lock_mut(&mut self) {
-        self.as_raw()
-            .release_lock()
-            .unwrap_or_else(|error| throw_val(error.into()))
+        self.as_raw().release_lock()
     }
 
     /// Try to [release](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
@@ -109,7 +111,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// return an error and leave the reader locked to the stream.
     #[inline]
     pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
-        self.as_raw().release_lock().map_err(|error| (error, self))
+        Ok(self.as_raw().release_lock())
     }
 
     /// Converts this `ReadableStreamDefaultReader` into a [`Stream`].

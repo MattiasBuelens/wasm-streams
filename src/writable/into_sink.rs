@@ -95,7 +95,7 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
     fn start_send(mut self: Pin<&mut Self>, item: JsValue) -> Result<(), Self::Error> {
         match &self.writer {
             Some(writer) => {
-                let fut = JsFuture::from(writer.as_raw().write(item));
+                let fut = JsFuture::from(writer.as_raw().write_with_chunk(&item));
                 // Set or replace the pending write future
                 self.write_fut = Some(fut);
                 Ok(())

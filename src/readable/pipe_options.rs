@@ -19,24 +19,26 @@ impl PipeOptions {
         Default::default()
     }
 
-    /// Creates a set of pipe options from a raw [`PipeOptions`](sys::PipeOptions) object.
-    pub fn from_raw(raw: sys::PipeOptions) -> Self {
-        Self {
-            prevent_close: raw.prevent_close(),
-            prevent_cancel: raw.prevent_cancel(),
-            prevent_abort: raw.prevent_abort(),
-            signal: raw.signal(),
-        }
-    }
+    // /// Creates a set of pipe options from a raw [`PipeOptions`](sys::PipeOptions) object.
+    // pub fn from_raw(raw: sys::PipeOptions) -> Self {
+    //     Self {
+    //         prevent_close: raw.prevent_close(),
+    //         prevent_cancel: raw.prevent_cancel(),
+    //         prevent_abort: raw.prevent_abort(),
+    //         signal: raw.signal(),
+    //     }
+    // }
 
     /// Convert this to a raw [`PipeOptions`](sys::PipeOptions) object.
     pub fn into_raw(self) -> sys::PipeOptions {
-        sys::PipeOptions::new(
-            self.prevent_close,
-            self.prevent_cancel,
-            self.prevent_abort,
-            self.signal,
-        )
+        let mut options = sys::PipeOptions::new();
+        options.prevent_close(self.prevent_close);
+        options.prevent_cancel(self.prevent_cancel);
+        options.prevent_abort(self.prevent_abort);
+        if let Some(signal) = self.signal.as_ref() {
+            options.signal(signal);
+        }
+        options
     }
 
     /// Sets whether the destination writable stream should be closed

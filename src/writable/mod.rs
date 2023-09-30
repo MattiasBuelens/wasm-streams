@@ -3,6 +3,7 @@
 
 use futures_util::Sink;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::throw_val;
 
 pub use default_writer::WritableStreamDefaultWriter;
 pub use into_async_write::IntoAsyncWrite;
@@ -54,7 +55,8 @@ impl WritableStream {
         let sink = IntoUnderlyingSink::new(Box::new(sink));
         // Use the default queuing strategy (with a HWM of 1 chunk).
         // We shouldn't set HWM to 0, since that would break piping to the writable stream.
-        let raw = sys::WritableStream::new_with_sink(sink);
+        let raw = sys::WritableStream::new_with_underlying_sink(&sink.into_raw().unchecked_into())
+            .unwrap_or_else(|error| throw_val(error.into()));
         WritableStream { raw }
     }
 
@@ -73,7 +75,7 @@ impl WritableStream {
     /// Returns `true` if the stream is [locked to a writer](https://streams.spec.whatwg.org/#lock).
     #[inline]
     pub fn is_locked(&self) -> bool {
-        self.as_raw().is_locked()
+        self.as_raw().locked()
     }
 
     /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream,
