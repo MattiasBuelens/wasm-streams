@@ -31,6 +31,16 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
+    /// Additional methods for [`ReadableStreamDefaultReader`](web_sys::ReadableStreamDefaultReader)
+    /// and [`ReadableStreamByobReader`](web_sys::ReadableStreamByobReader).
+    pub(crate) type ReadableStreamReaderExt;
+
+    #[wasm_bindgen(method, catch, js_name = releaseLock)]
+    pub(crate) fn try_release_lock(this: &ReadableStreamReaderExt) -> Result<(), Error>;
+}
+
+#[wasm_bindgen]
+extern "C" {
     /// A result returned by [`ReadableStreamDefaultReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read).
     #[derive(Clone, Debug)]
     pub(crate) type ReadableStreamDefaultReadResult;

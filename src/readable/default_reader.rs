@@ -112,8 +112,10 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// return an error and leave the reader locked to the stream.
     #[inline]
     pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
-        self.as_raw().release_lock();
-        Ok(())
+        self.as_raw()
+            .unchecked_ref::<sys::ReadableStreamReaderExt>()
+            .try_release_lock()
+            .map_err(|err| (err, self))
     }
 
     /// Converts this `ReadableStreamDefaultReader` into a [`Stream`].
