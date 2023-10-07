@@ -3,7 +3,6 @@
 
 use futures_util::Sink;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::throw_val;
 
 pub use default_writer::WritableStreamDefaultWriter;
 pub use into_async_write::IntoAsyncWrite;
@@ -55,9 +54,7 @@ impl WritableStream {
         let sink = IntoUnderlyingSink::new(Box::new(sink));
         // Use the default queuing strategy (with a HWM of 1 chunk).
         // We shouldn't set HWM to 0, since that would break piping to the writable stream.
-        let raw = sys::WritableStreamExt::new_with_into_underlying_sink(sink)
-            .unwrap_or_else(|error| throw_val(error.into()))
-            .unchecked_into();
+        let raw = sys::WritableStreamExt::new_with_into_underlying_sink(sink).unchecked_into();
         WritableStream { raw }
     }
 

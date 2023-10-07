@@ -2,8 +2,8 @@
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 use futures_util::io::AsyncRead;
 use futures_util::Stream;
+use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::{throw_val, JsCast};
 
 pub use byob_reader::ReadableStreamBYOBReader;
 pub use default_reader::ReadableStreamDefaultReader;
@@ -74,7 +74,6 @@ impl ReadableStream {
             source,
             &strategy.into_raw().unchecked_into(),
         )
-        .unwrap_or_else(|error| throw_val(error.into()))
         .unchecked_into();
         Self { raw }
     }

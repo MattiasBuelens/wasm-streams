@@ -24,11 +24,11 @@ extern "C" {
     #[wasm_bindgen(js_name = ReadableStream, typescript_type = "ReadableStream")]
     pub(crate) type ReadableStreamExt;
 
-    #[wasm_bindgen(constructor, catch, js_class = ReadableStream)]
+    #[wasm_bindgen(constructor, js_class = ReadableStream)]
     pub(crate) fn new_with_into_underlying_source(
         source: IntoUnderlyingSource,
         strategy: &QueuingStrategy,
-    ) -> Result<ReadableStreamExt, Error>;
+    ) -> ReadableStreamExt;
 
     #[wasm_bindgen(constructor, catch, js_class = ReadableStream)]
     pub(crate) fn new_with_into_underlying_byte_source(

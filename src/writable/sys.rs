@@ -1,7 +1,6 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`WritableStream`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStream).
 //! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.64/web_sys/struct.WritableStream.html).
-use js_sys::Error;
 use wasm_bindgen::prelude::*;
 pub use web_sys::WritableStream;
 pub use web_sys::WritableStreamDefaultWriter;
@@ -15,8 +14,8 @@ extern "C" {
     #[derive(Clone, Debug)]
     pub(crate) type WritableStreamExt;
 
-    #[wasm_bindgen(constructor, catch, js_class = WritableStream)]
+    #[wasm_bindgen(constructor, js_class = WritableStream)]
     pub(crate) fn new_with_into_underlying_sink(
         sink: IntoUnderlyingSink,
-    ) -> Result<WritableStreamExt, Error>;
+    ) -> WritableStreamExt;
 }
