@@ -12,6 +12,15 @@ impl QueuingStrategy {
     }
 
     #[cfg(web_sys_unstable_apis)]
+    pub fn from_raw(raw: web_sys::QueuingStrategy) -> Self {
+        let high_water_mark = js_sys::Reflect::get(&raw, &JsValue::from_str("highWaterMark"))
+            .unwrap_throw()
+            .as_f64()
+            .unwrap_throw();
+        Self::new(high_water_mark)
+    }
+
+    #[cfg(web_sys_unstable_apis)]
     pub fn into_raw(self) -> web_sys::QueuingStrategy {
         let mut raw = web_sys::QueuingStrategy::new();
         raw.high_water_mark(self.high_water_mark);
