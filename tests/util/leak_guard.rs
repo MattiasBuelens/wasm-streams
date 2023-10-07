@@ -28,11 +28,6 @@ impl LeakGuard {
 impl Drop for LeakGuard {
     fn drop(&mut self) {
         let actual = wasm_bindgen::externref_heap_live_count();
-        assert_eq!(
-            actual,
-            self.expected,
-            "leaked {} externrefs",
-            actual - self.expected
-        );
+        assert_eq!(actual, self.expected, "externref live count should match");
     }
 }
