@@ -3,7 +3,6 @@
 //! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.64/web_sys/struct.ReadableStream.html).
 use js_sys::{Array, Error, Object};
 use wasm_bindgen::prelude::*;
-use web_sys::QueuingStrategy;
 pub use web_sys::ReadableByteStreamController;
 // Re-export from web-sys
 pub use web_sys::ReadableStream;
@@ -15,6 +14,7 @@ pub use web_sys::ReadableStreamGetReaderOptions;
 pub use web_sys::ReadableStreamReaderMode;
 pub use web_sys::StreamPipeOptions as PipeOptions;
 
+use crate::queuing_strategy::QueuingStrategy;
 use crate::readable::into_underlying_byte_source::IntoUnderlyingByteSource;
 use crate::readable::into_underlying_source::IntoUnderlyingSource;
 
@@ -27,7 +27,7 @@ extern "C" {
     #[wasm_bindgen(constructor, js_class = ReadableStream)]
     pub(crate) fn new_with_into_underlying_source(
         source: IntoUnderlyingSource,
-        strategy: &QueuingStrategy,
+        strategy: QueuingStrategy,
     ) -> ReadableStreamExt;
 
     #[wasm_bindgen(constructor, catch, js_class = ReadableStream)]

@@ -2,8 +2,8 @@
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 use futures_util::io::AsyncRead;
 use futures_util::Stream;
-use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 
 pub use byob_reader::ReadableStreamBYOBReader;
 pub use default_reader::ReadableStreamDefaultReader;
@@ -70,11 +70,8 @@ impl ReadableStream {
         // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
         // since the original Rust stream is better suited to handle that.
         let strategy = QueuingStrategy::new(0.0);
-        let raw = sys::ReadableStreamExt::new_with_into_underlying_source(
-            source,
-            &strategy.into_raw().unchecked_into(),
-        )
-        .unchecked_into();
+        let raw = sys::ReadableStreamExt::new_with_into_underlying_source(source, strategy)
+            .unchecked_into();
         Self { raw }
     }
 

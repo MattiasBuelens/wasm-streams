@@ -11,6 +11,7 @@ impl QueuingStrategy {
         Self { high_water_mark }
     }
 
+    #[cfg(web_sys_unstable_apis)]
     pub fn into_raw(self) -> web_sys::QueuingStrategy {
         let mut raw = web_sys::QueuingStrategy::new();
         raw.high_water_mark(self.high_water_mark);
