@@ -1,3 +1,5 @@
+use std::future::Future;
+
 pub struct LeakGuard {
     expected: u32,
 }
@@ -7,6 +9,19 @@ impl LeakGuard {
         Self {
             expected: wasm_bindgen::externref_heap_live_count(),
         }
+    }
+
+    #[inline]
+    pub async fn run<Fn, Fut>(f: Fn)
+    where
+        Fn: FnOnce() -> Fut,
+        Fut: Future<Output = ()>,
+    {
+        let guard = Self::new();
+        {
+            f().await;
+        }
+        drop(guard)
     }
 }
 
