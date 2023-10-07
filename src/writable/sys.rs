@@ -15,7 +15,5 @@ extern "C" {
     pub(crate) type WritableStreamExt;
 
     #[wasm_bindgen(constructor, js_class = WritableStream)]
-    pub(crate) fn new_with_into_underlying_sink(
-        sink: IntoUnderlyingSink,
-    ) -> WritableStreamExt;
+    pub(crate) fn new_with_into_underlying_sink(sink: IntoUnderlyingSink) -> WritableStreamExt;
 }
