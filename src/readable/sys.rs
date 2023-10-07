@@ -1,7 +1,7 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 //! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.64/web_sys/struct.ReadableStream.html).
-use js_sys::{Array, Error, Object, Uint8Array};
+use js_sys::{Array, Error, Object};
 use wasm_bindgen::prelude::*;
 use web_sys::QueuingStrategy;
 pub use web_sys::ReadableByteStreamController;
@@ -60,26 +60,14 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
-    /// A result returned by [`ReadableStreamDefaultReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read).
+    /// A result returned by [`ReadableStreamDefaultReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read)
+    /// or [`ReadableStreamBYOBReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read).
     #[derive(Clone, Debug)]
-    pub(crate) type ReadableStreamDefaultReadResult;
+    pub(crate) type ReadableStreamReadResult;
 
     #[wasm_bindgen(method, getter, js_name = done)]
-    pub(crate) fn is_done(this: &ReadableStreamDefaultReadResult) -> bool;
+    pub(crate) fn is_done(this: &ReadableStreamReadResult) -> bool;
 
     #[wasm_bindgen(method, getter, js_name = value)]
-    pub(crate) fn value(this: &ReadableStreamDefaultReadResult) -> JsValue;
-}
-
-#[wasm_bindgen]
-extern "C" {
-    /// A result returned by [`ReadableStreamBYOBReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read).
-    #[derive(Clone, Debug)]
-    pub(crate) type ReadableStreamBYOBReadResult;
-
-    #[wasm_bindgen(method, getter, js_name = done)]
-    pub(crate) fn is_done(this: &ReadableStreamBYOBReadResult) -> bool;
-
-    #[wasm_bindgen(method, getter, js_name = value)]
-    pub(crate) fn value(this: &ReadableStreamBYOBReadResult) -> Option<Uint8Array>;
+    pub(crate) fn value(this: &ReadableStreamReadResult) -> JsValue;
 }

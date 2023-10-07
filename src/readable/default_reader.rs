@@ -70,8 +70,8 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// * If the stream encounters an `error`, this returns `Err(error)`.
     pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
         let promise = self.as_raw().read();
-        let js_value = JsFuture::from(promise).await?;
-        let result = sys::ReadableStreamDefaultReadResult::from(js_value);
+        let js_result = JsFuture::from(promise).await?;
+        let result = sys::ReadableStreamReadResult::from(js_result);
         if result.is_done() {
             Ok(None)
         } else {

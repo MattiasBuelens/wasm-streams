@@ -7,7 +7,7 @@ use futures_util::FutureExt;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-use super::sys::ReadableStreamDefaultReadResult;
+use super::sys::ReadableStreamReadResult;
 use super::ReadableStreamDefaultReader;
 
 /// A [`Stream`] for the [`into_stream`](super::ReadableStream::into_stream) method.
@@ -87,7 +87,7 @@ impl<'reader> Stream for IntoStream<'reader> {
         // Read completed
         Poll::Ready(match js_result {
             Ok(js_value) => {
-                let result = ReadableStreamDefaultReadResult::from(js_value);
+                let result = ReadableStreamReadResult::from(js_value);
                 if result.is_done() {
                     // End of stream, drop reader
                     self.reader = None;

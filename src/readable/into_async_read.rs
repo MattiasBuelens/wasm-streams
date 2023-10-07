@@ -11,7 +11,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use crate::util::{checked_cast_to_usize, clamp_to_u32, js_to_io_error};
 
-use super::sys::ReadableStreamBYOBReadResult;
+use super::sys::ReadableStreamReadResult;
 use super::ReadableStreamBYOBReader;
 
 /// An [`AsyncRead`] for the [`into_async_read`](super::ReadableStream::into_async_read) method.
@@ -107,14 +107,14 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
         // Read completed
         Poll::Ready(match js_result {
             Ok(js_value) => {
-                let result = ReadableStreamBYOBReadResult::from(js_value);
+                let result = ReadableStreamReadResult::from(js_value);
                 if result.is_done() {
                     // End of stream
                     self.discard_reader();
                     Ok(0)
                 } else {
                     // Cannot be canceled, so view must exist
-                    let filled_view = result.value().unwrap_throw();
+                    let filled_view = result.value().unchecked_into::<Uint8Array>();
                     // Copy bytes to output buffer
                     let filled_len = checked_cast_to_usize(filled_view.byte_length());
                     debug_assert!(filled_len <= buf.len());

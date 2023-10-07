@@ -117,15 +117,15 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let view = buffer.subarray(0, dst_len).unchecked_into::<Object>();
         // Read into view. This transfers `buffer.buffer()`.
         let promise = self.as_raw().read_with_array_buffer_view(&view);
-        let js_value = JsFuture::from(promise).await?;
-        let result = sys::ReadableStreamBYOBReadResult::from(js_value);
-        let filled_view = match result.value() {
-            Some(view) => view,
-            None => {
-                // No new view was returned. The stream must have been canceled.
-                assert!(result.is_done());
-                return Ok((0, None));
-            }
+        let js_result = JsFuture::from(promise).await?;
+        let result = sys::ReadableStreamReadResult::from(js_result);
+        let js_value = result.value();
+        let filled_view = if js_value.is_undefined() {
+            // No new view was returned. The stream must have been canceled.
+            assert!(result.is_done());
+            return Ok((0, None));
+        } else {
+            js_value.unchecked_into::<Uint8Array>()
         };
         let filled_len = checked_cast_to_usize(filled_view.byte_length());
         debug_assert!(filled_len <= dst.len());
