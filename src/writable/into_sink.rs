@@ -14,7 +14,7 @@ use super::WritableStreamDefaultWriter;
 /// When this sink is dropped, it also drops its writer which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 ///
-/// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+/// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
 #[must_use = "sinks do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoSink<'writer> {

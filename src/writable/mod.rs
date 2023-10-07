@@ -25,7 +25,7 @@ pub mod sys;
 /// They can be converted into a [raw JavaScript stream](sys::WritableStream) with
 /// [`into_raw`](Self::into_raw), or into a Rust [`Sink`] with [`into_sink`](Self::into_sink).
 ///
-/// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+/// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
 #[derive(Debug)]
 pub struct WritableStream {
     raw: sys::WritableStream,
@@ -44,9 +44,9 @@ impl WritableStream {
     /// Use [`with`] and/or [`sink_map_err`] to convert a sink's items to a `JsValue`
     /// before passing it to this function.
     ///
-    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
-    /// [`with`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.with
-    /// [`sink_map_err`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.sink_map_err
+    /// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
+    /// [`with`]: https://docs.rs/futures/0.3.28/futures/sink/trait.SinkExt.html#method.with
+    /// [`sink_map_err`]: https://docs.rs/futures/0.3.28/futures/sink/trait.SinkExt.html#method.sink_map_err
     pub fn from_sink<Si>(sink: Si) -> Self
     where
         Si: Sink<JsValue, Error = JsValue> + 'static,
@@ -126,9 +126,9 @@ impl WritableStream {
     /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
     /// use [`try_into_sink`](Self::try_into_sink).
     ///
-    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
-    /// [`with`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.with
-    /// [`sink_map_err`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.sink_map_err
+    /// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
+    /// [`with`]: https://docs.rs/futures/0.3.28/futures/sink/trait.SinkExt.html#method.with
+    /// [`sink_map_err`]: https://docs.rs/futures/0.3.28/futures/sink/trait.SinkExt.html#method.sink_map_err
     #[inline]
     pub fn into_sink(self) -> IntoSink<'static> {
         self.try_into_sink()
@@ -144,9 +144,9 @@ impl WritableStream {
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
     ///
-    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
-    /// [`with`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.with
-    /// [`sink_map_err`]: https://docs.rs/futures/0.3.18/futures/sink/trait.SinkExt.html#method.sink_map_err
+    /// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
+    /// [`with`]: https://docs.rs/futures/0.3.28/futures/sink/trait.SinkExt.html#method.with
+    /// [`sink_map_err`]: https://docs.rs/futures/0.3.28/futures/sink/trait.SinkExt.html#method.sink_map_err
     pub fn try_into_sink(mut self) -> Result<IntoSink<'static>, (js_sys::Error, Self)> {
         let writer = WritableStreamDefaultWriter::new(&mut self).map_err(|err| (err, self))?;
         Ok(writer.into_sink())
@@ -159,7 +159,7 @@ impl WritableStream {
     /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
     /// use [`try_into_async_write`](Self::try_into_async_write).
     ///
-    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncWrite.html
+    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.28/futures/io/trait.AsyncWrite.html
     pub fn into_async_write(self) -> IntoAsyncWrite<'static> {
         self.try_into_async_write()
             .expect_throw("already locked to a writer")
@@ -172,7 +172,7 @@ impl WritableStream {
     /// If the stream is already locked to a writer, then this returns an error
     /// along with the original `WritableStream`.
     ///
-    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncWrite.html
+    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.28/futures/io/trait.AsyncWrite.html
     pub fn try_into_async_write(self) -> Result<IntoAsyncWrite<'static>, (js_sys::Error, Self)> {
         Ok(IntoAsyncWrite::new(self.try_into_sink()?))
     }

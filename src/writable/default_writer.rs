@@ -117,7 +117,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// usable. This allows writing only a few chunks through the `Sink`, while still allowing
     /// another writer to write more chunks later on.
     ///
-    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+    /// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
     #[inline]
     pub fn into_sink(self) -> IntoSink<'stream> {
         IntoSink::new(self)
@@ -132,7 +132,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// still usable. This allows writing only a few bytes through the `AsyncWrite`, while still
     /// allowing another writer to write more bytes later on.
     ///
-    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncWrite.html
+    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.28/futures/io/trait.AsyncWrite.html
     #[inline]
     pub fn into_async_write(self) -> IntoAsyncWrite<'stream> {
         IntoAsyncWrite::new(self.into_sink())

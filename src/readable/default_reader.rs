@@ -125,7 +125,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// usable. This allows reading only a few chunks from the `Stream`, while still allowing
     /// another reader to read the remaining chunks later on.
     ///
-    /// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
+    /// [`Stream`]: https://docs.rs/futures/0.3.28/futures/stream/trait.Stream.html
     #[inline]
     pub fn into_stream(self) -> IntoStream<'stream> {
         IntoStream::new(self, false)
