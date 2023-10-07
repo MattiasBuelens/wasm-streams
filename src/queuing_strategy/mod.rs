@@ -1,37 +1,38 @@
+use js_sys::Object;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-#[derive(Debug)]
-pub(crate) struct QueuingStrategy {
-    high_water_mark: f64,
+extern "C" {
+    #[wasm_bindgen(extends = Object, js_name = QueuingStrategy)]
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    pub(crate) type QueuingStrategy;
+
+    #[wasm_bindgen(method, getter, js_name = highWaterMark)]
+    pub fn high_water_mark(this: &QueuingStrategy) -> f64;
+
+    #[wasm_bindgen(method, setter, js_name = highWaterMark)]
+    pub fn set_high_water_mark(this: &QueuingStrategy, value: f64);
 }
 
 impl QueuingStrategy {
     pub fn new(high_water_mark: f64) -> Self {
-        Self { high_water_mark }
+        let strategy = Object::new().unchecked_into::<QueuingStrategy>();
+        strategy.set_high_water_mark(high_water_mark);
+        strategy
     }
 
     #[cfg(web_sys_unstable_apis)]
     pub fn from_raw(raw: web_sys::QueuingStrategy) -> Self {
-        let high_water_mark = js_sys::Reflect::get(&raw, &JsValue::from_str("highWaterMark"))
-            .unwrap_throw()
-            .as_f64()
-            .unwrap_throw();
-        Self::new(high_water_mark)
+        raw.unchecked_into()
+    }
+
+    #[cfg(web_sys_unstable_apis)]
+    pub fn as_raw(&self) -> &web_sys::QueuingStrategy {
+        self.unchecked_ref()
     }
 
     #[cfg(web_sys_unstable_apis)]
     pub fn into_raw(self) -> web_sys::QueuingStrategy {
-        let mut raw = web_sys::QueuingStrategy::new();
-        raw.high_water_mark(self.high_water_mark);
-        raw
-    }
-}
-
-#[wasm_bindgen]
-impl QueuingStrategy {
-    #[wasm_bindgen(getter, js_name = highWaterMark)]
-    pub fn high_water_mark(&self) -> f64 {
-        self.high_water_mark
+        self.unchecked_into()
     }
 }
