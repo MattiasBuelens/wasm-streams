@@ -70,11 +70,12 @@ impl ReadableStream {
         // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
         // since the original Rust stream is better suited to handle that.
         let strategy = QueuingStrategy::new(0.0);
-        let raw = sys::ReadableStream::new_with_underlying_source_and_strategy(
-            &source.into_raw(),
+        let raw = sys::ReadableStreamExt::new_with_into_underlying_source(
+            source,
             &strategy.into_raw().unchecked_into(),
         )
-        .unwrap_or_else(|error| throw_val(error));
+        .unwrap_or_else(|error| throw_val(error.into()))
+        .unchecked_into();
         Self { raw }
     }
 
@@ -95,8 +96,9 @@ impl ReadableStream {
         R: AsyncRead + 'static,
     {
         let source = IntoUnderlyingByteSource::new(Box::new(async_read), default_buffer_len);
-        let raw = sys::ReadableStream::new_with_underlying_source(&source.into_raw())
-            .expect_throw("readable byte streams not supported");
+        let raw = sys::ReadableStreamExt::new_with_into_underlying_byte_source(source)
+            .expect_throw("readable byte streams not supported")
+            .unchecked_into();
         Self { raw }
     }
 

@@ -55,8 +55,9 @@ impl WritableStream {
         let sink = IntoUnderlyingSink::new(Box::new(sink));
         // Use the default queuing strategy (with a HWM of 1 chunk).
         // We shouldn't set HWM to 0, since that would break piping to the writable stream.
-        let raw = sys::WritableStream::new_with_underlying_sink(&sink.into_raw().unchecked_into())
-            .unwrap_or_else(|error| throw_val(error));
+        let raw = sys::WritableStreamExt::new_with_into_underlying_sink(sink)
+            .unwrap_or_else(|error| throw_val(error.into()))
+            .unchecked_into();
         WritableStream { raw }
     }
 

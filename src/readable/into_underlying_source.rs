@@ -25,10 +25,6 @@ impl IntoUnderlyingSource {
             pull_handle: None,
         }
     }
-
-    pub fn into_raw(self) -> js_sys::Object {
-        JsValue::from(self).unchecked_into()
-    }
 }
 
 #[allow(clippy::await_holding_refcell_ref)]
