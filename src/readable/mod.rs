@@ -104,6 +104,9 @@ impl ReadableStream {
     /// This can be used to adapt various kinds of objects into a readable stream,
     /// such as an [array], an [async generator] or a [Node.js readable stream][Readable].
     ///
+    /// **Panics** if `ReadableStream.from()` is not supported by the browser,
+    /// or if the given object is not a valid iterable or async iterable.
+    ///
     /// [iterable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
     /// [async iterable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_async_iterator_and_async_iterable_protocols
     /// [array]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
