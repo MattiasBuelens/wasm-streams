@@ -12,7 +12,7 @@ It also allows converting between a `ReadableStream` and a Rust `Stream`,
 as well as between a `WritableStream` and a Rust `Sink`.
 
 See the [API documentation](https://docs.rs/wasm-streams) for more information,
-or check out the [examples](https://github.com/MattiasBuelens/wasm-streams/tree/master/examples).
+or check out the [examples](https://github.com/MattiasBuelens/wasm-streams/tree/main/examples).
 
 ## License
 
