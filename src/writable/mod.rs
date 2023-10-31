@@ -55,7 +55,7 @@ impl WritableStream {
         // Use the default queuing strategy (with a HWM of 1 chunk).
         // We shouldn't set HWM to 0, since that would break piping to the writable stream.
         let raw = sys::WritableStreamExt::new_with_into_underlying_sink(sink).unchecked_into();
-        WritableStream { raw }
+        Self::from_raw(raw)
     }
 
     /// Acquires a reference to the underlying [JavaScript stream](sys::WritableStream).

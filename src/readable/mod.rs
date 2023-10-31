@@ -73,7 +73,7 @@ impl ReadableStream {
         let strategy = QueuingStrategy::new(0.0);
         let raw = sys::ReadableStreamExt::new_with_into_underlying_source(source, strategy)
             .unchecked_into();
-        Self { raw }
+        Self::from_raw(raw)
     }
 
     /// Creates a new `ReadableStream` from an [`AsyncRead`].
@@ -96,7 +96,7 @@ impl ReadableStream {
         let raw = sys::ReadableStreamExt::new_with_into_underlying_byte_source(source)
             .expect_throw("readable byte streams not supported")
             .unchecked_into();
-        Self { raw }
+        Self::from_raw(raw)
     }
 
     /// Creates a new `ReadableStream` wrapping the provided [iterable] or [async iterable].
@@ -114,7 +114,7 @@ impl ReadableStream {
         let raw = sys::ReadableStreamExt::from_async_iterable(&async_iterable)
             .unwrap_throw()
             .unchecked_into();
-        Self { raw }
+        Self::from_raw(raw)
     }
 
     /// Acquires a reference to the underlying [JavaScript stream](sys::ReadableStream).
