@@ -3,6 +3,7 @@
 //! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.64/web_sys/struct.ReadableStream.html).
 use js_sys::{Array, Error, Object};
 use wasm_bindgen::prelude::*;
+use web_sys::AbortSignal;
 pub use web_sys::ReadableByteStreamController;
 // Re-export from web-sys
 pub use web_sys::ReadableStream;
@@ -70,4 +71,24 @@ extern "C" {
 
     #[wasm_bindgen(method, getter, js_name = value)]
     pub(crate) fn value(this: &ReadableStreamReadResult) -> JsValue;
+}
+
+#[wasm_bindgen]
+extern "C" {
+    /// Additional methods for [`StreamPipeOptions`](web_sys::StreamPipeOptions).
+    #[wasm_bindgen(extends = PipeOptions)]
+    #[derive(Clone, Debug)]
+    pub(crate) type StreamPipeOptionsExt;
+
+    #[wasm_bindgen(method, getter, js_name = preventClose)]
+    pub fn prevent_close(this: &StreamPipeOptionsExt) -> bool;
+
+    #[wasm_bindgen(method, getter, js_name = preventCancel)]
+    pub fn prevent_cancel(this: &StreamPipeOptionsExt) -> bool;
+
+    #[wasm_bindgen(method, getter, js_name = preventAbort)]
+    pub fn prevent_abort(this: &StreamPipeOptionsExt) -> bool;
+
+    #[wasm_bindgen(method, getter, js_name = signal)]
+    pub fn signal(this: &StreamPipeOptionsExt) -> Option<AbortSignal>;
 }

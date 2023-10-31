@@ -1,3 +1,4 @@
+use wasm_bindgen::JsCast;
 use web_sys::AbortSignal;
 
 use super::sys;
@@ -19,15 +20,16 @@ impl PipeOptions {
         Default::default()
     }
 
-    // /// Creates a set of pipe options from a raw [`PipeOptions`](sys::PipeOptions) object.
-    // pub fn from_raw(raw: sys::PipeOptions) -> Self {
-    //     Self {
-    //         prevent_close: raw.prevent_close(),
-    //         prevent_cancel: raw.prevent_cancel(),
-    //         prevent_abort: raw.prevent_abort(),
-    //         signal: raw.signal(),
-    //     }
-    // }
+    /// Creates a set of pipe options from a raw [`PipeOptions`](sys::PipeOptions) object.
+    pub fn from_raw(raw: sys::PipeOptions) -> Self {
+        let raw: &sys::StreamPipeOptionsExt = raw.unchecked_ref();
+        Self {
+            prevent_close: raw.prevent_close(),
+            prevent_cancel: raw.prevent_cancel(),
+            prevent_abort: raw.prevent_abort(),
+            signal: raw.signal(),
+        }
+    }
 
     /// Convert this to a raw [`PipeOptions`](sys::PipeOptions) object.
     pub fn into_raw(self) -> sys::PipeOptions {
