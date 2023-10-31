@@ -16,8 +16,8 @@ pub mod sys;
 /// using [`into_stream`](super::ReadableStream::into_stream)
 /// and [`into_sink`](super::WritableStream::into_sink).
 ///
-/// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
-/// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+/// [`Stream`]: https://docs.rs/futures/0.3.28/futures/stream/trait.Stream.html
+/// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
 #[derive(Debug)]
 pub struct TransformStream {
     raw: sys::TransformStream,

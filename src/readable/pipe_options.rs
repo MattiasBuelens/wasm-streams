@@ -1,3 +1,4 @@
+use wasm_bindgen::JsCast;
 use web_sys::AbortSignal;
 
 use super::sys;
@@ -21,6 +22,7 @@ impl PipeOptions {
 
     /// Creates a set of pipe options from a raw [`PipeOptions`](sys::PipeOptions) object.
     pub fn from_raw(raw: sys::PipeOptions) -> Self {
+        let raw: &sys::StreamPipeOptionsExt = raw.unchecked_ref();
         Self {
             prevent_close: raw.prevent_close(),
             prevent_cancel: raw.prevent_cancel(),
@@ -31,12 +33,14 @@ impl PipeOptions {
 
     /// Convert this to a raw [`PipeOptions`](sys::PipeOptions) object.
     pub fn into_raw(self) -> sys::PipeOptions {
-        sys::PipeOptions::new(
-            self.prevent_close,
-            self.prevent_cancel,
-            self.prevent_abort,
-            self.signal,
-        )
+        let options = sys::StreamPipeOptionsExt::new();
+        options.set_prevent_close(self.prevent_close);
+        options.set_prevent_cancel(self.prevent_cancel);
+        options.set_prevent_abort(self.prevent_abort);
+        if let signal @ Some(_) = self.signal {
+            options.set_signal(signal);
+        }
+        options.unchecked_into()
     }
 
     /// Sets whether the destination writable stream should be closed

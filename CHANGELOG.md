@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Stop calling `byobRequest.respond(0)` on cancel ([#16](https://github.com/MattiasBuelens/wasm-streams/pull/16))
+* ⚠ **Breaking change:** The system modules (`readable::sys`, `writable::sys` and `transform::sys`) now re-export directly from [the `web-sys` crate](https://docs.rs/web-sys/latest/web_sys/). This should make it easier to use `from_raw()`, `as_raw()` and `into_raw()`. ([#22](https://github.com/MattiasBuelens/wasm-streams/pull/22/))
 
 ## v0.3.0 (2022-10-16)
 

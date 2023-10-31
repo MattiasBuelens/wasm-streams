@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{throw_val, JsValue};
 
 use crate::util::promise_to_void_future;
 
@@ -50,7 +50,9 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// * It will return zero if the stream is closed.
     #[inline]
     pub fn desired_size(&self) -> Option<f64> {
-        self.as_raw().desired_size()
+        self.as_raw()
+            .desired_size()
+            .unwrap_or_else(|error| throw_val(error))
     }
 
     /// Waits until the desired size to fill the stream's internal queue transitions
@@ -93,7 +95,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// that the chunk has been accepted, and not necessarily that it is safely saved to
     /// its ultimate destination.
     pub async fn write(&mut self, chunk: JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().write(chunk)).await
+        promise_to_void_future(self.as_raw().write_with_chunk(&chunk)).await
     }
 
     /// Closes the stream.
@@ -115,7 +117,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// usable. This allows writing only a few chunks through the `Sink`, while still allowing
     /// another writer to write more chunks later on.
     ///
-    /// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+    /// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
     #[inline]
     pub fn into_sink(self) -> IntoSink<'stream> {
         IntoSink::new(self)
@@ -130,7 +132,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// still usable. This allows writing only a few bytes through the `AsyncWrite`, while still
     /// allowing another writer to write more bytes later on.
     ///
-    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.18/futures/io/trait.AsyncWrite.html
+    /// [`AsyncWrite`]: https://docs.rs/futures/0.3.28/futures/io/trait.AsyncWrite.html
     #[inline]
     pub fn into_async_write(self) -> IntoAsyncWrite<'stream> {
         IntoAsyncWrite::new(self.into_sink())

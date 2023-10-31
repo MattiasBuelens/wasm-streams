@@ -14,7 +14,7 @@ use super::WritableStreamDefaultWriter;
 /// When this sink is dropped, it also drops its writer which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 ///
-/// [`Sink`]: https://docs.rs/futures/0.3.18/futures/sink/trait.Sink.html
+/// [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
 #[must_use = "sinks do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoSink<'writer> {
@@ -95,7 +95,7 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
     fn start_send(mut self: Pin<&mut Self>, item: JsValue) -> Result<(), Self::Error> {
         match &self.writer {
             Some(writer) => {
-                let fut = JsFuture::from(writer.as_raw().write(item));
+                let fut = JsFuture::from(writer.as_raw().write_with_chunk(&item));
                 // Set or replace the pending write future
                 self.write_fut = Some(fut);
                 Ok(())

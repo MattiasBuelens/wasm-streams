@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
-use wasm_bindgen::{throw_val, JsValue};
+use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 
 use crate::util::promise_to_void_future;
@@ -22,7 +23,11 @@ pub struct ReadableStreamDefaultReader<'stream> {
 impl<'stream> ReadableStreamDefaultReader<'stream> {
     pub(crate) fn new(stream: &mut ReadableStream) -> Result<Self, js_sys::Error> {
         Ok(Self {
-            raw: stream.as_raw().get_reader()?,
+            raw: stream
+                .as_raw()
+                .unchecked_ref::<sys::ReadableStreamExt>()
+                .try_get_reader()?
+                .unchecked_into(),
             _stream: PhantomData,
         })
     }
@@ -65,8 +70,8 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// * If the stream encounters an `error`, this returns `Err(error)`.
     pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
         let promise = self.as_raw().read();
-        let js_value = JsFuture::from(promise).await?;
-        let result = sys::ReadableStreamDefaultReadResult::from(js_value);
+        let js_result = JsFuture::from(promise).await?;
+        let result = sys::ReadableStreamReadResult::from(js_result);
         if result.is_done() {
             Ok(None)
         } else {
@@ -91,9 +96,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     }
 
     fn release_lock_mut(&mut self) {
-        self.as_raw()
-            .release_lock()
-            .unwrap_or_else(|error| throw_val(error.into()))
+        self.as_raw().release_lock()
     }
 
     /// Try to [release](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
@@ -109,7 +112,10 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// return an error and leave the reader locked to the stream.
     #[inline]
     pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
-        self.as_raw().release_lock().map_err(|error| (error, self))
+        self.as_raw()
+            .unchecked_ref::<sys::ReadableStreamReaderExt>()
+            .try_release_lock()
+            .map_err(|err| (err, self))
     }
 
     /// Converts this `ReadableStreamDefaultReader` into a [`Stream`].
@@ -119,7 +125,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// usable. This allows reading only a few chunks from the `Stream`, while still allowing
     /// another reader to read the remaining chunks later on.
     ///
-    /// [`Stream`]: https://docs.rs/futures/0.3.18/futures/stream/trait.Stream.html
+    /// [`Stream`]: https://docs.rs/futures/0.3.28/futures/stream/trait.Stream.html
     #[inline]
     pub fn into_stream(self) -> IntoStream<'stream> {
         IntoStream::new(self, false)

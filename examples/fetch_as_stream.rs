@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get the response's body as a JS ReadableStream
     let raw_body = resp.body().unwrap_throw();
-    let body = ReadableStream::from_raw(raw_body.dyn_into().unwrap_throw());
+    let body = ReadableStream::from_raw(raw_body);
 
     // Convert the JS ReadableStream to a Rust stream
     let mut stream = body.into_stream();
