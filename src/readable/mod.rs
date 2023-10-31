@@ -2,6 +2,7 @@
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 use futures_util::io::AsyncRead;
 use futures_util::Stream;
+use js_sys::Object;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
@@ -94,6 +95,24 @@ impl ReadableStream {
         let source = IntoUnderlyingByteSource::new(Box::new(async_read), default_buffer_len);
         let raw = sys::ReadableStreamExt::new_with_into_underlying_byte_source(source)
             .expect_throw("readable byte streams not supported")
+            .unchecked_into();
+        Self { raw }
+    }
+
+    /// Creates a new `ReadableStream` wrapping the provided [iterable] or [async iterable].
+    ///
+    /// This can be used to adapt various kinds of objects into a readable stream,
+    /// such as an [array], an [async generator] or a [Node.js readable stream][Readable].
+    ///
+    /// [iterable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
+    /// [async iterable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_async_iterator_and_async_iterable_protocols
+    /// [array]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
+    /// [async generator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator
+    /// [Readable]: https://nodejs.org/api/stream.html#class-streamreadable
+    // TODO Non-panicking variant?
+    pub fn from(async_iterable: Object) -> Self {
+        let raw = sys::ReadableStreamExt::from_async_iterable(&async_iterable)
+            .unwrap_throw()
             .unchecked_into();
         Self { raw }
     }
