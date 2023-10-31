@@ -33,14 +33,14 @@ impl PipeOptions {
 
     /// Convert this to a raw [`PipeOptions`](sys::PipeOptions) object.
     pub fn into_raw(self) -> sys::PipeOptions {
-        let mut options = sys::PipeOptions::new();
-        options.prevent_close(self.prevent_close);
-        options.prevent_cancel(self.prevent_cancel);
-        options.prevent_abort(self.prevent_abort);
-        if let Some(signal) = self.signal.as_ref() {
-            options.signal(signal);
+        let options = sys::StreamPipeOptionsExt::new();
+        options.set_prevent_close(self.prevent_close);
+        options.set_prevent_cancel(self.prevent_cancel);
+        options.set_prevent_abort(self.prevent_abort);
+        if let signal @ Some(_) = self.signal {
+            options.set_signal(signal);
         }
-        options
+        options.unchecked_into()
     }
 
     /// Sets whether the destination writable stream should be closed

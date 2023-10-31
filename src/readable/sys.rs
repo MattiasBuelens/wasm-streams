@@ -80,15 +80,30 @@ extern "C" {
     #[derive(Clone, Debug)]
     pub(crate) type StreamPipeOptionsExt;
 
+    #[wasm_bindgen(constructor, js_class = Object)]
+    pub(crate) fn new() -> StreamPipeOptionsExt;
+
     #[wasm_bindgen(method, getter, js_name = preventClose)]
     pub fn prevent_close(this: &StreamPipeOptionsExt) -> bool;
+
+    #[wasm_bindgen(method, setter, js_name = preventClose)]
+    pub fn set_prevent_close(this: &StreamPipeOptionsExt, value: bool);
 
     #[wasm_bindgen(method, getter, js_name = preventCancel)]
     pub fn prevent_cancel(this: &StreamPipeOptionsExt) -> bool;
 
+    #[wasm_bindgen(method, setter, js_name = preventCancel)]
+    pub fn set_prevent_cancel(this: &StreamPipeOptionsExt, value: bool);
+
     #[wasm_bindgen(method, getter, js_name = preventAbort)]
     pub fn prevent_abort(this: &StreamPipeOptionsExt) -> bool;
 
+    #[wasm_bindgen(method, setter, js_name = preventAbort)]
+    pub fn set_prevent_abort(this: &StreamPipeOptionsExt, value: bool);
+
     #[wasm_bindgen(method, getter, js_name = signal)]
     pub fn signal(this: &StreamPipeOptionsExt) -> Option<AbortSignal>;
+
+    #[wasm_bindgen(method, setter, js_name = signal)]
+    pub fn set_signal(this: &StreamPipeOptionsExt, value: Option<AbortSignal>);
 }
