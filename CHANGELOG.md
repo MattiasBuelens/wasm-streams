@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.4.0 (2023-10-31)
 
 * Added `ReadableStream::from(async_iterable)` and `try_from(async_iterable)`. ([#23](https://github.com/MattiasBuelens/wasm-streams/pull/23))
 * Stop calling `byobRequest.respond(0)` on cancel ([#16](https://github.com/MattiasBuelens/wasm-streams/pull/16))
