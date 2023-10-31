@@ -47,6 +47,9 @@ extern "C" {
 
     #[wasm_bindgen(method, catch, js_class = ReadableStream, js_name = tee)]
     pub(crate) fn try_tee(this: &ReadableStreamExt) -> Result<Array, Error>;
+
+    #[wasm_bindgen(catch, static_method_of = ReadableStreamExt, js_class = ReadableStream, js_name = from)]
+    pub(crate) fn from_async_iterable(async_iterable: &Object) -> Result<ReadableStreamExt, Error>;
 }
 
 #[wasm_bindgen]
