@@ -3,8 +3,8 @@
 use futures_util::io::AsyncRead;
 use futures_util::Stream;
 use js_sys::Object;
-use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 
 pub use byob_reader::ReadableStreamBYOBReader;
 pub use default_reader::ReadableStreamDefaultReader;
