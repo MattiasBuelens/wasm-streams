@@ -22,14 +22,13 @@ pub struct ReadableStreamBYOBReader<'stream> {
 
 impl<'stream> ReadableStreamBYOBReader<'stream> {
     pub(crate) fn new(stream: &mut ReadableStream) -> Result<Self, js_sys::Error> {
+        let reader_options = sys::ReadableStreamGetReaderOptions::new();
+        reader_options.set_mode(sys::ReadableStreamReaderMode::Byob);
         Ok(Self {
             raw: stream
                 .as_raw()
                 .unchecked_ref::<sys::ReadableStreamExt>()
-                .try_get_reader_with_options(
-                    sys::ReadableStreamGetReaderOptions::new()
-                        .mode(sys::ReadableStreamReaderMode::Byob),
-                )?
+                .try_get_reader_with_options(&reader_options)?
                 .unchecked_into(),
             _stream: PhantomData,
         })
