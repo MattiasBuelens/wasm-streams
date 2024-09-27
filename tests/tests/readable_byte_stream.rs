@@ -1,14 +1,17 @@
 use std::pin::Pin;
 use std::task::Poll;
+use std::time::Duration;
 
 use futures_util::AsyncReadExt;
 use futures_util::{poll, FutureExt};
+use gloo_timers::future::sleep;
 use js_sys::Uint8Array;
 use wasm_bindgen_test::*;
 
 use wasm_streams::readable::*;
 
 use crate::js::*;
+use crate::util::*;
 
 #[wasm_bindgen_test]
 async fn test_readable_byte_stream_new() {
@@ -297,6 +300,8 @@ async fn test_readable_byte_stream_into_async_read_auto_cancel() {
 
 #[wasm_bindgen_test]
 async fn test_readable_byte_stream_into_async_read_auto_cancel_rejects() {
+    let _guard = UnhandledErrorGuard::new();
+
     let raw_readable = new_readable_byte_stream_with_rejecting_cancel();
     let readable = ReadableStream::from_raw(raw_readable.clone());
     let async_read = readable.into_async_read();
@@ -309,6 +314,9 @@ async fn test_readable_byte_stream_into_async_read_auto_cancel_rejects() {
     assert!(!readable.is_locked());
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), None);
+
+    // Wait a little bit for any unhandled rejections
+    sleep(Duration::from_millis(100)).await;
 }
 
 #[wasm_bindgen_test]

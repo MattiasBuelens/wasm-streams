@@ -1,8 +1,10 @@
 use std::pin::Pin;
 use std::task::Poll;
+use std::time::Duration;
 
 use futures_util::stream::{iter, pending, StreamExt, TryStreamExt};
 use futures_util::{poll, AsyncReadExt, FutureExt};
+use gloo_timers::future::sleep;
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -274,6 +276,8 @@ async fn test_readable_stream_into_stream_manual_cancel() {
 
 #[wasm_bindgen_test]
 async fn test_readable_stream_into_stream_auto_cancel_rejects() {
+    let _guard = UnhandledErrorGuard::new();
+
     let raw_readable = new_readable_stream_with_rejecting_cancel();
     let readable = ReadableStream::from_raw(raw_readable.clone());
     let stream = readable.into_stream();
@@ -286,6 +290,9 @@ async fn test_readable_stream_into_stream_auto_cancel_rejects() {
     assert!(!readable.is_locked());
     let mut reader = readable.get_reader();
     assert_eq!(reader.read().await.unwrap(), None);
+
+    // Wait a little bit for any unhandled rejections
+    sleep(Duration::from_millis(100)).await;
 }
 
 #[wasm_bindgen_test]
