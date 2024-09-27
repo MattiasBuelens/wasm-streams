@@ -40,7 +40,7 @@ impl WritableStream {
 
     /// Creates a new `WritableStream` from a [`Sink`].
     ///
-    /// Items and errors must be represented as raw [`JsValue`](JsValue)s.
+    /// Items and errors must be represented as raw [`JsValue`]s.
     /// Use [`with`] and/or [`sink_map_err`] to convert a sink's items to a `JsValue`
     /// before passing it to this function.
     ///
@@ -119,7 +119,7 @@ impl WritableStream {
 
     /// Converts this `WritableStream` into a [`Sink`].
     ///
-    /// Items and errors are represented by their raw [`JsValue`](JsValue).
+    /// Items and errors are represented by their raw [`JsValue`].
     /// Use [`with`] and/or [`sink_map_err`] on the returned stream to convert them to a more
     /// appropriate type.
     ///
@@ -137,7 +137,7 @@ impl WritableStream {
 
     /// Try to convert this `WritableStream` into a [`Sink`].
     ///
-    /// Items and errors are represented by their raw [`JsValue`](JsValue).
+    /// Items and errors are represented by their raw [`JsValue`].
     /// Use [`with`] and/or [`sink_map_err`] on the returned stream to convert them to a more
     /// appropriate type.
     ///

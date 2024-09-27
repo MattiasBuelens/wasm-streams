@@ -55,7 +55,7 @@ impl ReadableStream {
 
     /// Creates a new `ReadableStream` from a [`Stream`].
     ///
-    /// Items and errors must be represented as raw [`JsValue`](JsValue)s.
+    /// Items and errors must be represented as raw [`JsValue`]s.
     /// Use [`map`], [`map_ok`] and/or [`map_err`] to convert a stream's items to a `JsValue`
     /// before passing it to this function.
     ///
@@ -263,7 +263,7 @@ impl ReadableStream {
     }
 
     /// [Tees](https://streams.spec.whatwg.org/#tee-a-readable-stream) this readable stream,
-    /// returning the two resulting branches as new [`ReadableStream`](ReadableStream) instances.
+    /// returning the two resulting branches as new [`ReadableStream`] instances.
     ///
     /// Teeing a stream will [lock](https://streams.spec.whatwg.org/#lock) it, preventing any other
     /// consumer from acquiring a reader.
@@ -281,7 +281,7 @@ impl ReadableStream {
     }
 
     /// Tries to [tee](https://streams.spec.whatwg.org/#tee-a-readable-stream) this readable stream,
-    /// returning the two resulting branches as new [`ReadableStream`](ReadableStream) instances.
+    /// returning the two resulting branches as new [`ReadableStream`] instances.
     ///
     /// Teeing a stream will [lock](https://streams.spec.whatwg.org/#lock) it, preventing any other
     /// consumer from acquiring a reader.
@@ -310,7 +310,7 @@ impl ReadableStream {
 
     /// Converts this `ReadableStream` into a [`Stream`].
     ///
-    /// Items and errors are represented by their raw [`JsValue`](JsValue).
+    /// Items and errors are represented by their raw [`JsValue`].
     /// Use [`map`], [`map_ok`] and/or [`map_err`] on the returned stream to convert them to a more
     /// appropriate type.
     ///
@@ -329,7 +329,7 @@ impl ReadableStream {
 
     /// Try to convert this `ReadableStream` into a [`Stream`].
     ///
-    /// Items and errors are represented by their raw [`JsValue`](JsValue).
+    /// Items and errors are represented by their raw [`JsValue`].
     /// Use [`map`], [`map_ok`] and/or [`map_err`] on the returned stream to convert them to a more
     /// appropriate type.
     ///
