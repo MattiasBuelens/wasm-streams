@@ -72,10 +72,10 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
         let promise = self.as_raw().read();
         let js_result = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamReadResult::from(js_result);
-        if result.is_done() {
+        if result.get_done().unwrap_or_default() {
             Ok(None)
         } else {
-            Ok(Some(result.value()))
+            Ok(Some(result.get_value()))
         }
     }
 

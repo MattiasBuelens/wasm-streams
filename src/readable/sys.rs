@@ -13,6 +13,7 @@ pub use web_sys::ReadableStreamDefaultController;
 pub use web_sys::ReadableStreamDefaultReader;
 pub use web_sys::ReadableStreamGetReaderOptions;
 pub use web_sys::ReadableStreamReaderMode;
+pub use web_sys::ReadableStreamReadResult;
 pub use web_sys::StreamPipeOptions as PipeOptions;
 
 use crate::queuing_strategy::sys::QueuingStrategy;
@@ -60,20 +61,6 @@ extern "C" {
 
     #[wasm_bindgen(method, catch, js_name = releaseLock)]
     pub(crate) fn try_release_lock(this: &ReadableStreamReaderExt) -> Result<(), Error>;
-}
-
-#[wasm_bindgen]
-extern "C" {
-    /// A result returned by [`ReadableStreamDefaultReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read)
-    /// or [`ReadableStreamBYOBReader.read`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read).
-    #[derive(Clone, Debug)]
-    pub(crate) type ReadableStreamReadResult;
-
-    #[wasm_bindgen(method, getter, js_name = done)]
-    pub(crate) fn is_done(this: &ReadableStreamReadResult) -> bool;
-
-    #[wasm_bindgen(method, getter, js_name = value)]
-    pub(crate) fn value(this: &ReadableStreamReadResult) -> JsValue;
 }
 
 #[wasm_bindgen]

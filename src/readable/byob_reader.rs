@@ -118,10 +118,10 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let promise = self.as_raw().read_with_array_buffer_view(&view);
         let js_result = JsFuture::from(promise).await?;
         let result = sys::ReadableStreamReadResult::from(js_result);
-        let js_value = result.value();
+        let js_value = result.get_value();
         let filled_view = if js_value.is_undefined() {
             // No new view was returned. The stream must have been canceled.
-            assert!(result.is_done());
+            assert!(result.get_done().unwrap_or_default());
             return Ok((0, None));
         } else {
             js_value.unchecked_into::<Uint8Array>()
@@ -134,7 +134,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
             buffer_offset,
             buffer_len,
         );
-        if result.is_done() {
+        if result.get_done().unwrap_or_default() {
             debug_assert_eq!(filled_len, 0);
         } else {
             filled_view.copy_to(&mut dst[0..filled_len]);

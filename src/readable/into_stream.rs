@@ -88,12 +88,12 @@ impl<'reader> Stream for IntoStream<'reader> {
         Poll::Ready(match js_result {
             Ok(js_value) => {
                 let result = ReadableStreamReadResult::from(js_value);
-                if result.is_done() {
+                if result.get_done().unwrap_or_default() {
                     // End of stream, drop reader
                     self.reader = None;
                     None
                 } else {
-                    Some(Ok(result.value()))
+                    Some(Ok(result.get_value()))
                 }
             }
             Err(js_value) => {
