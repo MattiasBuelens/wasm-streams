@@ -3,7 +3,6 @@
 //! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.70/web_sys/struct.ReadableStream.html).
 use js_sys::{Array, Error, Object};
 use wasm_bindgen::prelude::*;
-use web_sys::AbortSignal;
 pub use web_sys::ReadableByteStreamController;
 // Re-export from web-sys
 pub use web_sys::ReadableStream;
@@ -61,39 +60,4 @@ extern "C" {
 
     #[wasm_bindgen(method, catch, js_name = releaseLock)]
     pub(crate) fn try_release_lock(this: &ReadableStreamReaderExt) -> Result<(), Error>;
-}
-
-#[wasm_bindgen]
-extern "C" {
-    /// Additional methods for [`StreamPipeOptions`](web_sys::StreamPipeOptions).
-    #[wasm_bindgen(extends = PipeOptions)]
-    #[derive(Clone, Debug)]
-    pub(crate) type StreamPipeOptionsExt;
-
-    #[wasm_bindgen(constructor, js_class = Object)]
-    pub(crate) fn new() -> StreamPipeOptionsExt;
-
-    #[wasm_bindgen(method, getter, js_name = preventClose)]
-    pub fn prevent_close(this: &StreamPipeOptionsExt) -> bool;
-
-    #[wasm_bindgen(method, setter, js_name = preventClose)]
-    pub fn set_prevent_close(this: &StreamPipeOptionsExt, value: bool);
-
-    #[wasm_bindgen(method, getter, js_name = preventCancel)]
-    pub fn prevent_cancel(this: &StreamPipeOptionsExt) -> bool;
-
-    #[wasm_bindgen(method, setter, js_name = preventCancel)]
-    pub fn set_prevent_cancel(this: &StreamPipeOptionsExt, value: bool);
-
-    #[wasm_bindgen(method, getter, js_name = preventAbort)]
-    pub fn prevent_abort(this: &StreamPipeOptionsExt) -> bool;
-
-    #[wasm_bindgen(method, setter, js_name = preventAbort)]
-    pub fn set_prevent_abort(this: &StreamPipeOptionsExt, value: bool);
-
-    #[wasm_bindgen(method, getter, js_name = signal)]
-    pub fn signal(this: &StreamPipeOptionsExt) -> Option<AbortSignal>;
-
-    #[wasm_bindgen(method, setter, js_name = signal)]
-    pub fn set_signal(this: &StreamPipeOptionsExt, value: Option<AbortSignal>);
 }
