@@ -38,6 +38,12 @@ impl UnhandledErrorGuard {
     }
 }
 
+impl Default for UnhandledErrorGuard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Drop for UnhandledErrorGuard {
     fn drop(&mut self) {
         // Remove listeners

@@ -198,7 +198,7 @@ async fn test_writable_stream_writer_into_async_write() {
         let writer = writable.get_writer();
         let mut async_write = writer.into_async_write();
 
-        async_write.write(&[1, 2, 3]).await.unwrap();
+        async_write.write_all(&[1, 2, 3]).await.unwrap();
     }
 
     assert_eq!(

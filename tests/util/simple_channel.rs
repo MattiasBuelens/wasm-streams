@@ -23,6 +23,12 @@ impl<T> SimpleChannel<T> {
     }
 }
 
+impl<T> Default for SimpleChannel<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> Stream for SimpleChannel<T> {
     type Item = T;
 

@@ -48,11 +48,8 @@ async fn test_readable_byte_stream_read_with_buffer() {
 
     let mut reader = readable.get_byob_reader();
     let mut dst = [0u8; 3];
-    let buf = Some(Uint8Array::new_with_length(3));
-    let (bytes_read, buf) = reader
-        .read_with_buffer(&mut dst, buf.unwrap())
-        .await
-        .unwrap();
+    let buf = Uint8Array::new_with_length(3);
+    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
     assert_eq!(bytes_read, 3);
     assert_eq!(&dst, &[1, 2, 3]);
     let (bytes_read, buf) = reader
@@ -145,11 +142,8 @@ async fn test_readable_byte_stream_from_async_read() {
 
     let mut reader = readable.get_byob_reader();
     let mut dst = [0u8; 3];
-    let buf = Some(Uint8Array::new_with_length(3));
-    let (bytes_read, buf) = reader
-        .read_with_buffer(&mut dst, buf.unwrap())
-        .await
-        .unwrap();
+    let buf = Uint8Array::new_with_length(3);
+    let (bytes_read, buf) = reader.read_with_buffer(&mut dst, buf).await.unwrap();
     assert_eq!(bytes_read, 3);
     assert_eq!(&dst, &[1, 2, 3]);
     let (bytes_read, buf) = reader
