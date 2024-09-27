@@ -71,8 +71,9 @@ impl ReadableStream {
         // Set HWM to 0 to prevent the JS ReadableStream from buffering chunks in its queue,
         // since the original Rust stream is better suited to handle that.
         let strategy = QueuingStrategy::new(0.0);
-        let raw = sys::ReadableStreamExt::new_with_into_underlying_source(source, strategy.into_raw())
-            .unchecked_into();
+        let raw =
+            sys::ReadableStreamExt::new_with_into_underlying_source(source, strategy.into_raw())
+                .unchecked_into();
         Self::from_raw(raw)
     }
 

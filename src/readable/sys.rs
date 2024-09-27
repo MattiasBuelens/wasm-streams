@@ -11,8 +11,8 @@ pub use web_sys::ReadableStreamByobRequest as ReadableStreamBYOBRequest;
 pub use web_sys::ReadableStreamDefaultController;
 pub use web_sys::ReadableStreamDefaultReader;
 pub use web_sys::ReadableStreamGetReaderOptions;
-pub use web_sys::ReadableStreamReaderMode;
 pub use web_sys::ReadableStreamReadResult;
+pub use web_sys::ReadableStreamReaderMode;
 pub use web_sys::ReadableStreamType;
 pub use web_sys::StreamPipeOptions as PipeOptions;
 
