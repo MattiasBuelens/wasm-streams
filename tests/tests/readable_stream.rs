@@ -273,6 +273,22 @@ async fn test_readable_stream_into_stream_manual_cancel() {
 }
 
 #[wasm_bindgen_test]
+async fn test_readable_stream_into_stream_auto_cancel_rejects() {
+    let raw_readable = new_readable_stream_with_rejecting_cancel();
+    let readable = ReadableStream::from_raw(raw_readable.clone());
+    let stream = readable.into_stream();
+
+    // Drop the stream
+    drop(stream);
+
+    // Stream must be unlocked and cancelled
+    let mut readable = ReadableStream::from_raw(raw_readable);
+    assert!(!readable.is_locked());
+    let mut reader = readable.get_reader();
+    assert_eq!(reader.read().await.unwrap(), None);
+}
+
+#[wasm_bindgen_test]
 async fn test_readable_stream_into_stream_then_into_async_read() {
     let readable = ReadableStream::from_raw(new_readable_stream_from_array(
         vec![

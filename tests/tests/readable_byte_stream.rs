@@ -296,6 +296,22 @@ async fn test_readable_byte_stream_into_async_read_auto_cancel() {
 }
 
 #[wasm_bindgen_test]
+async fn test_readable_byte_stream_into_async_read_auto_cancel_rejects() {
+    let raw_readable = new_readable_byte_stream_with_rejecting_cancel();
+    let readable = ReadableStream::from_raw(raw_readable.clone());
+    let async_read = readable.into_async_read();
+
+    // Drop the AsyncRead
+    drop(async_read);
+
+    // Stream must be unlocked and cancelled
+    let mut readable = ReadableStream::from_raw(raw_readable);
+    assert!(!readable.is_locked());
+    let mut reader = readable.get_reader();
+    assert_eq!(reader.read().await.unwrap(), None);
+}
+
+#[wasm_bindgen_test]
 async fn test_readable_byte_stream_into_async_read_manual_cancel() {
     let raw_readable = new_noop_readable_byte_stream();
     let readable = ReadableStream::from_raw(raw_readable.clone());

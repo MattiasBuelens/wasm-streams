@@ -47,6 +47,23 @@ export function new_readable_byte_stream_from_array(chunks) {
     });
 }
 
+export function new_readable_stream_with_rejecting_cancel() {
+    return new ReadableStream({
+        cancel(reason) {
+            return Promise.reject('error from cancel');
+        }
+    });
+}
+
+export function new_readable_byte_stream_with_rejecting_cancel() {
+    return new ReadableStream({
+        type: 'bytes',
+        cancel(reason) {
+            return Promise.reject('error from cancel');
+        }
+    });
+}
+
 /**
  * Tests whether `reader.releaseLock()` is allowed while there are pending read requests.
  *
