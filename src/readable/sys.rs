@@ -15,7 +15,7 @@ pub use web_sys::ReadableStreamGetReaderOptions;
 pub use web_sys::ReadableStreamReaderMode;
 pub use web_sys::StreamPipeOptions as PipeOptions;
 
-use crate::queuing_strategy::QueuingStrategy;
+use crate::queuing_strategy::sys::QueuingStrategy;
 use crate::readable::into_underlying_byte_source::IntoUnderlyingByteSource;
 use crate::readable::into_underlying_source::IntoUnderlyingSource;
 
