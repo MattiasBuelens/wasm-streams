@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.4.1 (2024-09-28)
 
 * Fixed "closure invoked recursively or after being dropped" when dropping `IntoStream` and `IntoAsyncRead`. ([#24](https://github.com/MattiasBuelens/wasm-streams/issues/24), [#25](https://github.com/MattiasBuelens/wasm-streams/pull/25))
 
