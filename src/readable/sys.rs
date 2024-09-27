@@ -13,6 +13,7 @@ pub use web_sys::ReadableStreamDefaultReader;
 pub use web_sys::ReadableStreamGetReaderOptions;
 pub use web_sys::ReadableStreamReaderMode;
 pub use web_sys::ReadableStreamReadResult;
+pub use web_sys::ReadableStreamType;
 pub use web_sys::StreamPipeOptions as PipeOptions;
 
 use crate::queuing_strategy::sys::QueuingStrategy;

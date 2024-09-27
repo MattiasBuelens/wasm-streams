@@ -35,8 +35,8 @@ impl IntoUnderlyingByteSource {
 #[wasm_bindgen]
 impl IntoUnderlyingByteSource {
     #[wasm_bindgen(getter, js_name = type)]
-    pub fn type_(&self) -> String {
-        "bytes".into()
+    pub fn type_(&self) -> sys::ReadableStreamType {
+        sys::ReadableStreamType::Bytes
     }
 
     #[wasm_bindgen(getter, js_name = autoAllocateChunkSize)]
