@@ -17,7 +17,7 @@ use super::IntoSink;
 /// When this `AsyncWrite` is dropped, it also drops its writer which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 ///
-/// [`AsyncWrite`]: https://docs.rs/futures/0.3.28/futures/io/trait.AsyncWrite.html
+/// [`AsyncWrite`]: https://docs.rs/futures/0.3.30/futures/io/trait.AsyncWrite.html
 #[must_use = "writers do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoAsyncWrite<'writer> {

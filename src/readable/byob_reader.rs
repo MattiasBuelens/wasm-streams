@@ -189,7 +189,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// still usable. This allows reading only a few bytes from the `AsyncRead`, while still
     /// allowing another reader to read the remaining bytes later on.
     ///
-    /// [`AsyncRead`]: https://docs.rs/futures/0.3.28/futures/io/trait.AsyncRead.html
+    /// [`AsyncRead`]: https://docs.rs/futures/0.3.30/futures/io/trait.AsyncRead.html
     #[inline]
     pub fn into_async_read(self) -> IntoAsyncRead<'stream> {
         IntoAsyncRead::new(self, false)

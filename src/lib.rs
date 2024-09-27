@@ -5,9 +5,9 @@
 //! [`WritableStream`](crate::WritableStream) and [`TransformStream`](crate::TransformStream).
 //! It also supports converting from and into [`Stream`]s and [`Sink`]s from the [futures] crate.
 //!
-//! [`Stream`]: https://docs.rs/futures/0.3.28/futures/stream/trait.Stream.html
-//! [`Sink`]: https://docs.rs/futures/0.3.28/futures/sink/trait.Sink.html
-//! [futures]: https://docs.rs/futures/0.3.28/futures/index.html
+//! [`Stream`]: https://docs.rs/futures/0.3.30/futures/stream/trait.Stream.html
+//! [`Sink`]: https://docs.rs/futures/0.3.30/futures/sink/trait.Sink.html
+//! [futures]: https://docs.rs/futures/0.3.30/futures/index.html
 
 pub use readable::ReadableStream;
 pub use transform::TransformStream;

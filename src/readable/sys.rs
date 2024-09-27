@@ -1,6 +1,6 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-//! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.64/web_sys/struct.ReadableStream.html).
+//! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.70/web_sys/struct.ReadableStream.html).
 use js_sys::{Array, Error, Object};
 use wasm_bindgen::prelude::*;
 use web_sys::AbortSignal;

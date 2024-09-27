@@ -20,7 +20,7 @@ use super::ReadableStreamBYOBReader;
 /// When this `AsyncRead` is dropped, it also drops its reader which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
 ///
-/// [`AsyncRead`]: https://docs.rs/futures/0.3.28/futures/io/trait.AsyncRead.html
+/// [`AsyncRead`]: https://docs.rs/futures/0.3.30/futures/io/trait.AsyncRead.html
 #[must_use = "readers do nothing unless polled"]
 #[derive(Debug)]
 pub struct IntoAsyncRead<'reader> {
