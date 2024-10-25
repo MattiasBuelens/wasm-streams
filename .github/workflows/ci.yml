@@ -13,6 +13,11 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
+      - name: Install Node 23
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+
       - name: Run cargo check
         run: cargo check --target=wasm32-unknown-unknown
 
@@ -21,6 +26,9 @@ jobs:
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Test on Node
+        run: wasm-pack test --node
 
       - name: Test on Chrome
         run: wasm-pack test --headless --chrome
