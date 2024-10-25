@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.2 (2024-10-25)
+
+* Updated to `wasm-bindgen` 0.2.95 and `web-sys` 0.3.72.
+* Used more `web-sys` types directly for the crate's internals.
+
 ## v0.4.1 (2024-09-28)
 
 * Fixed "closure invoked recursively or after being dropped" when dropping `IntoStream` and `IntoAsyncRead`. ([#24](https://github.com/MattiasBuelens/wasm-streams/issues/24), [#25](https://github.com/MattiasBuelens/wasm-streams/pull/25))
