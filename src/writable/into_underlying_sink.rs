@@ -74,10 +74,7 @@ impl Inner {
     }
 
     async fn close(&mut self) -> Result<(), JsValue> {
-        let sink = self.sink.as_mut().unwrap_throw();
-        let result = sink.close().await;
-        self.sink = None;
-        result
+        self.sink.take().unwrap_throw().close().await
     }
 
     async fn abort(&mut self, _reason: JsValue) -> Result<(), JsValue> {
