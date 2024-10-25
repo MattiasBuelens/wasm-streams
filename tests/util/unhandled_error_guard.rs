@@ -25,11 +25,12 @@ impl UnhandledErrorGuard {
                 }
             })
         };
-        for event_type in ERROR_TYPES {
-            window()
-                .unwrap()
-                .add_event_listener_with_callback(event_type, listener.as_ref().unchecked_ref())
-                .unwrap();
+        if let Some(window) = window() {
+            for event_type in ERROR_TYPES {
+                window
+                    .add_event_listener_with_callback(event_type, listener.as_ref().unchecked_ref())
+                    .unwrap();
+            }
         }
         Self {
             errors,
@@ -47,14 +48,15 @@ impl Default for UnhandledErrorGuard {
 impl Drop for UnhandledErrorGuard {
     fn drop(&mut self) {
         // Remove listeners
-        for event_type in ERROR_TYPES {
-            window()
-                .unwrap()
-                .add_event_listener_with_callback(
-                    event_type,
-                    self.listener.as_ref().unchecked_ref(),
-                )
-                .unwrap();
+        if let Some(window) = window() {
+            for event_type in ERROR_TYPES {
+                window
+                    .add_event_listener_with_callback(
+                        event_type,
+                        self.listener.as_ref().unchecked_ref(),
+                    )
+                    .unwrap();
+            }
         }
         // Panic if there are any errors
         let errors = self.errors.take();

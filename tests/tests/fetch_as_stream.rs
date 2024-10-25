@@ -1,17 +1,17 @@
 use futures_util::{AsyncReadExt, TryStreamExt};
-use js_sys::Uint8Array;
+use js_sys::{global, Uint8Array};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen_test::*;
 use wasm_streams::ReadableStream;
-use web_sys::{window, Response};
+use web_sys::{Response, Window};
 
 #[wasm_bindgen_test]
 async fn test_fetch_as_stream() {
     // Make a fetch request
     let url = "https://rustwasm.github.io/assets/wasm-ferris.png";
-    let window = window().unwrap_throw();
+    let window = global().unchecked_into::<Window>(); // hack to also support Node.js
     let resp_value = JsFuture::from(window.fetch_with_str(url))
         .await
         .unwrap_throw();
