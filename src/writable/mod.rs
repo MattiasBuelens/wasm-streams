@@ -102,7 +102,7 @@ impl WritableStream {
     /// **Panics** if the stream is already locked to a writer. For a non-panicking variant,
     /// use [`try_get_writer`](Self::try_get_writer).
     #[inline]
-    pub fn get_writer(&mut self) -> WritableStreamDefaultWriter {
+    pub fn get_writer(&mut self) -> WritableStreamDefaultWriter<'_> {
         self.try_get_writer()
             .expect_throw("already locked to a writer")
     }
@@ -113,7 +113,7 @@ impl WritableStream {
     /// While the stream is locked, no other writer can be acquired until this one is released.
     ///
     /// If the stream is already locked to a writer, then this returns an error.
-    pub fn try_get_writer(&mut self) -> Result<WritableStreamDefaultWriter, js_sys::Error> {
+    pub fn try_get_writer(&mut self) -> Result<WritableStreamDefaultWriter<'_>, js_sys::Error> {
         WritableStreamDefaultWriter::new(self)
     }
 

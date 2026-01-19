@@ -181,7 +181,7 @@ impl ReadableStream {
     /// **Panics** if the stream is already locked to a reader. For a non-panicking variant,
     /// use [`try_get_reader`](Self::try_get_reader).
     #[inline]
-    pub fn get_reader(&mut self) -> ReadableStreamDefaultReader {
+    pub fn get_reader(&mut self) -> ReadableStreamDefaultReader<'_> {
         self.try_get_reader()
             .expect_throw("already locked to a reader")
     }
@@ -192,7 +192,7 @@ impl ReadableStream {
     /// While the stream is locked, no other reader can be acquired until this one is released.
     ///
     /// If the stream is already locked to a reader, then this returns an error.
-    pub fn try_get_reader(&mut self) -> Result<ReadableStreamDefaultReader, js_sys::Error> {
+    pub fn try_get_reader(&mut self) -> Result<ReadableStreamDefaultReader<'_>, js_sys::Error> {
         ReadableStreamDefaultReader::new(self)
     }
 
@@ -203,7 +203,7 @@ impl ReadableStream {
     ///
     /// **Panics** if the stream is already locked to a reader, or if this stream is not a readable
     /// byte stream. For a non-panicking variant, use [`try_get_reader`](Self::try_get_reader).
-    pub fn get_byob_reader(&mut self) -> ReadableStreamBYOBReader {
+    pub fn get_byob_reader(&mut self) -> ReadableStreamBYOBReader<'_> {
         self.try_get_byob_reader()
             .expect_throw("already locked to a reader, or not a readable byte stream")
     }
@@ -214,7 +214,7 @@ impl ReadableStream {
     /// While the stream is locked, no other reader can be acquired until this one is released.
     ///
     /// If the stream is already locked to a reader, then this returns an error.
-    pub fn try_get_byob_reader(&mut self) -> Result<ReadableStreamBYOBReader, js_sys::Error> {
+    pub fn try_get_byob_reader(&mut self) -> Result<ReadableStreamBYOBReader<'_>, js_sys::Error> {
         ReadableStreamBYOBReader::new(self)
     }
 
