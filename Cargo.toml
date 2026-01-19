@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "tests/panic-unwind"]
+
 [package]
 name = "wasm-streams"
 version = "0.4.2"
@@ -10,7 +13,8 @@ description = """
 Bridging between web streams and Rust streams using WebAssembly
 """
 exclude = [
-    ".github/"
+    ".github/",
+    "tests/panic-unwind/",
 ]
 
 [lib]

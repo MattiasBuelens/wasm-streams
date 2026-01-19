@@ -44,6 +44,40 @@ jobs:
       - name: Test on Firefox
         run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --firefox
 
+  test-panic-unwind:
+    name: Test panic=unwind (nightly)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install nightly Rust with rust-src
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly
+          target: wasm32-unknown-unknown
+          components: rust-src
+
+      - name: Install Node 23
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Run cargo check with panic=unwind
+        working-directory: tests/panic-unwind
+        run: cargo check
+
+      - name: Test panic=unwind on Node
+        working-directory: tests/panic-unwind
+        run: wasm-pack test --node
+
+      - name: Test panic=unwind on Chrome
+        working-directory: tests/panic-unwind
+        run: wasm-pack test --headless --chrome
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
