@@ -55,6 +55,8 @@ jobs:
       - name: Test on Safari
         if: ${{ startsWith(matrix.os, 'macos-') }}
         run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --safari
+        env:
+          WASM_BINDGEN_DRIVER_TIMEOUT: 10
 
   lint:
     name: Lint
