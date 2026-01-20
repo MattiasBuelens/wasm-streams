@@ -39,10 +39,14 @@ jobs:
         run: wasm-pack test --node
 
       - name: Test on Chrome
-        run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --chrome
+        run: wasm-pack test --headless --chrome
+        env:
+          WASM_BINDGEN_USE_BROWSER: "1"
 
       - name: Test on Firefox
-        run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --firefox
+        run: wasm-pack test --headless --firefox
+        env:
+          WASM_BINDGEN_USE_BROWSER: "1"
 
   test-panic-unwind:
     name: Test panic=unwind (nightly)
