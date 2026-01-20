@@ -160,8 +160,6 @@ mod tests {
     use wasm_bindgen_test::*;
     use wasm_streams::{ReadableStream, WritableStream};
 
-    wasm_bindgen_test_configure!(run_in_node_experimental);
-
     /// Test that a ReadableStream created from a panicking Stream
     /// can be read until the panic, and that the panic is properly
     /// converted to a JavaScript exception.

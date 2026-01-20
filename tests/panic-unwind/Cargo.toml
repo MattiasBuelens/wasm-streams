@@ -4,6 +4,8 @@ version = "0.0.0"
 edition = "2021"
 publish = false
 
+[workspace]
+
 [lib]
 crate-type = ["cdylib"]
 
@@ -23,3 +25,6 @@ features = [
     "ReadableStream",
     "WritableStream",
 ]
+
+[profile.dev]
+panic = "unwind"

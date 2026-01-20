@@ -3,6 +3,6 @@
 *.iml
 
 # Rust
-/target
+target
 **/*.rs.bk
 Cargo.lock

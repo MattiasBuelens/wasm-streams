@@ -68,15 +68,15 @@ jobs:
 
       - name: Run cargo check with panic=unwind
         working-directory: tests/panic-unwind
-        run: cargo check
+        run: cargo -Z build-std=panic_unwind,std check
 
       - name: Test panic=unwind on Node
         working-directory: tests/panic-unwind
-        run: wasm-pack test --node
+        run: wasm-pack test --node -- -Z build-std=panic_unwind,std
 
       - name: Test panic=unwind on Chrome
         working-directory: tests/panic-unwind
-        run: wasm-pack test --headless --chrome
+        run: wasm-pack test --headless --chrome -- -Z build-std=panic_unwind,std
 
   lint:
     name: Lint

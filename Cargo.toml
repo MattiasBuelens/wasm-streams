@@ -1,5 +1,6 @@
 [workspace]
-members = [".", "tests/panic-unwind"]
+members = ["."]
+exclude = ["tests/panic-unwind"]
 
 [package]
 name = "wasm-streams"
