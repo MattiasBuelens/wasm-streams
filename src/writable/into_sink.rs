@@ -19,6 +19,8 @@ use super::WritableStreamDefaultWriter;
 #[derive(Debug)]
 pub struct IntoSink<'writer> {
     writer: Option<WritableStreamDefaultWriter<'writer>>,
+    /// If an error occurred, this holds the error to return on subsequent operations.
+    error: Option<JsValue>,
     ready_fut: Option<JsFuture>,
     write_fut: Option<JsFuture>,
     close_fut: Option<JsFuture>,
@@ -29,6 +31,7 @@ impl<'writer> IntoSink<'writer> {
     pub(super) fn new(writer: WritableStreamDefaultWriter) -> IntoSink {
         IntoSink {
             writer: Some(writer),
+            error: None,
             ready_fut: None,
             write_fut: None,
             close_fut: None,
@@ -52,6 +55,13 @@ impl<'writer> IntoSink<'writer> {
             None => Ok(()),
         }
     }
+
+    /// Returns the stored error, or a default "sink is closed" error.
+    fn get_error(&self) -> JsValue {
+        self.error
+            .clone()
+            .unwrap_or_else(|| JsValue::from_str("WritableStream sink is already closed"))
+    }
 }
 
 impl<'writer> Sink<JsValue> for IntoSink<'writer> {
@@ -67,9 +77,8 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
                     self.ready_fut.insert(fut)
                 }
                 None => {
-                    // Writer was already dropped
-                    // TODO Return error?
-                    return Poll::Ready(Ok(()));
+                    // Writer was already dropped due to error or close
+                    return Poll::Ready(Err(self.get_error()));
                 }
             },
         };
@@ -85,7 +94,8 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
                 Ok(())
             }
             Err(js_value) => {
-                // Error, drop writer
+                // Error, store it and drop writer
+                self.error = Some(js_value.clone());
                 self.writer = None;
                 Err(js_value)
             }
@@ -101,8 +111,8 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
                 Ok(())
             }
             None => {
-                // TODO Return error?
-                Ok(())
+                // Writer was already dropped due to error or close
+                Err(self.get_error())
             }
         }
     }
@@ -127,7 +137,8 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
                 Ok(())
             }
             Err(js_value) => {
-                // Error, drop writer
+                // Error, store it and drop writer
+                self.error = Some(js_value.clone());
                 self.writer = None;
                 Err(js_value)
             }
@@ -145,9 +156,8 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
                     self.close_fut.insert(fut)
                 }
                 None => {
-                    // Writer was already dropped
-                    // TODO Return error?
-                    return Poll::Ready(Ok(()));
+                    // Writer was already dropped due to error or close
+                    return Poll::Ready(Err(self.get_error()));
                 }
             },
         };
@@ -163,7 +173,10 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
                 debug_assert!(js_value.is_undefined());
                 Ok(())
             }
-            Err(js_value) => Err(js_value),
+            Err(js_value) => {
+                self.error = Some(js_value.clone());
+                Err(js_value)
+            }
         })
     }
 }
