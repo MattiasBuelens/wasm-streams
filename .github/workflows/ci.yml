@@ -72,21 +72,21 @@ jobs:
 
       - name: Run cargo check with panic=unwind
         working-directory: tests/panic-unwind
-        run: cargo -Z build-std=panic_unwind,std check
+        run: cargo check --target wasm32-unknown-unknown -Zbuild-std
         env:
-          CARGO_ENCODED_RUSTFLAGS: "-Cpanic=unwind"
+          RUSTFLAGS: "-Cpanic=unwind"
 
       - name: Test panic=unwind on Node
         working-directory: tests/panic-unwind
-        run: wasm-pack test --node -- -Z build-std=panic_unwind,std
+        run: wasm-pack test --node -- -Zbuild-std
         env:
-          CARGO_ENCODED_RUSTFLAGS: "-Cpanic=unwind"
+          RUSTFLAGS: "-Cpanic=unwind"
 
       - name: Test panic=unwind on Chrome
         working-directory: tests/panic-unwind
-        run: wasm-pack test --headless --chrome -- -Z build-std=panic_unwind,std
+        run: wasm-pack test --headless --chrome -- -Zbuild-std
         env:
-          CARGO_ENCODED_RUSTFLAGS: "-Cpanic=unwind"
+          RUSTFLAGS: "-Cpanic=unwind"
           WASM_BINDGEN_USE_BROWSER: "1"
 
   lint:
