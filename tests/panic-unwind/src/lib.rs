@@ -221,11 +221,7 @@ mod tests {
 
     /// Test that after a panic, the underlying sink is in a clean state (None),
     /// not corrupted. This verifies the take-and-replace pattern works correctly.
-    ///
-    /// Note: We only test that the panic is caught and converted to an error.
-    /// Testing subsequent writes is blocked by a separate bug in IntoSink where
-    /// it returns Ok(()) instead of an error after the stream has errored.
-    /// See: https://github.com/MattiasBuelens/wasm-streams/issues/XX
+    /// Subsequent writes after a panic should return an error.
     #[wasm_bindgen_test]
     async fn test_panic_leaves_clean_state() {
         // Create a sink that panics on first send
@@ -239,9 +235,14 @@ mod tests {
         let result1 = sink.send(JsValue::from(1)).await;
         assert!(result1.is_err(), "Expected error from panic on first write");
 
-        // The fact that we reached here without crashing proves the panic was
-        // caught and the state is clean. The underlying sink Option is now None,
-        // which is the correct state after a panic (not Some(corrupted_sink)).
+        // Subsequent writes after the panic should also return an error,
+        // since the stream is now in an errored state.
+        let result2 = sink.send(JsValue::from(2)).await;
+        assert!(
+            result2.is_err(),
+            "Expected error on write after panic, got: {:?}",
+            result2
+        );
     }
 
     /// Test that a ReadableStream created from a panicking AsyncRead
