@@ -28,7 +28,7 @@ jobs:
           RUSTFLAGS: ""
 
       - name: Install wasm-pack
-        run: curl https://drager.github.io/wasm-pack/installer/init.sh -sSf | sh
+        run: curl https://drager.github.io/wasm-pack/installer/init.sh -sSf | bash
 
       - name: Test on Node
         run: wasm-pack test --node
