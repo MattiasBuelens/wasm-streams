@@ -18,6 +18,8 @@ jobs:
         platform:
           - os: ubuntu-latest
             rust-target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            rust-target: aarch64-apple-darwin
         rust:
           - toolchain: stable
           - toolchain: nightly
@@ -63,6 +65,12 @@ jobs:
 
       - name: Test on Firefox
         run: wasm-pack test --headless --firefox -- ${{ matrix.rust.unstable-flags }}
+        env:
+          WASM_BINDGEN_USE_BROWSER: "1"
+
+      - name: Test on Safari
+        if: ${{ startsWith(matrix.platform.os, 'macos-') }}
+        run: wasm-pack test --headless --safari -- ${{ matrix.rust.unstable-flags }}
         env:
           WASM_BINDGEN_USE_BROWSER: "1"
 
