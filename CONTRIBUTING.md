@@ -1,15 +1,16 @@
 # Testing
 
-The tests use [wasm-pack](https://rustwasm.github.io/wasm-pack/).
-See the [wasm-bindgen guide](https://rustwasm.github.io/wasm-bindgen/wasm-bindgen-test/usage.html) for more information.
+The tests use [wasm-pack](https://drager.github.io/wasm-pack/).
+See the [wasm-bindgen guide](https://wasm-bindgen.github.io/wasm-bindgen/wasm-bindgen-test/usage.html) for more information.
 
-We only run the tests on Chrome, since it's currently the only browser that supports the full streams API.
-Run the tests with:
+We run the tests in Node.js, Chrome and Firefox:
 ```
-wasm-pack test --headless --chrome
+wasm-pack test --node
+WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --chrome
+WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --firefox
 ```
 
-When debugging the tests, remove the `--headless` flag:
+When debugging the browser tests, remove the `--headless` flag:
 ```
-wasm-pack test --chrome
+WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --chrome
 ```

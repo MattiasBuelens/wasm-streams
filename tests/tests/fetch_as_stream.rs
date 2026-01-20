@@ -10,7 +10,7 @@ use web_sys::{Response, Window};
 #[wasm_bindgen_test]
 async fn test_fetch_as_stream() {
     // Make a fetch request
-    let url = "https://rustwasm.github.io/assets/wasm-ferris.png";
+    let url = "https://drager.github.io/wasm-pack/public/img/wasm-ferris.png";
     let window = global().unchecked_into::<Window>(); // hack to also support Node.js
     let resp_value = JsFuture::from(window.fetch_with_str(url))
         .await

@@ -1,5 +1,10 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened, synchronize]
 jobs:
   test:
     name: Test
@@ -28,16 +33,16 @@ jobs:
           RUSTFLAGS: ""
 
       - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        run: curl https://drager.github.io/wasm-pack/installer/init.sh -sSf | bash
 
       - name: Test on Node
         run: wasm-pack test --node
 
       - name: Test on Chrome
-        run: wasm-pack test --headless --chrome
+        run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --chrome
 
       - name: Test on Firefox
-        run: wasm-pack test --headless --firefox
+        run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --firefox
 
   lint:
     name: Lint
