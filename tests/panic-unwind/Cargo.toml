@@ -25,6 +25,3 @@ features = [
     "ReadableStream",
     "WritableStream",
 ]
-
-[profile.dev]
-panic = "unwind"
