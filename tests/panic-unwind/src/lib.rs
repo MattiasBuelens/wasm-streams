@@ -190,6 +190,14 @@ mod tests {
             "Expected error from panic, got: {:?}",
             inner
         );
+
+        // Stream should be closed
+        let result4 = stream.next().await;
+        assert!(
+            result4.is_none(),
+            "Fourth read should be closed, got {:?}",
+            result4
+        );
     }
 
     /// Test that a WritableStream created from a panicking Sink
@@ -272,6 +280,14 @@ mod tests {
             result3.is_err(),
             "Expected error from panic, got: {:?}",
             result3
+        );
+
+        // AsyncRead should be closed
+        let result4 = reader.read(&mut buf).await;
+        assert!(
+            matches!(result4, Ok(0)),
+            "Fourth read should be Ok(0), got: {:?}",
+            result4
         );
     }
 
