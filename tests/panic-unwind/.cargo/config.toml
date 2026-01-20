@@ -2,7 +2,7 @@
 target = "wasm32-unknown-unknown"
 
 [unstable]
-build-std = ["panic_abort", "std"]
+build-std = ["panic_unwind", "std"]
 
 [target.wasm32-unknown-unknown]
 rustflags = ["-Cpanic=unwind"]
