@@ -13,7 +13,7 @@ use wasm_streams::ReadableStream;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Make a fetch request
-    let url = "https://rustwasm.github.io/assets/wasm-ferris.png";
+    let url = "https://drager.github.io/wasm-pack/public/img/wasm-ferris.png";
     let window = window().unwrap_throw();
     let resp_value = JsFuture::from(window.fetch_with_str(url))
         .await
