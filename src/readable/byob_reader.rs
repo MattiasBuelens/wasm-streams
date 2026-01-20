@@ -77,9 +77,9 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// the result before copying to `dst`. We cannot pass a view on the backing WebAssembly memory
     /// directly, because:
     /// * `reader.read(view)` needs to transfer `view.buffer`, but `WebAssembly.Memory` buffers
-    ///    are non-transferable.
+    ///   are non-transferable.
     /// * `view.buffer` can be invalidated if the WebAssembly memory grows while `read(view)`
-    ///    is still in progress.
+    ///   is still in progress.
     ///
     /// Therefore, it is necessary to use a separate buffer living in the JavaScript heap.
     /// To avoid repeated allocations for repeated reads,
