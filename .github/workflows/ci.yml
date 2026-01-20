@@ -8,7 +8,15 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - rust-target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - rust-target: aarch64-apple-darwin
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
@@ -28,7 +36,7 @@ jobs:
         run: cargo check --target=wasm32-unknown-unknown
 
       - name: Run cargo test
-        run: cargo test --target=x86_64-unknown-linux-gnu
+        run: cargo test --target=${{ matrix.rust-target }}
         env:
           RUSTFLAGS: ""
 
@@ -43,6 +51,10 @@ jobs:
 
       - name: Test on Firefox
         run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --firefox
+
+      - name: Test on Safari
+        if: ${{ startsWith(matrix.os, 'macos-') }}
+        run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --safari
 
   lint:
     name: Lint
