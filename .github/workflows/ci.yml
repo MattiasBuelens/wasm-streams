@@ -34,10 +34,10 @@ jobs:
         run: wasm-pack test --node
 
       - name: Test on Chrome
-        run: wasm-pack test --headless --chrome
+        run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --chrome
 
       - name: Test on Firefox
-        run: wasm-pack test --headless --firefox
+        run: WASM_BINDGEN_USE_BROWSER=1 wasm-pack test --headless --firefox
 
   lint:
     name: Lint
