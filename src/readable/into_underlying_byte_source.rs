@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::panic::AssertUnwindSafe;
 use std::pin::Pin;
 use std::rc::Rc;
 
@@ -63,7 +64,11 @@ impl IntoUnderlyingByteSource {
         let fut = fut.unwrap_or_else(|_| Ok(JsValue::undefined()));
 
         self.pull_handle = Some(handle);
-        future_to_promise(fut)
+        // SAFETY: We use the take-and-replace pattern in Inner::pull() to ensure
+        // that if a panic occurs, the async_read is already taken out of the Option,
+        // leaving it in a clean None state. This prevents use of corrupted state
+        // after a panic is caught.
+        future_to_promise(AssertUnwindSafe(fut))
     }
 
     pub fn cancel(self) {
@@ -98,9 +103,6 @@ impl Inner {
         &mut self,
         controller: sys::ReadableByteStreamController,
     ) -> Result<JsValue, JsValue> {
-        // The AsyncRead should still exist, since pull() will not be called again
-        // after the stream has closed or encountered an error.
-        let async_read = self.async_read.as_mut().unwrap_throw();
         // We set autoAllocateChunkSize, so there should always be a BYOB request.
         let request = controller.byob_request().unwrap_throw();
         // Resize the buffer to fit the BYOB request.
@@ -109,14 +111,22 @@ impl Inner {
         if self.buffer.len() < request_len {
             self.buffer.resize(request_len, 0);
         }
+
+        // Take the async_read out before the fallible/panickable operation.
+        // This ensures that if a panic occurs, self.async_read is already None,
+        // so any subsequent call will fail cleanly instead of using corrupted state.
+        let mut async_read = self.async_read.take().unwrap_throw();
+
         match async_read.read(&mut self.buffer[0..request_len]).await {
             Ok(0) => {
-                // The stream has closed, drop it.
-                self.discard();
+                // Stream closed: don't put it back, clear buffer, close controller
+                self.buffer = Vec::new();
                 controller.close()?;
                 request.respond_with_u32(0)?;
             }
             Ok(bytes_read) => {
+                // Success: put the async_read back for reuse
+                self.async_read = Some(async_read);
                 // Copy read bytes from buffer to BYOB request view
                 debug_assert!(bytes_read <= request_len);
                 let bytes_read_u32 = checked_cast_to_u32(bytes_read);
@@ -130,17 +140,12 @@ impl Inner {
                 request.respond_with_u32(bytes_read_u32)?;
             }
             Err(err) => {
-                // The stream encountered an error, drop it.
-                self.discard();
+                // Error: don't put it back, clear buffer, return error
+                self.buffer = Vec::new();
                 return Err(JsError::new(&err.to_string()).into());
             }
         };
+        // Panic: async_read is dropped during unwind, self.async_read remains None
         Ok(JsValue::undefined())
-    }
-
-    #[inline]
-    fn discard(&mut self) {
-        self.async_read = None;
-        self.buffer = Vec::new();
     }
 }

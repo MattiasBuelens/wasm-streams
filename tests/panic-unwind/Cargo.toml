@@ -1,0 +1,27 @@
+[package]
+name = "wasm-streams-panic-unwind-tests"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.108"
+wasm-bindgen-futures = "0.4.58"
+js-sys = "0.3.85"
+futures-util = { version = "0.3.31", features = ["io", "sink"] }
+wasm-streams = { path = "../.." }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.48"
+
+[dependencies.web-sys]
+version = "0.3.85"
+features = [
+    "ReadableStream",
+    "WritableStream",
+]
