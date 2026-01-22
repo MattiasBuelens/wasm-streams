@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.0 (2026-01-22)
+
+* Added support for `panic=unwind`. ([#26](https://github.com/MattiasBuelens/wasm-streams/issues/26), [#28](https://github.com/MattiasBuelens/wasm-streams/pull/28))
+* Persist the error state of `writable::IntoSink`. ([#27](https://github.com/MattiasBuelens/wasm-streams/pull/27))
+* Fixed lifetime elision warnings. ([#29](https://github.com/MattiasBuelens/wasm-streams/pull/29))
+* Updated to `wasm-bindgen` 0.2.108 and `web-sys` 0.3.85.
+
 ## v0.4.2 (2024-10-25)
 
 * Updated to `wasm-bindgen` 0.2.95 and `web-sys` 0.3.72.

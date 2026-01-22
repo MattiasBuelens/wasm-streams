@@ -4,7 +4,7 @@ exclude = ["tests/panic-unwind"]
 
 [package]
 name = "wasm-streams"
-version = "0.4.2"
+version = "0.5.0"
 authors = ["Mattias Buelens <mattias@buelens.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
