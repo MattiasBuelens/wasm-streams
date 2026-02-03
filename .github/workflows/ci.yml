@@ -78,13 +78,13 @@ jobs:
 
       - name: Test panic=unwind on Node
         working-directory: tests/panic-unwind
-        run: wasm-pack test --node -- -Zbuild-std
+        run: rustup run nightly wasm-pack test --node -- -Zbuild-std
         env:
           RUSTFLAGS: "-Cpanic=unwind"
 
       - name: Test panic=unwind on Chrome
         working-directory: tests/panic-unwind
-        run: wasm-pack test --headless --chrome -- -Zbuild-std
+        run: rustup run nightly wasm-pack test --headless --chrome -- -Zbuild-std
         env:
           RUSTFLAGS: "-Cpanic=unwind"
           WASM_BINDGEN_USE_BROWSER: "1"
