@@ -1,14 +1,14 @@
 use core::pin::Pin;
 use core::task::{Context, Poll};
 
+use futures_util::FutureExt;
 use futures_util::ready;
 use futures_util::stream::{FusedStream, Stream};
-use futures_util::FutureExt;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-use super::sys::ReadableStreamReadResult;
 use super::ReadableStreamDefaultReader;
+use super::sys::ReadableStreamReadResult;
 
 /// A [`Stream`] for the [`into_stream`](super::ReadableStream::into_stream) method.
 ///

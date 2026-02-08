@@ -3,7 +3,7 @@ use std::panic::AssertUnwindSafe;
 use std::pin::Pin;
 use std::rc::Rc;
 
-use futures_util::future::{abortable, AbortHandle, TryFutureExt};
+use futures_util::future::{AbortHandle, TryFutureExt, abortable};
 use futures_util::stream::{Stream, TryStreamExt};
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;

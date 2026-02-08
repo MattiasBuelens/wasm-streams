@@ -6,7 +6,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use crate::util::promise_to_void_future;
 
-use super::{sys, IntoStream, ReadableStream};
+use super::{IntoStream, ReadableStream, sys};
 
 /// A [`ReadableStreamDefaultReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader)
 /// that can be used to read chunks from a [`ReadableStream`](ReadableStream).

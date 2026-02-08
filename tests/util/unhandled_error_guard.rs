@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue};
-use web_sys::{window, ErrorEvent, PromiseRejectionEvent};
+use web_sys::{ErrorEvent, PromiseRejectionEvent, window};
 
 pub struct UnhandledErrorGuard {
     errors: Rc<RefCell<Vec<JsValue>>>,
