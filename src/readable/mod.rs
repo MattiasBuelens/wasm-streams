@@ -1,10 +1,10 @@
 //! Bindings and conversions for
 //! [readable streams](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-use futures_util::io::AsyncRead;
 use futures_util::Stream;
+use futures_util::io::AsyncRead;
 use js_sys::Object;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 
 pub use byob_reader::ReadableStreamBYOBReader;
 pub use default_reader::ReadableStreamDefaultReader;

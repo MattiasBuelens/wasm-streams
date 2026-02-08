@@ -3,12 +3,12 @@ use std::pin::Pin;
 use futures_util::stream::iter;
 use futures_util::{AsyncReadExt, AsyncWriteExt, SinkExt, StreamExt};
 use js_sys::Uint8Array;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-use wasm_streams::writable::*;
 use wasm_streams::WritableStream;
+use wasm_streams::writable::*;
 
 use crate::js::*;
 use crate::util::*;

@@ -2,12 +2,12 @@ use std::pin::Pin;
 use std::task::Poll;
 use std::time::Duration;
 
-use futures_util::stream::{iter, pending, StreamExt, TryStreamExt};
-use futures_util::{poll, AsyncReadExt, FutureExt};
+use futures_util::stream::{StreamExt, TryStreamExt, iter, pending};
+use futures_util::{AsyncReadExt, FutureExt, poll};
 use gloo_timers::future::sleep;
 use js_sys::Uint8Array;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
 use wasm_streams::readable::*;

@@ -1,8 +1,8 @@
 use std::fmt::{Debug, Formatter};
 
 use js_sys::Uint8Array;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 
 use wasm_streams::writable::*;
 

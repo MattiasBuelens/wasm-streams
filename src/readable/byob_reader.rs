@@ -6,7 +6,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use crate::util::{checked_cast_to_usize, clamp_to_u32, promise_to_void_future};
 
-use super::{sys, IntoAsyncRead, ReadableStream};
+use super::{IntoAsyncRead, ReadableStream, sys};
 
 /// A [`ReadableStreamBYOBReader`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader)
 /// that can be used to read chunks from a [`ReadableStream`](ReadableStream).

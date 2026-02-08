@@ -49,11 +49,12 @@ impl<'writer> AsyncWrite for IntoAsyncWrite<'writer> {
         cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<std::io::Result<usize>> {
-        ready!(self
-            .as_mut()
-            .sink
-            .poll_ready_unpin(cx)
-            .map_err(js_to_io_error))?;
+        ready!(
+            self.as_mut()
+                .sink
+                .poll_ready_unpin(cx)
+                .map_err(js_to_io_error)
+        )?;
         self.as_mut()
             .sink
             .start_send_unpin(Uint8Array::from(buf).into())

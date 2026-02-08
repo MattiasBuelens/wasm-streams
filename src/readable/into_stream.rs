@@ -1,14 +1,14 @@
 use core::pin::Pin;
 use core::task::{Context, Poll};
 
+use futures_util::FutureExt;
 use futures_util::ready;
 use futures_util::stream::{FusedStream, Stream};
-use futures_util::FutureExt;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-use super::sys::ReadableStreamReadResult;
 use super::ReadableStreamDefaultReader;
+use super::sys::ReadableStreamReadResult;
 
 /// A [`Stream`] for the [`into_stream`](super::ReadableStream::into_stream) method.
 ///
@@ -107,12 +107,12 @@ impl<'reader> Stream for IntoStream<'reader> {
 
 impl<'reader> Drop for IntoStream<'reader> {
     fn drop(&mut self) {
-        if self.cancel_on_drop {
-            if let Some(reader) = self.reader.take() {
-                let on_rejected = Closure::once(|_| {});
-                let _ = reader.as_raw().cancel().catch(&on_rejected);
-                on_rejected.forget();
-            }
+        if self.cancel_on_drop
+            && let Some(reader) = self.reader.take()
+        {
+            let on_rejected = Closure::once(|_| {});
+            let _ = reader.as_raw().cancel().catch(&on_rejected);
+            on_rejected.forget();
         }
     }
 }
