@@ -1,6 +1,0 @@
-[toolchain]
-# Recent Rust nightlies with LLVM 22 are temporarily broken with panic=unwind.
-# See https://github.com/wasm-bindgen/wasm-bindgen/issues/4929
-channel = "nightly-2026-01-28"
-components = ["rust-src"]
-targets = ["wasm32-unknown-unknown"]

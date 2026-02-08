@@ -7,17 +7,32 @@ on:
     types: [opened, reopened, synchronize]
 jobs:
   test:
-    name: Test
+    name: >
+      Test
+      on ${{ matrix.toolchain }}
+      ${{ (matrix.rust-flags && format(' with {0}', matrix.rust-flags)) }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - toolchain: stable
+          - toolchain: nightly
+          # Recent Rust nightlies with LLVM 22 are temporarily broken with panic=unwind.
+          # See https://github.com/wasm-bindgen/wasm-bindgen/issues/4929
+          - toolchain: nightly-2026-01-28
+            rust-flags: "-Cpanic=unwind"
+            unstable-flags: "-Zbuild-std"
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
 
-      - name: Install stable Rust
+      - name: Install Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: ${{ matrix.toolchain }}
           target: wasm32-unknown-unknown
+          components: rust-src
+          rustflags: ${{ matrix.rust-flags }}
 
       - name: Install Node 23
         uses: actions/setup-node@v6
@@ -25,68 +40,25 @@ jobs:
           node-version: 23
 
       - name: Run cargo check
-        run: cargo check --target=wasm32-unknown-unknown
+        run: cargo check --target wasm32-unknown-unknown ${{ matrix.unstable-flags }}
 
       - name: Run cargo test
         run: cargo test --target=x86_64-unknown-linux-gnu
-        env:
-          RUSTFLAGS: ""
 
       - name: Install wasm-pack
         run: curl https://drager.github.io/wasm-pack/installer/init.sh -sSf | bash
 
       - name: Test on Node
-        run: wasm-pack test --node
+        run: wasm-pack test --node -- ${{ matrix.unstable-flags }}
 
       - name: Test on Chrome
-        run: wasm-pack test --headless --chrome
+        run: wasm-pack test --headless --chrome -- ${{ matrix.unstable-flags }}
         env:
           WASM_BINDGEN_USE_BROWSER: "1"
 
       - name: Test on Firefox
-        run: wasm-pack test --headless --firefox
+        run: wasm-pack test --headless --firefox -- ${{ matrix.unstable-flags }}
         env:
-          WASM_BINDGEN_USE_BROWSER: "1"
-
-  test-panic-unwind:
-    name: Test panic=unwind (nightly)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v6
-
-      - name: Install nightly Rust with rust-src
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: nightly-2026-01-28
-          target: wasm32-unknown-unknown
-          components: rust-src
-
-      - name: Install Node 23
-        uses: actions/setup-node@v6
-        with:
-          node-version: 23
-
-      - name: Install wasm-pack
-        run: curl https://drager.github.io/wasm-pack/installer/init.sh -sSf | bash
-
-      - name: Run cargo check with panic=unwind
-        working-directory: tests/panic-unwind
-        run: cargo check --target wasm32-unknown-unknown -Zbuild-std
-        env:
-          RUSTFLAGS: "-Cpanic=unwind"
-
-      - name: Test panic=unwind on Node
-        working-directory: tests/panic-unwind
-        run: wasm-pack test --node -- -Zbuild-std
-        env:
-          RUSTFLAGS: "-Cpanic=unwind"
-
-      - name: Test panic=unwind on Chrome
-        working-directory: tests/panic-unwind
-        run: wasm-pack test --headless --chrome -- -Zbuild-std
-        env:
-          RUSTFLAGS: "-Cpanic=unwind"
           WASM_BINDGEN_USE_BROWSER: "1"
 
   lint:
