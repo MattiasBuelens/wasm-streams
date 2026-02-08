@@ -9,10 +9,6 @@
 
 use wasm_bindgen::prelude::*;
 use crate::util::panicking::*;
-
-#[cfg(test)]
-mod tests {
-    use super::*;
     use futures_util::{SinkExt, StreamExt};
     use wasm_bindgen_test::*;
     use wasm_streams::{ReadableStream, WritableStream};
@@ -184,4 +180,3 @@ mod tests {
 
         assert_eq!(collected.borrow().len(), 3);
     }
-}
