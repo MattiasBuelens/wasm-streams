@@ -7,9 +7,9 @@
 //!    underlying source/sink in a clean state (None), not corrupted.
 //! 2. Subsequent calls after a panic fail cleanly with an error, not UB.
 
-use wasm_bindgen::prelude::*;
 use crate::util::panicking::*;
 use futures_util::{SinkExt, StreamExt};
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 use wasm_streams::{ReadableStream, WritableStream};
 
