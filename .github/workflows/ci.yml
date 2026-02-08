@@ -13,8 +13,6 @@ jobs:
       matrix:
         include:
           - toolchain: stable
-            unstable-flags: ""
-            rust-flags: ""
           # Recent Rust nightlies with LLVM 22 are temporarily broken with panic=unwind.
           # See https://github.com/wasm-bindgen/wasm-bindgen/issues/4929
           - toolchain: nightly-2026-01-28
