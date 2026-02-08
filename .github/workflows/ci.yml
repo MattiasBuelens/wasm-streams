@@ -58,7 +58,7 @@ jobs:
       - name: Install nightly Rust with rust-src
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-01-28
           target: wasm32-unknown-unknown
           components: rust-src
 
