@@ -10,7 +10,7 @@ jobs:
     name: >
       Test
       on ${{ matrix.toolchain }}
-      ${{ (matrix.unstable-flags && format(' with {0}', matrix.unstable-flags)) }}
+      ${{ (matrix.rust-flags && format(' with {0}', matrix.rust-flags)) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,8 +20,8 @@ jobs:
           # Recent Rust nightlies with LLVM 22 are temporarily broken with panic=unwind.
           # See https://github.com/wasm-bindgen/wasm-bindgen/issues/4929
           - toolchain: nightly-2026-01-28
-            unstable-flags: "-Zbuild-std"
             rust-flags: "-Cpanic=unwind"
+            unstable-flags: "-Zbuild-std"
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
