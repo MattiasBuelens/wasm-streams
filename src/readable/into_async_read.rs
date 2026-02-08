@@ -135,12 +135,12 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
 
 impl<'reader> Drop for IntoAsyncRead<'reader> {
     fn drop(&mut self) {
-        if self.cancel_on_drop {
-            if let Some(reader) = self.reader.take() {
-                let on_rejected = Closure::once(|_| {});
-                let _ = reader.as_raw().cancel().catch(&on_rejected);
-                on_rejected.forget();
-            }
+        if self.cancel_on_drop
+            && let Some(reader) = self.reader.take()
+        {
+            let on_rejected = Closure::once(|_| {});
+            let _ = reader.as_raw().cancel().catch(&on_rejected);
+            on_rejected.forget();
         }
     }
 }
