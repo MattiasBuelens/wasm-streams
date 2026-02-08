@@ -7,7 +7,10 @@ on:
     types: [opened, reopened, synchronize]
 jobs:
   test:
-    name: Test on ${{ matrix.toolchain }}
+    name: >
+      Test
+      on ${{ matrix.toolchain }}
+      ${{ (matrix.unstable-flags && format(' with {0}', matrix.unstable-flags)) }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
