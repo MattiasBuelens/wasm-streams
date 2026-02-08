@@ -32,6 +32,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           target: wasm32-unknown-unknown
           components: rust-src
+          rustflags: ${{ matrix.rust-flags }}
 
       - name: Install Node 23
         uses: actions/setup-node@v6
@@ -40,32 +41,24 @@ jobs:
 
       - name: Run cargo check
         run: cargo check --target wasm32-unknown-unknown ${{ matrix.unstable-flags }}
-        env:
-          RUSTFLAGS: ${{ matrix.rust-flags }}
 
       - name: Run cargo test
         run: cargo test --target=x86_64-unknown-linux-gnu
-        env:
-          RUSTFLAGS: ${{ matrix.rust-flags }}
 
       - name: Install wasm-pack
         run: curl https://drager.github.io/wasm-pack/installer/init.sh -sSf | bash
 
       - name: Test on Node
         run: wasm-pack test --node -- ${{ matrix.unstable-flags }}
-        env:
-          RUSTFLAGS: ${{ matrix.rust-flags }}
 
       - name: Test on Chrome
         run: wasm-pack test --headless --chrome -- ${{ matrix.unstable-flags }}
         env:
-          RUSTFLAGS: ${{ matrix.rust-flags }}
           WASM_BINDGEN_USE_BROWSER: "1"
 
       - name: Test on Firefox
         run: wasm-pack test --headless --firefox -- ${{ matrix.unstable-flags }}
         env:
-          RUSTFLAGS: ${{ matrix.rust-flags }}
           WASM_BINDGEN_USE_BROWSER: "1"
 
   lint:
