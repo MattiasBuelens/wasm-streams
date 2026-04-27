@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::panic::AssertUnwindSafe;
+use std::panic::{AssertUnwindSafe, RefUnwindSafe, UnwindSafe};
 use std::pin::Pin;
 use std::rc::Rc;
 
@@ -12,6 +12,16 @@ use wasm_bindgen_futures::future_to_promise;
 pub(crate) struct IntoUnderlyingSink {
     inner: Rc<RefCell<Inner>>,
 }
+
+// SAFETY: `Inner` holds an `Option<Pin<Box<dyn Sink<...>>>>` and uses the
+// take-and-replace pattern around every fallible await in `Inner::write` /
+// `Inner::close` / `Inner::abort`. On panic the sink is already taken out of
+// the `Option`, leaving the cell in a clean `None` state. The
+// `Rc<RefCell<Inner>>` interior mutability therefore cannot expose torn
+// invariants after a caught panic, upholding the logical unwind-safety
+// contract enforced by `#[wasm_bindgen]` exports under `panic = "unwind"`.
+impl UnwindSafe for IntoUnderlyingSink {}
+impl RefUnwindSafe for IntoUnderlyingSink {}
 
 impl IntoUnderlyingSink {
     pub fn new(sink: Box<dyn Sink<JsValue, Error = JsValue>>) -> Self {

@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::panic::AssertUnwindSafe;
+use std::panic::{AssertUnwindSafe, RefUnwindSafe, UnwindSafe};
 use std::pin::Pin;
 use std::rc::Rc;
 
@@ -20,6 +20,16 @@ pub(crate) struct IntoUnderlyingByteSource {
     controller: Option<sys::ReadableByteStreamController>,
     pull_handle: Option<AbortHandle>,
 }
+
+// SAFETY: `Inner` holds an `Option<Pin<Box<dyn AsyncRead>>>` and uses the
+// take-and-replace pattern across every fallible await point in `Inner::pull`.
+// On panic, the inner async_read is already taken out of the `Option`, leaving
+// the cell in a clean `None` state. The `Rc<RefCell<Inner>>` interior mutability
+// therefore cannot expose torn invariants to a subsequent call after a caught
+// panic, satisfying the logical unwind-safety contract enforced by
+// `#[wasm_bindgen]` exports under `panic = "unwind"`.
+impl UnwindSafe for IntoUnderlyingByteSource {}
+impl RefUnwindSafe for IntoUnderlyingByteSource {}
 
 impl IntoUnderlyingByteSource {
     pub fn new(async_read: Box<dyn AsyncRead>, default_buffer_len: usize) -> Self {
