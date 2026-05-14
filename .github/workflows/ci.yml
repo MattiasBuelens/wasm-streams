@@ -14,6 +14,7 @@ jobs:
       ${{ (matrix.rust.rust-flags && format(' and {0}', matrix.rust.rust-flags)) }}
     runs-on: ${{ matrix.platform.os }}
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - os: ubuntu-latest
