@@ -68,7 +68,7 @@ jobs:
         run: wasm-pack test --headless --safari -- ${{ matrix.rust.unstable-flags }}
         env:
           WASM_BINDGEN_USE_BROWSER: "1"
-          WASM_BINDGEN_DRIVER_TIMEOUT: 10
+          WASM_BINDGEN_TEST_DRIVER_TIMEOUT: 10
 
       - name: Test on Chrome
         run: wasm-pack test --headless --chrome -- ${{ matrix.rust.unstable-flags }}
