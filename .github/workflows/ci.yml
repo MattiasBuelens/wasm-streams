@@ -69,6 +69,10 @@ jobs:
         env:
           WASM_BINDGEN_USE_BROWSER: "1"
 
+      - name: Enable SafariDriver
+        if: ${{ startsWith(matrix.platform.os, 'macos-') }}
+        run: sudo safaridriver --enable
+
       - name: Test on Safari
         if: ${{ startsWith(matrix.platform.os, 'macos-') }}
         run: wasm-pack test --headless --safari -- ${{ matrix.rust.unstable-flags }}
