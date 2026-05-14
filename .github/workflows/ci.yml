@@ -42,10 +42,10 @@ jobs:
           components: rust-src
           rustflags: ${{ matrix.rust.rust-flags }}
 
-      - name: Install Node 24
+      - name: Install Node 26
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Run cargo check
         run: cargo check --target=wasm32-unknown-unknown ${{ matrix.rust.unstable-flags }}
