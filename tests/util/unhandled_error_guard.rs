@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::panic::AssertUnwindSafe;
 use std::rc::Rc;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue};
@@ -16,12 +17,15 @@ impl UnhandledErrorGuard {
         // Add a listener that collects any errors
         let errors = Rc::new(RefCell::new(vec![]));
         let listener = {
-            let errors = errors.clone();
+            let errors = AssertUnwindSafe(errors.clone());
             Closure::<dyn FnMut(_)>::new(move |event: JsValue| {
-                if let Some(event) = event.dyn_ref::<ErrorEvent>() {
-                    errors.borrow_mut().push(event.error());
-                } else if let Some(event) = event.dyn_ref::<PromiseRejectionEvent>() {
-                    errors.borrow_mut().push(event.reason());
+                let err = if let Some(event) = event.dyn_ref::<ErrorEvent>() {
+                    Some(event.error())
+                } else {
+                    event.dyn_ref::<PromiseRejectionEvent>().map(|e| e.reason())
+                };
+                if let Some(err) = err {
+                    errors.borrow_mut().push(err);
                 }
             })
         };

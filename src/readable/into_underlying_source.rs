@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::panic::AssertUnwindSafe;
+use std::panic::{AssertUnwindSafe, RefUnwindSafe, UnwindSafe};
 use std::pin::Pin;
 use std::rc::Rc;
 
@@ -18,6 +18,15 @@ pub(crate) struct IntoUnderlyingSource {
     inner: Rc<RefCell<Inner>>,
     pull_handle: Option<AbortHandle>,
 }
+
+// SAFETY: `Inner` holds an `Option<Pin<Box<JsValueStream>>>` and uses the
+// take-and-replace pattern around every fallible await in `Inner::pull`. On
+// panic, the stream is already taken out of the `Option`, leaving the cell in
+// a clean `None` state. Subsequent calls fail cleanly via `unwrap_throw`
+// rather than observing a torn intermediate state, which upholds the logical
+// unwind-safety contract `#[wasm_bindgen]` enforces for exported types.
+impl UnwindSafe for IntoUnderlyingSource {}
+impl RefUnwindSafe for IntoUnderlyingSource {}
 
 impl IntoUnderlyingSource {
     pub fn new(stream: Box<JsValueStream>) -> Self {

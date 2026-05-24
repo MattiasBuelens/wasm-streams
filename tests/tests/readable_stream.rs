@@ -4,7 +4,6 @@ use std::time::Duration;
 
 use futures_util::stream::{StreamExt, TryStreamExt, iter, pending};
 use futures_util::{AsyncReadExt, FutureExt, poll};
-use gloo_timers::future::sleep;
 use js_sys::Uint8Array;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
