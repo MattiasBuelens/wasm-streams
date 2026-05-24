@@ -14,10 +14,13 @@ jobs:
       ${{ (matrix.rust.rust-flags && format(' and {0}', matrix.rust.rust-flags)) }}
     runs-on: ${{ matrix.platform.os }}
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - os: ubuntu-latest
             rust-target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            rust-target: aarch64-apple-darwin
         rust:
           - toolchain: stable
           - toolchain: nightly
@@ -39,10 +42,10 @@ jobs:
           components: rust-src
           rustflags: ${{ matrix.rust.rust-flags }}
 
-      - name: Install Node 24
+      - name: Install Node 26
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Run cargo check
         run: cargo check --target=wasm32-unknown-unknown ${{ matrix.rust.unstable-flags }}
@@ -55,6 +58,17 @@ jobs:
 
       - name: Test on Node
         run: wasm-pack test --node -- ${{ matrix.rust.unstable-flags }}
+
+      - name: Enable SafariDriver
+        if: ${{ startsWith(matrix.platform.os, 'macos-') }}
+        run: sudo safaridriver --enable
+
+      - name: Test on Safari
+        if: ${{ startsWith(matrix.platform.os, 'macos-') }}
+        run: wasm-pack test --headless --safari -- ${{ matrix.rust.unstable-flags }}
+        env:
+          WASM_BINDGEN_USE_BROWSER: "1"
+          WASM_BINDGEN_TEST_DRIVER_TIMEOUT: 10
 
       - name: Test on Chrome
         run: wasm-pack test --headless --chrome -- ${{ matrix.rust.unstable-flags }}
