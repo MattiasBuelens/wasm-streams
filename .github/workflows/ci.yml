@@ -9,12 +9,16 @@ jobs:
   test:
     name: >
       Test
-      on ${{ matrix.toolchain }}
-      ${{ (matrix.rust-flags && format(' with {0}', matrix.rust-flags)) }}
-    runs-on: ubuntu-latest
+      on ${{ matrix.platform.os }}
+      with ${{ matrix.rust.toolchain }}
+      ${{ (matrix.rust.rust-flags && format(' and {0}', matrix.rust.rust-flags)) }}
+    runs-on: ${{ matrix.platform.os }}
     strategy:
       matrix:
-        include:
+        platform:
+          - os: ubuntu-latest
+            rust-target: x86_64-unknown-linux-gnu
+        rust:
           - toolchain: stable
           - toolchain: nightly
           # Test with panic=unwind
@@ -30,10 +34,10 @@ jobs:
       - name: Install Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: ${{ matrix.rust.toolchain }}
           target: wasm32-unknown-unknown
           components: rust-src
-          rustflags: ${{ matrix.rust-flags }}
+          rustflags: ${{ matrix.rust.rust-flags }}
 
       - name: Install Node 24
         uses: actions/setup-node@v6
@@ -41,24 +45,24 @@ jobs:
           node-version: 24
 
       - name: Run cargo check
-        run: cargo check --target wasm32-unknown-unknown ${{ matrix.unstable-flags }}
+        run: cargo check --target=wasm32-unknown-unknown ${{ matrix.rust.unstable-flags }}
 
       - name: Run cargo test
-        run: cargo test --target=x86_64-unknown-linux-gnu
+        run: cargo test --target=${{ matrix.platform.rust-target }}
 
       - name: Install wasm-pack
         run: curl https://wasm-bindgen.github.io/wasm-pack/installer/init.sh -sSf | bash
 
       - name: Test on Node
-        run: wasm-pack test --node -- ${{ matrix.unstable-flags }}
+        run: wasm-pack test --node -- ${{ matrix.rust.unstable-flags }}
 
       - name: Test on Chrome
-        run: wasm-pack test --headless --chrome -- ${{ matrix.unstable-flags }}
+        run: wasm-pack test --headless --chrome -- ${{ matrix.rust.unstable-flags }}
         env:
           WASM_BINDGEN_USE_BROWSER: "1"
 
       - name: Test on Firefox
-        run: wasm-pack test --headless --firefox -- ${{ matrix.unstable-flags }}
+        run: wasm-pack test --headless --firefox -- ${{ matrix.rust.unstable-flags }}
         env:
           WASM_BINDGEN_USE_BROWSER: "1"
 
