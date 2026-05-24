@@ -17,9 +17,8 @@ jobs:
         include:
           - toolchain: stable
           - toolchain: nightly
-          # Recent Rust nightlies with LLVM 22 are temporarily broken with panic=unwind.
-          # See https://github.com/wasm-bindgen/wasm-bindgen/issues/4929
-          - toolchain: nightly-2026-01-28
+          # Test with panic=unwind
+          - toolchain: nightly
             rust-flags: "-Cpanic=unwind"
             unstable-flags: "-Zbuild-std"
           # Minimum supported Rust version (see Cargo.toml)
