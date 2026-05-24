@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.0 (2026-05-24)
+
+* Updated to Rust edition 2024. The minimum supported Rust version (MSRV) is now 1.88.0. ([#34](https://github.com/MattiasBuelens/wasm-streams/pull/34), [#37](https://github.com/MattiasBuelens/wasm-streams/pull/37))
+* Fixed `panic=unwind` support by implementing `UnwindSafe`/`RefUnwindSafe` for `#[wasm-bindgen]` exports. ([#35](https://github.com/MattiasBuelens/wasm-streams/pull/35)) 
+
 ## v0.5.0 (2026-01-22)
 
 * Added support for `panic=unwind`. ([#26](https://github.com/MattiasBuelens/wasm-streams/issues/26), [#28](https://github.com/MattiasBuelens/wasm-streams/pull/28))

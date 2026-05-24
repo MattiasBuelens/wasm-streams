@@ -1,6 +1,6 @@
 [package]
 name = "wasm-streams"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Mattias Buelens <mattias@buelens.com>"]
 edition = "2024"
 # See https://crates.io/crates/cargo-msrv
