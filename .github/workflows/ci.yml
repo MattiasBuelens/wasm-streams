@@ -22,6 +22,8 @@ jobs:
           - toolchain: nightly-2026-01-28
             rust-flags: "-Cpanic=unwind"
             unstable-flags: "-Zbuild-std"
+          # Minimum supported Rust version (see Cargo.toml)
+          - toolchain: 1.88.0
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
