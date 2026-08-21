@@ -7,7 +7,9 @@
 //! with `rust-lld: error: duplicate symbol: __wbg_intounderlyingbytesource_free`.
 //!
 //! Run with `cargo build --target wasm32-unknown-unknown` from this directory:
-//! the test passes if it links.
+//! the test passes if it links. This is also wired up as an integration test
+//! in `../tests/duplicate_symbols.rs`, so `cargo test` on the parent crate
+//! covers it too.
 //!
 //! See <https://github.com/cloudflare/workers-rs/issues/1026>.
 
