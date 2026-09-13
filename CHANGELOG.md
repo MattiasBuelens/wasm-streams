@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* Fixed duplicate symbols when linking two different versions of `wasm-streams` together. This requires `wasm-bindgen` 0.2.128 or later, for the improved behavior of `#[wasm-bindgen(private)]`. ([cloudflare/workers-rs#1026](https://github.com/cloudflare/workers-rs/issues/1026), [#41](https://github.com/MattiasBuelens/wasm-streams/pull/41))
+
 ## v0.6.0 (2026-05-24)
 
 * Updated to Rust edition 2024. The minimum supported Rust version (MSRV) is now 1.88.0. ([#34](https://github.com/MattiasBuelens/wasm-streams/pull/34), [#37](https://github.com/MattiasBuelens/wasm-streams/pull/37))
