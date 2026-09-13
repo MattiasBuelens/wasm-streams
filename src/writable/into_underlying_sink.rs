@@ -8,7 +8,7 @@ use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
-#[wasm_bindgen]
+#[wasm_bindgen(private)]
 pub(crate) struct IntoUnderlyingSink {
     inner: Rc<RefCell<Inner>>,
 }
