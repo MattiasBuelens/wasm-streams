@@ -13,7 +13,7 @@ See https://github.com/cloudflare/workers-rs/issues/1026
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = "0.2.108"
+wasm-bindgen = "0.2.128"
 futures-util = { version = "^0.3.31", features = ["io", "sink"] }
 
 # The published version that downstream crates may still depend on.
