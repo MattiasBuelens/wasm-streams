@@ -1,0 +1,22 @@
+[package]
+name = "duplicate-symbols"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = """
+Regression test crate: links the local wasm-streams together with wasm-streams 0.5.0
+from crates.io, to check that the two copies do not export conflicting symbols.
+See https://github.com/cloudflare/workers-rs/issues/1026
+"""
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.128"
+futures-util = { version = "^0.3.31", features = ["io", "sink"] }
+
+# The published version that downstream crates may still depend on.
+wasm-streams-old = { package = "wasm-streams", version = "=0.5.0" }
+# The version in this repository.
+wasm-streams-new = { package = "wasm-streams", path = "../.." }
