@@ -13,7 +13,7 @@ Bridging between web streams and Rust streams using WebAssembly
 """
 exclude = [
     ".github/",
-    "duplicate-symbols/",
+    "tests/duplicate-symbols/",
 ]
 
 [lib]
