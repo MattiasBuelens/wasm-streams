@@ -16,9 +16,6 @@ exclude = [
     "tests/duplicate-symbols/",
 ]
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 js-sys = "^0.3.85"
 wasm-bindgen = "0.2.108"

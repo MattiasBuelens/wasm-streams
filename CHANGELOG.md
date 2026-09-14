@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Fixed duplicate symbols when linking two different versions of `wasm-streams` together. This requires `wasm-bindgen` 0.2.128 or later, for the improved behavior of `#[wasm-bindgen(private)]`. ([cloudflare/workers-rs#1026](https://github.com/cloudflare/workers-rs/issues/1026), [#41](https://github.com/MattiasBuelens/wasm-streams/pull/41))
+* Removed the `cdylib` crate type. The crate is only consumed as a Rust library, and the extra shared-library link was built for every dependent. Use `cargo rustc --crate-type cdylib` to build a standalone module. ([#40](https://github.com/MattiasBuelens/wasm-streams/pull/40/))
 
 ## v0.6.0 (2026-05-24)
 
