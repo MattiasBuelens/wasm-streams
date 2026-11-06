@@ -154,6 +154,20 @@ async fn test_writable_stream_multiple_writers() {
 }
 
 #[wasm_bindgen_test]
+async fn test_writable_stream_drop_writer_when_release_lock_throws() {
+    let mut writable = WritableStream::from_raw(new_noop_writable_stream());
+    let writer = writable.get_writer();
+    // A host can refuse to release the lock: Cloudflare Workers throws from `releaseLock`
+    // outside a request.
+    let refuse = js_sys::Function::new_no_args("throw new Error('releaseLock refused')");
+    js_sys::Reflect::set(writer.as_raw(), &JsValue::from_str("releaseLock"), &refuse).unwrap();
+
+    // Dropping the writer must not throw into the Wasm module.
+    drop(writer);
+    assert!(writable.is_locked());
+}
+
+#[wasm_bindgen_test]
 async fn test_writable_stream_into_async_write() {
     let recording_stream = RecordingWritableStream::new();
     let writable = WritableStream::from_raw(recording_stream.stream());

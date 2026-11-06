@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use wasm_bindgen::{JsValue, throw_val};
+use wasm_bindgen::{JsCast, JsValue, throw_val};
 
 use crate::util::promise_to_void_future;
 
@@ -141,6 +141,11 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
 
 impl Drop for WritableStreamDefaultWriter<'_> {
     fn drop(&mut self) {
-        self.as_raw().release_lock()
+        // `releaseLock` can throw in hosts like Cloudflare Workers outside a request, and a throw
+        // out of a drop aborts the Wasm instance.
+        let _ = self
+            .as_raw()
+            .unchecked_ref::<sys::WritableStreamDefaultWriterExt>()
+            .try_release_lock();
     }
 }
