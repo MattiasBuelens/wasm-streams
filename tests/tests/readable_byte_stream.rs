@@ -5,6 +5,7 @@ use std::time::Duration;
 use futures_util::AsyncReadExt;
 use futures_util::{FutureExt, poll};
 use js_sys::Uint8Array;
+use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
 use wasm_streams::readable::*;
@@ -198,6 +199,20 @@ async fn test_readable_byte_stream_multiple_byob_readers() {
     let reader = readable.get_byob_reader();
     reader.release_lock();
     assert!(!readable.is_locked());
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_drop_byob_reader_when_release_lock_throws() {
+    let mut readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+    let reader = readable.get_byob_reader();
+    // A host can refuse to release the lock: Cloudflare Workers throws from `releaseLock`
+    // outside a request.
+    let refuse = js_sys::Function::new_no_args("throw new Error('releaseLock refused')");
+    js_sys::Reflect::set(reader.as_raw(), &JsValue::from_str("releaseLock"), &refuse).unwrap();
+
+    // Dropping the reader must not throw into the Wasm module.
+    drop(reader);
+    assert!(readable.is_locked());
 }
 
 async fn test_readable_byte_stream_abort_read(readable: ReadableStream) {

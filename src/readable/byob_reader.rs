@@ -197,6 +197,11 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
 
 impl Drop for ReadableStreamBYOBReader<'_> {
     fn drop(&mut self) {
-        self.release_lock_mut();
+        // `releaseLock` can throw (pending reads on pre-2022 implementations, or Cloudflare
+        // Workers outside a request), and a throw out of a drop aborts the Wasm instance.
+        let _ = self
+            .as_raw()
+            .unchecked_ref::<sys::ReadableStreamReaderExt>()
+            .try_release_lock();
     }
 }
