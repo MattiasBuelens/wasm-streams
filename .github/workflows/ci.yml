@@ -53,8 +53,12 @@ jobs:
       - name: Run cargo test
         run: cargo test --target=${{ matrix.platform.rust-target }}
 
+      # The official installer script always installs the x86_64 build on Apple Silicon,
+      # which then runs safaridriver under Rosetta and makes it take a very long time to start.
       - name: Install wasm-pack
-        run: curl https://wasm-bindgen.github.io/wasm-pack/installer/init.sh -sSf | bash
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
 
       - name: Test on Node
         run: wasm-pack test --node -- ${{ matrix.rust.unstable-flags }}
@@ -66,9 +70,9 @@ jobs:
       - name: Test on Safari
         if: ${{ startsWith(matrix.platform.os, 'macos-') }}
         run: wasm-pack test --headless --safari -- ${{ matrix.rust.unstable-flags }}
+        timeout-minutes: 10
         env:
           WASM_BINDGEN_USE_BROWSER: "1"
-          WASM_BINDGEN_TEST_DRIVER_TIMEOUT: 10
 
       - name: Test on Chrome
         run: wasm-pack test --headless --chrome -- ${{ matrix.rust.unstable-flags }}
