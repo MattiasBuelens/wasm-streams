@@ -15,6 +15,7 @@ use super::sys::ReadableStreamReadResult;
 /// This `Stream` holds a reader, and therefore locks the [`ReadableStream`](super::ReadableStream).
 /// When this `Stream` is dropped, it also drops its reader which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+/// This is best-effort: if `releaseLock()` throws, the stream stays locked.
 ///
 /// [`Stream`]: https://docs.rs/futures/0.3.30/futures/stream/trait.Stream.html
 #[must_use = "streams do nothing unless polled"]

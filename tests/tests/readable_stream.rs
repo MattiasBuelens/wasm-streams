@@ -126,14 +126,25 @@ async fn test_readable_stream_multiple_readers() {
 async fn test_readable_stream_drop_reader_when_release_lock_throws() {
     let mut readable = ReadableStream::from_raw(new_noop_readable_stream());
     let reader = readable.get_reader();
-    // A host can refuse to release the lock: Cloudflare Workers throws from `releaseLock`
-    // outside a request.
-    let refuse = js_sys::Function::new_no_args("throw new Error('releaseLock refused')");
-    js_sys::Reflect::set(reader.as_raw(), &JsValue::from_str("releaseLock"), &refuse).unwrap();
+    refuse_release_lock(reader.as_raw());
 
-    // Dropping the reader must not throw into the Wasm module.
+    // Dropping the reader must not throw a JS exception.
     drop(reader);
     assert!(readable.is_locked());
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_stream_try_release_lock_when_release_lock_throws() {
+    let mut readable = ReadableStream::from_raw(new_noop_readable_stream());
+    let reader = readable.get_reader();
+    refuse_release_lock(reader.as_raw());
+
+    let (err, mut reader) = reader
+        .try_release_lock()
+        .expect_err("releaseLock should throw");
+    assert_eq!(err.message(), RELEASE_LOCK_REFUSED);
+    // `cancel` rejects on a released reader, so this proves we still hold the lock.
+    reader.cancel().await.unwrap();
 }
 
 #[wasm_bindgen_test]

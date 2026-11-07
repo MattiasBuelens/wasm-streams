@@ -13,6 +13,7 @@ use super::WritableStreamDefaultWriter;
 /// This sink holds a writer, and therefore locks the [`WritableStream`](super::WritableStream).
 /// When this sink is dropped, it also drops its writer which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+/// This is best-effort: if `releaseLock()` throws, the stream stays locked.
 ///
 /// [`Sink`]: https://docs.rs/futures/0.3.30/futures/sink/trait.Sink.html
 #[must_use = "sinks do nothing unless polled"]

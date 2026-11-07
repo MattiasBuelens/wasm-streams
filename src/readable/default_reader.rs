@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
+use wasm_bindgen::throw_val;
 use wasm_bindgen_futures::JsFuture;
 
 use crate::util::promise_to_void_future;
@@ -14,6 +15,7 @@ use super::{IntoStream, ReadableStream, sys};
 /// This is returned by the [`get_reader`](ReadableStream::get_reader) method.
 ///
 /// When the reader is dropped, it automatically [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+/// This is best-effort: if `releaseLock()` throws, the error is ignored and the stream stays locked.
 #[derive(Debug)]
 pub struct ReadableStreamDefaultReader<'stream> {
     raw: sys::ReadableStreamDefaultReader,
@@ -88,15 +90,16 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// succeed.
     ///
     /// However, if the Streams implementation is not yet up-to-date with this change, then
-    /// releasing the lock while there are pending read requests will **panic**. For a non-panicking
-    /// variant, use [`try_release_lock`](Self::try_release_lock).
+    /// releasing the lock while there are pending read requests will throw a JavaScript exception.
+    /// For a non-throwing variant, use [`try_release_lock`](Self::try_release_lock).
+    ///
+    /// Some hosts (e.g. Cloudflare Workers outside a request) may also refuse to release the lock,
+    /// with the same result.
     #[inline]
     pub fn release_lock(mut self) {
-        self.release_lock_mut()
-    }
-
-    fn release_lock_mut(&mut self) {
-        self.as_raw().release_lock()
+        if let Err(err) = self.try_release_lock_mut() {
+            throw_val(err.into())
+        }
     }
 
     /// Try to [release](https://streams.spec.whatwg.org/#release-a-lock) this reader's lock on the
@@ -110,12 +113,18 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// However, if the Streams implementation is not yet up-to-date with this change, then
     /// the lock cannot be released while there are pending read requests. Attempting to do so will
     /// return an error and leave the reader locked to the stream.
+    ///
+    /// Some hosts (e.g. Cloudflare Workers outside a request) may also refuse to release the lock,
+    /// with the same result.
     #[inline]
-    pub fn try_release_lock(self) -> Result<(), (js_sys::Error, Self)> {
+    pub fn try_release_lock(mut self) -> Result<(), (js_sys::Error, Self)> {
+        self.try_release_lock_mut().map_err(|err| (err, self))
+    }
+
+    fn try_release_lock_mut(&mut self) -> Result<(), js_sys::Error> {
         self.as_raw()
             .unchecked_ref::<sys::ReadableStreamReaderExt>()
             .try_release_lock()
-            .map_err(|err| (err, self))
     }
 
     /// Converts this `ReadableStreamDefaultReader` into a [`Stream`].
@@ -135,10 +144,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
 impl Drop for ReadableStreamDefaultReader<'_> {
     fn drop(&mut self) {
         // `releaseLock` can throw (pending reads on pre-2022 implementations, or Cloudflare
-        // Workers outside a request), and a throw out of a drop aborts the Wasm instance.
-        let _ = self
-            .as_raw()
-            .unchecked_ref::<sys::ReadableStreamReaderExt>()
-            .try_release_lock();
+        // Workers outside a request), and a JS exception escaping a destructor skips Rust cleanup.
+        let _ = self.try_release_lock_mut();
     }
 }

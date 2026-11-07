@@ -157,14 +157,41 @@ async fn test_writable_stream_multiple_writers() {
 async fn test_writable_stream_drop_writer_when_release_lock_throws() {
     let mut writable = WritableStream::from_raw(new_noop_writable_stream());
     let writer = writable.get_writer();
-    // A host can refuse to release the lock: Cloudflare Workers throws from `releaseLock`
-    // outside a request.
-    let refuse = js_sys::Function::new_no_args("throw new Error('releaseLock refused')");
-    js_sys::Reflect::set(writer.as_raw(), &JsValue::from_str("releaseLock"), &refuse).unwrap();
+    refuse_release_lock(writer.as_raw());
 
-    // Dropping the writer must not throw into the Wasm module.
+    // Dropping the writer must not throw a JS exception.
     drop(writer);
     assert!(writable.is_locked());
+}
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_try_release_lock_when_release_lock_throws() {
+    let mut writable = WritableStream::from_raw(new_noop_writable_stream());
+    let writer = writable.get_writer();
+    refuse_release_lock(writer.as_raw());
+
+    let (err, writer) = writer
+        .try_release_lock()
+        .expect_err("releaseLock should throw");
+    assert_eq!(err.message(), RELEASE_LOCK_REFUSED);
+    // `desiredSize` throws on a released writer, so this proves we still hold the lock.
+    assert!(writer.desired_size().is_some());
+}
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_try_release_lock() {
+    let mut writable = WritableStream::from_raw(new_noop_writable_stream());
+    let writer = writable.get_writer();
+    writer.try_release_lock().unwrap();
+    assert!(!writable.is_locked());
+}
+
+#[wasm_bindgen_test]
+async fn test_writable_stream_release_lock() {
+    let mut writable = WritableStream::from_raw(new_noop_writable_stream());
+    let writer = writable.get_writer();
+    writer.release_lock();
+    assert!(!writable.is_locked());
 }
 
 #[wasm_bindgen_test]
