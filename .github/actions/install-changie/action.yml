@@ -1,0 +1,48 @@
+name: Install Changie
+description: >
+  Install Changie from the Actions cache, or else from its GitHub release.
+  Downloads from GitHub releases regularly fail with HTTP 504, so fall back
+  to building it with `go install` through the Go module proxy.
+inputs:
+  version:
+    description: Changie version, e.g. v1.26.0
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Cache Changie
+      id: cache
+      uses: actions/cache@v6
+      with:
+        path: ~/.changie-bin
+        key: changie-${{ inputs.version }}-${{ runner.os }}-${{ runner.arch }}
+
+    - name: Add Changie to PATH
+      shell: bash
+      run: echo "$HOME/.changie-bin" >> "$GITHUB_PATH"
+
+    - name: Download Changie
+      id: download
+      if: steps.cache.outputs.cache-hit != 'true'
+      continue-on-error: true
+      uses: miniscruff/changie-action@3223cb29b92a0972dedc864ace3da01e04780ae4 # v3
+      with:
+        version: ${{ inputs.version }}
+
+    - name: Build Changie from source
+      if: steps.cache.outputs.cache-hit != 'true' && steps.download.outcome == 'failure'
+      shell: bash
+      env:
+        CHANGIE_VERSION: ${{ inputs.version }}
+      run: GOBIN="$HOME/.changie-bin" go install "github.com/miniscruff/changie@$CHANGIE_VERSION"
+
+    - name: Copy Changie to cache
+      if: steps.cache.outputs.cache-hit != 'true' && steps.download.outcome == 'success'
+      shell: bash
+      run: |
+        mkdir -p "$HOME/.changie-bin"
+        cp "$(command -v changie)" "$HOME/.changie-bin/"
+
+    - name: Check Changie
+      shell: bash
+      run: changie --version
