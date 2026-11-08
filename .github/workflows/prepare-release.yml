@@ -1,0 +1,79 @@
+name: Prepare release
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        required: true
+        default: patch
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+concurrency:
+  group: prepare-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout release base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Install Changie
+        uses: miniscruff/changie-action@3223cb29b92a0972dedc864ace3da01e04780ae4 # v3
+        with:
+          version: v1.26.0
+      - name: Prepare changelog and crate version
+        id: release
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          if [[ "$GITHUB_REF_TYPE" != branch ]]; then
+            echo '::error::Select a branch when preparing a release.'
+            exit 1
+          fi
+          case "$BUMP" in
+            major|minor|patch) ;;
+            *) echo '::error::Choose a major, minor, or patch bump.'; exit 1 ;;
+          esac
+          crate_version() {
+            cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "wasm-streams") | .version'
+          }
+          previous="$(changie latest)"
+          if [[ "$(crate_version)" != "${previous#v}" ]]; then
+            echo '::error::The crate version and latest Changie release must match.'
+            exit 1
+          fi
+          changie batch "$BUMP" --allow-no-changes=false
+          changie merge --include-unreleased '## Unreleased'
+          version="$(changie latest)"
+          # Only bump the version in the [package] table, not dependency versions.
+          sed -i '/^\[package\]/,/^\[/ s/^version = ".*"$/version = "'"${version#v}"'"/' Cargo.toml
+          if [[ "$(crate_version)" != "${version#v}" ]]; then
+            echo '::error::Failed to update the version in Cargo.toml.'
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Open release pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          base: ${{ github.ref_name }}
+          # Reuse the release PR when preparing the same version again.
+          branch: release/${{ steps.release.outputs.version }}
+          commit-message: Release ${{ steps.release.outputs.version }}
+          title: Release ${{ steps.release.outputs.version }}
+          body-path: .changes/${{ steps.release.outputs.version }}.md
+          # A maintainer marking this ready triggers the CI workflow.
+          draft: always-true
+          add-paths: |
+            .changes/
+            CHANGELOG.md
+            Cargo.toml
