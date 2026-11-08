@@ -16,6 +16,7 @@ use super::IntoSink;
 /// This `AsyncWrite` holds a writer, and therefore locks the [`WritableStream`](super::WritableStream).
 /// When this `AsyncWrite` is dropped, it also drops its writer which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+/// This is best-effort: if `releaseLock()` throws, the stream stays locked.
 ///
 /// [`AsyncWrite`]: https://docs.rs/futures/0.3.30/futures/io/trait.AsyncWrite.html
 #[must_use = "writers do nothing unless polled"]

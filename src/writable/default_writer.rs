@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use wasm_bindgen::{JsValue, throw_val};
+use wasm_bindgen::{JsCast, JsValue, throw_val};
 
 use crate::util::promise_to_void_future;
 
@@ -12,6 +12,7 @@ use super::{IntoAsyncWrite, IntoSink, WritableStream, sys};
 /// This is returned by the [`get_writer`](WritableStream::get_writer) method.
 ///
 /// When the writer is dropped, it automatically [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+/// This is best-effort: if `releaseLock()` throws, the error is ignored and the stream stays locked.
 #[derive(Debug)]
 pub struct WritableStreamDefaultWriter<'stream> {
     raw: sys::WritableStreamDefaultWriter,
@@ -110,6 +111,35 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
         promise_to_void_future(self.as_raw().close()).await
     }
 
+    /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this writer's lock on the
+    /// corresponding stream.
+    ///
+    /// Per the Streams standard this always succeeds, but some hosts (e.g. Cloudflare Workers
+    /// outside a request) may throw. For a non-throwing variant, use
+    /// [`try_release_lock`](Self::try_release_lock).
+    #[inline]
+    pub fn release_lock(mut self) {
+        if let Err(err) = self.try_release_lock_mut() {
+            throw_val(err.into())
+        }
+    }
+
+    /// Try to [release](https://streams.spec.whatwg.org/#release-a-lock) this writer's lock on the
+    /// corresponding stream.
+    ///
+    /// If the host refuses to release the lock, this returns the error and leaves the writer
+    /// locked to the stream.
+    #[inline]
+    pub fn try_release_lock(mut self) -> Result<(), (js_sys::Error, Self)> {
+        self.try_release_lock_mut().map_err(|err| (err, self))
+    }
+
+    fn try_release_lock_mut(&mut self) -> Result<(), js_sys::Error> {
+        self.as_raw()
+            .unchecked_ref::<sys::WritableStreamDefaultWriterExt>()
+            .try_release_lock()
+    }
+
     /// Converts this `WritableStreamDefaultWriter` into a [`Sink`].
     ///
     /// This is similar to [`WritableStream.into_sink`](WritableStream::into_sink),
@@ -141,6 +171,8 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
 
 impl Drop for WritableStreamDefaultWriter<'_> {
     fn drop(&mut self) {
-        self.as_raw().release_lock()
+        // `releaseLock` can throw in hosts like Cloudflare Workers outside a request, and a JS
+        // exception escaping a destructor skips Rust cleanup.
+        let _ = self.try_release_lock_mut();
     }
 }

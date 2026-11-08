@@ -19,6 +19,7 @@ use super::sys::ReadableStreamReadResult;
 /// This `AsyncRead` holds a reader, and therefore locks the [`ReadableStream`](super::ReadableStream).
 /// When this `AsyncRead` is dropped, it also drops its reader which in turn
 /// [releases its lock](https://streams.spec.whatwg.org/#release-a-lock).
+/// This is best-effort: if `releaseLock()` throws, the stream stays locked.
 ///
 /// [`AsyncRead`]: https://docs.rs/futures/0.3.30/futures/io/trait.AsyncRead.html
 #[must_use = "readers do nothing unless polled"]

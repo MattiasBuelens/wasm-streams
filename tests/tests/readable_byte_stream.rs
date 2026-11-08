@@ -200,6 +200,31 @@ async fn test_readable_byte_stream_multiple_byob_readers() {
     assert!(!readable.is_locked());
 }
 
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_drop_byob_reader_when_release_lock_throws() {
+    let mut readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+    let reader = readable.get_byob_reader();
+    refuse_release_lock(reader.as_raw());
+
+    // Dropping the reader must not throw a JS exception.
+    drop(reader);
+    assert!(readable.is_locked());
+}
+
+#[wasm_bindgen_test]
+async fn test_readable_byte_stream_try_release_lock_when_release_lock_throws() {
+    let mut readable = ReadableStream::from_raw(new_noop_readable_byte_stream());
+    let reader = readable.get_byob_reader();
+    refuse_release_lock(reader.as_raw());
+
+    let (err, mut reader) = reader
+        .try_release_lock()
+        .expect_err("releaseLock should throw");
+    assert_eq!(err.message(), RELEASE_LOCK_REFUSED);
+    // `cancel` rejects on a released reader, so this proves we still hold the lock.
+    reader.cancel().await.unwrap();
+}
+
 async fn test_readable_byte_stream_abort_read(readable: ReadableStream) {
     if supports_release_lock_with_pending_read() {
         test_readable_byte_stream_abort_read_new(readable).await;
