@@ -30,6 +30,8 @@ jobs:
             unstable-flags: "-Zbuild-std"
           # Minimum supported Rust version (see Cargo.toml)
           - toolchain: 1.88.0
+    env:
+      WASM_PACK_VERSION: 0.15.1
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
@@ -42,6 +44,19 @@ jobs:
           components: rust-src
           rustflags: ${{ matrix.rust.rust-flags }}
 
+      # Downloads from GitHub releases regularly fail with HTTP 504 on macOS runners,
+      # so cache the tools that we download from there. Refresh the caches monthly
+      # to pick up new Node releases.
+      - name: Get cache date
+        id: cache-date
+        run: echo "month=$(date -u +%Y-%m)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Node 26
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.tool_cache }}/node/26.*
+          key: node-26-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-date.outputs.month }}
+
       - name: Install Node 26
         uses: actions/setup-node@v6
         with:
@@ -53,12 +68,39 @@ jobs:
       - name: Run cargo test
         run: cargo test --target=${{ matrix.platform.rust-target }}
 
+      # Cache wasm-pack, together with the wasm-bindgen CLI that it downloads
+      # for the wasm-bindgen version in Cargo.lock.
+      - name: Cache wasm-pack
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.wasm-pack-bin
+            ~/.cache/.wasm-pack/wasm-bindgen*
+            ~/Library/Caches/.wasm-pack/wasm-bindgen*
+          key: wasm-pack-${{ env.WASM_PACK_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: wasm-pack-${{ env.WASM_PACK_VERSION }}-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Check for cached wasm-pack
+        id: cached-wasm-pack
+        run: |
+          echo "$HOME/.wasm-pack-bin" >> "$GITHUB_PATH"
+          if [[ -x "$HOME/.wasm-pack-bin/wasm-pack" ]]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          fi
+
       # The official installer script always installs the x86_64 build on Apple Silicon,
       # which then runs safaridriver under Rosetta and makes it take a very long time to start.
       - name: Install wasm-pack
+        if: steps.cached-wasm-pack.outputs.found != 'true'
         uses: taiki-e/install-action@v2
         with:
-          tool: wasm-pack
+          tool: wasm-pack@${{ env.WASM_PACK_VERSION }}
+
+      - name: Copy wasm-pack to cache
+        if: steps.cached-wasm-pack.outputs.found != 'true'
+        run: |
+          mkdir -p "$HOME/.wasm-pack-bin"
+          cp "$(command -v wasm-pack)" "$HOME/.wasm-pack-bin/"
 
       - name: Test on Node
         run: wasm-pack test --node -- ${{ matrix.rust.unstable-flags }}
