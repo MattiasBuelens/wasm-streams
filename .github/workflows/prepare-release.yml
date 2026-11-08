@@ -28,7 +28,7 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
       - name: Install Changie
-        uses: miniscruff/changie-action@3223cb29b92a0972dedc864ace3da01e04780ae4 # v3
+        uses: ./.github/actions/install-changie
         with:
           version: v1.26.0
       - name: Prepare changelog and crate version
