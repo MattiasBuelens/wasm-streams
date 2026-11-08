@@ -91,10 +91,17 @@ jobs:
       # The official installer script always installs the x86_64 build on Apple Silicon,
       # which then runs safaridriver under Rosetta and makes it take a very long time to start.
       - name: Install wasm-pack
+        id: install-wasm-pack
         if: steps.cached-wasm-pack.outputs.found != 'true'
+        continue-on-error: true
         uses: taiki-e/install-action@v2
         with:
           tool: wasm-pack@${{ env.WASM_PACK_VERSION }}
+
+      # If downloading from GitHub releases fails, build wasm-pack from crates.io instead.
+      - name: Build wasm-pack from source
+        if: steps.install-wasm-pack.outcome == 'failure'
+        run: cargo install wasm-pack --locked --version "$WASM_PACK_VERSION"
 
       - name: Copy wasm-pack to cache
         if: steps.cached-wasm-pack.outputs.found != 'true'
