@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.7.1 (2026-11-08)
 
 * Dropping a reader or writer no longer throws a JS exception when `releaseLock()` throws. The error is ignored and the stream stays locked instead. This can happen in Cloudflare Workers outside a request, or on older browsers when there are pending reads. As a result, dropping an `IntoStream` or `IntoAsyncRead` on older browsers will no longer throw, but may silently leave the stream locked. ([#42](https://github.com/MattiasBuelens/wasm-streams/pull/42))
 * Added `WritableStreamDefaultWriter::release_lock()` and `try_release_lock()`. ([#42](https://github.com/MattiasBuelens/wasm-streams/pull/42))
