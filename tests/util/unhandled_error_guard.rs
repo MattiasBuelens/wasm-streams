@@ -55,7 +55,7 @@ impl Drop for UnhandledErrorGuard {
         if let Some(window) = window() {
             for event_type in ERROR_TYPES {
                 window
-                    .add_event_listener_with_callback(
+                    .remove_event_listener_with_callback(
                         event_type,
                         self.listener.as_ref().unchecked_ref(),
                     )
