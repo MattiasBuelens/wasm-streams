@@ -6,8 +6,8 @@ use std::rc::Rc;
 use futures_util::future::{AbortHandle, TryFutureExt, abortable};
 use futures_util::stream::{Stream, TryStreamExt};
 use js_sys::Promise;
+use js_sys::futures::future_to_promise;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::future_to_promise;
 
 use super::sys;
 

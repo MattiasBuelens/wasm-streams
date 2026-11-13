@@ -4,8 +4,8 @@
 //! and then consumes the response body as a Rust `Stream`.
 
 use futures_util::StreamExt;
+use js_sys::futures::JsFuture;
 use wasm_bindgen::{JsCast, prelude::*};
-use wasm_bindgen_futures::JsFuture;
 use web_sys::{Response, console, window};
 
 use wasm_streams::ReadableStream;

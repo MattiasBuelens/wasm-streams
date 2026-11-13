@@ -3,8 +3,8 @@ use core::task::{Context, Poll};
 
 use futures_util::Sink;
 use futures_util::{FutureExt, ready};
+use js_sys::futures::JsFuture;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 
 use super::WritableStreamDefaultWriter;
 

@@ -4,10 +4,10 @@ use core::task::{Context, Poll};
 use futures_util::FutureExt;
 use futures_util::io::{AsyncRead, Error};
 use futures_util::ready;
+use js_sys::futures::JsFuture;
 use js_sys::{Object, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 
 use crate::util::{checked_cast_to_usize, clamp_to_u32, js_to_io_error};
 
