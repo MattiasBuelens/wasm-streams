@@ -3,9 +3,6 @@ use std::marker::PhantomData;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::throw_val;
-use wasm_bindgen_futures::JsFuture;
-
-use crate::util::promise_to_void_future;
 
 use super::{IntoStream, ReadableStream, sys};
 
@@ -46,7 +43,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// [released](https://streams.spec.whatwg.org/#release-a-lock) before the stream finishes
     /// closing.
     pub async fn closed(&self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().closed()).await
+        self.as_raw().closed().await.map(|_| ())
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -54,7 +51,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     ///
     /// Equivalent to [`ReadableStream.cancel`](ReadableStream::cancel).
     pub async fn cancel(&mut self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().cancel()).await
+        self.as_raw().cancel().await.map(|_| ())
     }
 
     /// [Cancels](https://streams.spec.whatwg.org/#cancel-a-readable-stream) the stream,
@@ -62,7 +59,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     ///
     /// Equivalent to [`ReadableStream.cancel_with_reason`](ReadableStream::cancel_with_reason).
     pub async fn cancel_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().cancel_with_reason(reason)).await
+        self.as_raw().cancel_with_reason(reason).await.map(|_| ())
     }
 
     /// Reads the next chunk from the stream's internal queue.
@@ -71,8 +68,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// * If the stream closes and no more chunks are available, this returns `Ok(None)`.
     /// * If the stream encounters an `error`, this returns `Err(error)`.
     pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
-        let promise = self.as_raw().read();
-        let js_result = JsFuture::from(promise).await?;
+        let js_result = self.as_raw().read().await?;
         let result = sys::ReadableStreamReadResult::from(js_result);
         if result.get_done().unwrap_or_default() {
             Ok(None)

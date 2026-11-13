@@ -89,8 +89,10 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                 match &self.reader {
                     Some(reader) => {
                         // Read into internal buffer and store its future
-                        let fut =
-                            JsFuture::from(reader.as_raw().read_with_array_buffer_view(&buffer));
+                        let fut = reader
+                            .as_raw()
+                            .read_with_array_buffer_view(&buffer)
+                            .into_future();
                         self.fut.insert(fut)
                     }
                     None => {

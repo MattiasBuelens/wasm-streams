@@ -74,7 +74,7 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
             None => match &self.writer {
                 Some(writer) => {
                     // No pending ready future yet, create one from ready promise
-                    let fut = JsFuture::from(writer.as_raw().ready());
+                    let fut = writer.as_raw().ready().into_future();
                     self.ready_fut.insert(fut)
                 }
                 None => {
@@ -106,7 +106,7 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
     fn start_send(mut self: Pin<&mut Self>, item: JsValue) -> Result<(), Self::Error> {
         match &self.writer {
             Some(writer) => {
-                let fut = JsFuture::from(writer.as_raw().write_with_chunk(&item));
+                let fut = writer.as_raw().write_with_chunk(&item).into_future();
                 // Set or replace the pending write future
                 self.write_fut = Some(fut);
                 Ok(())
@@ -153,7 +153,7 @@ impl<'writer> Sink<JsValue> for IntoSink<'writer> {
                 Some(writer) => {
                     // No pending close future
                     // Start closing the stream and create future from close promise
-                    let fut = JsFuture::from(writer.as_raw().close());
+                    let fut = writer.as_raw().close().into_future();
                     self.close_fut.insert(fut)
                 }
                 None => {

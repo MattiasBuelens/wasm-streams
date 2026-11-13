@@ -71,7 +71,7 @@ impl<'reader> Stream for IntoStream<'reader> {
                 Some(reader) => {
                     // No pending read
                     // Start reading the next chunk and create future from read promise
-                    let fut = JsFuture::from(reader.as_raw().read());
+                    let fut = reader.as_raw().read().into_future();
                     self.fut.insert(fut)
                 }
                 None => {
