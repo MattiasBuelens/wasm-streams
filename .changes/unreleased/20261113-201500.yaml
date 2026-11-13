@@ -1,0 +1,3 @@
+body: |
+  Raised the minimum versions of `wasm-bindgen` to 0.2.115, `js-sys` and `web-sys` to 0.3.92, and `wasm-bindgen-futures` to 0.4.65. ([#48](https://github.com/MattiasBuelens/wasm-streams/pull/48))
+time: 2026-11-13T20:15:00Z
