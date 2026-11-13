@@ -300,11 +300,9 @@ impl ReadableStream {
             .unchecked_ref::<sys::ReadableStreamExt>()
             .try_tee()
             .map_err(|err| (err, self))?;
-        debug_assert_eq!(branches.length(), 2);
-        let (left, right) = (branches.get(0), branches.get(1));
         Ok((
-            Self::from_raw(left.unchecked_into()),
-            Self::from_raw(right.unchecked_into()),
+            Self::from_raw(branches.get0()),
+            Self::from_raw(branches.get1()),
         ))
     }
 

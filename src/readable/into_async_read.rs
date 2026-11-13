@@ -27,7 +27,7 @@ use super::sys::ReadableStreamReadResult;
 pub struct IntoAsyncRead<'reader> {
     reader: Option<ReadableStreamBYOBReader<'reader>>,
     buffer: Option<Uint8Array>,
-    fut: Option<JsFuture>,
+    fut: Option<JsFuture<ReadableStreamReadResult>>,
     cancel_on_drop: bool,
 }
 
@@ -90,7 +90,7 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
                     Some(reader) => {
                         // Read into internal buffer and store its future
                         let fut = reader
-                            .as_raw()
+                            .as_raw_ext()
                             .read_with_array_buffer_view(&buffer)
                             .into_future();
                         self.fut.insert(fut)
@@ -109,8 +109,7 @@ impl<'reader> AsyncRead for IntoAsyncRead<'reader> {
 
         // Read completed
         Poll::Ready(match js_result {
-            Ok(js_value) => {
-                let result = ReadableStreamReadResult::from(js_value);
+            Ok(result) => {
                 if result.get_done().unwrap_or_default() {
                     // End of stream
                     self.discard_reader();

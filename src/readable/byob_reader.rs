@@ -16,7 +16,7 @@ use super::{IntoAsyncRead, ReadableStream, sys};
 /// This is best-effort: if `releaseLock()` throws, the error is ignored and the stream stays locked.
 #[derive(Debug)]
 pub struct ReadableStreamBYOBReader<'stream> {
-    raw: sys::ReadableStreamBYOBReader,
+    raw: sys::ReadableStreamBYOBReaderExt,
     _stream: PhantomData<&'stream mut ReadableStream>,
 }
 
@@ -28,8 +28,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
             raw: stream
                 .as_raw()
                 .unchecked_ref::<sys::ReadableStreamExt>()
-                .try_get_reader_with_options(&reader_options)?
-                .unchecked_into(),
+                .try_get_byob_reader(&reader_options)?,
             _stream: PhantomData,
         })
     }
@@ -37,6 +36,11 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     /// Acquires a reference to the underlying [JavaScript reader](sys::ReadableStreamBYOBReader).
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamBYOBReader {
+        &self.raw
+    }
+
+    #[inline]
+    pub(crate) fn as_raw_ext(&self) -> &sys::ReadableStreamBYOBReaderExt {
         &self.raw
     }
 
@@ -115,9 +119,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
         let dst_len = clamp_to_u32(dst.len());
         let view = buffer.subarray(0, dst_len).unchecked_into::<Object>();
         // Read into view. This transfers `buffer.buffer()`.
-        let promise = self.as_raw().read_with_array_buffer_view(&view);
-        let js_result = promise.await?;
-        let result = sys::ReadableStreamReadResult::from(js_result);
+        let result = self.raw.read_with_array_buffer_view(&view).await?;
         let js_value = result.get_value();
         let filled_view = if js_value.is_undefined() {
             // No new view was returned. The stream must have been canceled.
@@ -183,9 +185,7 @@ impl<'stream> ReadableStreamBYOBReader<'stream> {
     }
 
     fn try_release_lock_mut(&mut self) -> Result<(), js_sys::Error> {
-        self.as_raw()
-            .unchecked_ref::<sys::ReadableStreamReaderExt>()
-            .try_release_lock()
+        self.raw.try_release_lock()
     }
 
     /// Converts this `ReadableStreamBYOBReader` into an [`AsyncRead`].
