@@ -18,7 +18,7 @@ exclude = [
 
 [dependencies]
 js-sys = "^0.3.97"
-wasm-bindgen = "0.2.120"
+wasm-bindgen = "0.2.130"
 futures-util = { version = "^0.3.31", features = ["io", "sink"] }
 
 [dependencies.web-sys]
@@ -68,3 +68,10 @@ features = [
 [package.metadata.docs.rs]
 # https://blog.rust-lang.org/2020/03/15/docs-rs-opt-into-fewer-targets.html
 targets = ["x86_64-unknown-linux-gnu"]
+
+# Experiment: needs the fix for async `&mut self` exports with panic=unwind.
+[patch.crates-io]
+wasm-bindgen = { git = "https://github.com/MattiasBuelens/wasm-bindgen", branch = "fix-async-mut-self-unwind" }
+js-sys = { git = "https://github.com/MattiasBuelens/wasm-bindgen", branch = "fix-async-mut-self-unwind" }
+web-sys = { git = "https://github.com/MattiasBuelens/wasm-bindgen", branch = "fix-async-mut-self-unwind" }
+wasm-bindgen-test = { git = "https://github.com/MattiasBuelens/wasm-bindgen", branch = "fix-async-mut-self-unwind" }
