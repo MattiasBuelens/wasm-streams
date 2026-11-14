@@ -1,7 +1,7 @@
 //! Raw bindings to JavaScript objects used
 //! by a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 //! These are re-exported from [web-sys](https://docs.rs/web-sys/0.3.70/web_sys/struct.ReadableStream.html).
-use js_sys::{Array, Error, Object};
+use js_sys::{ArrayTuple, Error, Object, Promise};
 use wasm_bindgen::prelude::*;
 pub use web_sys::ReadableByteStreamController;
 // Re-export from web-sys
@@ -38,16 +38,20 @@ extern "C" {
     ) -> Result<ReadableStreamExt, Error>;
 
     #[wasm_bindgen(method, catch, js_class = ReadableStream, js_name = getReader)]
-    pub(crate) fn try_get_reader(this: &ReadableStreamExt) -> Result<Object, Error>;
+    pub(crate) fn try_get_reader(
+        this: &ReadableStreamExt,
+    ) -> Result<ReadableStreamDefaultReaderExt, Error>;
 
     #[wasm_bindgen(method, catch, js_class = ReadableStream, js_name = getReader)]
-    pub(crate) fn try_get_reader_with_options(
+    pub(crate) fn try_get_byob_reader(
         this: &ReadableStreamExt,
         options: &ReadableStreamGetReaderOptions,
-    ) -> Result<Object, Error>;
+    ) -> Result<ReadableStreamBYOBReaderExt, Error>;
 
     #[wasm_bindgen(method, catch, js_class = ReadableStream, js_name = tee)]
-    pub(crate) fn try_tee(this: &ReadableStreamExt) -> Result<Array, Error>;
+    pub(crate) fn try_tee(
+        this: &ReadableStreamExt,
+    ) -> Result<ArrayTuple<(ReadableStream, ReadableStream)>, Error>;
 
     #[wasm_bindgen(catch, static_method_of = ReadableStreamExt, js_class = ReadableStream, js_name = from)]
     pub(crate) fn from_async_iterable(async_iterable: &Object) -> Result<ReadableStreamExt, Error>;
@@ -55,10 +59,39 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
-    /// Additional methods for [`ReadableStreamDefaultReader`](web_sys::ReadableStreamDefaultReader)
-    /// and [`ReadableStreamByobReader`](web_sys::ReadableStreamByobReader).
-    pub(crate) type ReadableStreamReaderExt;
+    /// Additional methods for [`ReadableStreamDefaultReader`](web_sys::ReadableStreamDefaultReader).
+    #[wasm_bindgen(
+        extends = ReadableStreamDefaultReader,
+        js_name = ReadableStreamDefaultReader,
+        typescript_type = "ReadableStreamDefaultReader"
+    )]
+    #[derive(Debug)]
+    pub(crate) type ReadableStreamDefaultReaderExt;
 
-    #[wasm_bindgen(method, catch, js_name = releaseLock)]
-    pub(crate) fn try_release_lock(this: &ReadableStreamReaderExt) -> Result<(), Error>;
+    #[wasm_bindgen(method, js_class = ReadableStreamDefaultReader, js_name = read)]
+    pub(crate) fn read(this: &ReadableStreamDefaultReaderExt) -> Promise<ReadableStreamReadResult>;
+
+    #[wasm_bindgen(method, catch, js_class = ReadableStreamDefaultReader, js_name = releaseLock)]
+    pub(crate) fn try_release_lock(this: &ReadableStreamDefaultReaderExt) -> Result<(), Error>;
+}
+
+#[wasm_bindgen]
+extern "C" {
+    /// Additional methods for [`ReadableStreamBYOBReader`](web_sys::ReadableStreamByobReader).
+    #[wasm_bindgen(
+        extends = ReadableStreamBYOBReader,
+        js_name = ReadableStreamBYOBReader,
+        typescript_type = "ReadableStreamBYOBReader"
+    )]
+    #[derive(Debug)]
+    pub(crate) type ReadableStreamBYOBReaderExt;
+
+    #[wasm_bindgen(method, js_class = ReadableStreamBYOBReader, js_name = read)]
+    pub(crate) fn read_with_array_buffer_view(
+        this: &ReadableStreamBYOBReaderExt,
+        view: &Object,
+    ) -> Promise<ReadableStreamReadResult>;
+
+    #[wasm_bindgen(method, catch, js_class = ReadableStreamBYOBReader, js_name = releaseLock)]
+    pub(crate) fn try_release_lock(this: &ReadableStreamBYOBReaderExt) -> Result<(), Error>;
 }

@@ -15,7 +15,7 @@ use super::{IntoStream, ReadableStream, sys};
 /// This is best-effort: if `releaseLock()` throws, the error is ignored and the stream stays locked.
 #[derive(Debug)]
 pub struct ReadableStreamDefaultReader<'stream> {
-    raw: sys::ReadableStreamDefaultReader,
+    raw: sys::ReadableStreamDefaultReaderExt,
     _stream: PhantomData<&'stream mut ReadableStream>,
 }
 
@@ -25,8 +25,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
             raw: stream
                 .as_raw()
                 .unchecked_ref::<sys::ReadableStreamExt>()
-                .try_get_reader()?
-                .unchecked_into(),
+                .try_get_reader()?,
             _stream: PhantomData,
         })
     }
@@ -34,6 +33,11 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// Acquires a reference to the underlying [JavaScript reader](sys::ReadableStreamDefaultReader).
     #[inline]
     pub fn as_raw(&self) -> &sys::ReadableStreamDefaultReader {
+        &self.raw
+    }
+
+    #[inline]
+    pub(crate) fn as_raw_ext(&self) -> &sys::ReadableStreamDefaultReaderExt {
         &self.raw
     }
 
@@ -68,8 +72,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     /// * If the stream closes and no more chunks are available, this returns `Ok(None)`.
     /// * If the stream encounters an `error`, this returns `Err(error)`.
     pub async fn read(&mut self) -> Result<Option<JsValue>, JsValue> {
-        let js_result = self.as_raw().read().await?;
-        let result = sys::ReadableStreamReadResult::from(js_result);
+        let result = self.raw.read().await?;
         if result.get_done().unwrap_or_default() {
             Ok(None)
         } else {
@@ -118,9 +121,7 @@ impl<'stream> ReadableStreamDefaultReader<'stream> {
     }
 
     fn try_release_lock_mut(&mut self) -> Result<(), js_sys::Error> {
-        self.as_raw()
-            .unchecked_ref::<sys::ReadableStreamReaderExt>()
-            .try_release_lock()
+        self.raw.try_release_lock()
     }
 
     /// Converts this `ReadableStreamDefaultReader` into a [`Stream`].

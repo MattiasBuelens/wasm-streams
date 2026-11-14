@@ -22,7 +22,7 @@ use super::sys::ReadableStreamReadResult;
 #[derive(Debug)]
 pub struct IntoStream<'reader> {
     reader: Option<ReadableStreamDefaultReader<'reader>>,
-    fut: Option<JsFuture>,
+    fut: Option<JsFuture<ReadableStreamReadResult>>,
     cancel_on_drop: bool,
 }
 
@@ -71,7 +71,7 @@ impl<'reader> Stream for IntoStream<'reader> {
                 Some(reader) => {
                     // No pending read
                     // Start reading the next chunk and create future from read promise
-                    let fut = reader.as_raw().read().into_future();
+                    let fut = reader.as_raw_ext().read().into_future();
                     self.fut.insert(fut)
                 }
                 None => {
@@ -87,8 +87,7 @@ impl<'reader> Stream for IntoStream<'reader> {
 
         // Read completed
         Poll::Ready(match js_result {
-            Ok(js_value) => {
-                let result = ReadableStreamReadResult::from(js_value);
+            Ok(result) => {
                 if result.get_done().unwrap_or_default() {
                     // End of stream, drop reader
                     self.reader = None;
