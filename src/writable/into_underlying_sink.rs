@@ -5,8 +5,8 @@ use std::rc::Rc;
 
 use futures_util::{Sink, SinkExt};
 use js_sys::Promise;
+use js_sys::futures::future_to_promise;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::future_to_promise;
 
 #[wasm_bindgen(private)]
 pub(crate) struct IntoUnderlyingSink {

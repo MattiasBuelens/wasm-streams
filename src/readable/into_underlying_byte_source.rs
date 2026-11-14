@@ -5,9 +5,9 @@ use std::rc::Rc;
 
 use futures_util::future::{AbortHandle, TryFutureExt, abortable};
 use futures_util::io::{AsyncRead, AsyncReadExt};
+use js_sys::futures::future_to_promise;
 use js_sys::{Error as JsError, Promise, Uint8Array};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::future_to_promise;
 
 use crate::util::{checked_cast_to_u32, clamp_to_usize};
 

@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use js_sys::Promise;
+use js_sys::futures::JsFuture;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 
 #[wasm_bindgen]
 extern "C" {

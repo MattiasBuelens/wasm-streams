@@ -4,8 +4,8 @@ use core::task::{Context, Poll};
 use futures_util::FutureExt;
 use futures_util::ready;
 use futures_util::stream::{FusedStream, Stream};
+use js_sys::futures::JsFuture;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 
 use super::ReadableStreamDefaultReader;
 use super::sys::ReadableStreamReadResult;
@@ -71,7 +71,7 @@ impl<'reader> Stream for IntoStream<'reader> {
                 Some(reader) => {
                     // No pending read
                     // Start reading the next chunk and create future from read promise
-                    let fut = JsFuture::from(reader.as_raw().read());
+                    let fut = reader.as_raw().read().into_future();
                     self.fut.insert(fut)
                 }
                 None => {

@@ -1,8 +1,8 @@
 use futures_util::{AsyncReadExt, TryStreamExt};
+use js_sys::futures::JsFuture;
 use js_sys::{Uint8Array, global};
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen_test::*;
 use wasm_streams::ReadableStream;
 use web_sys::{Response, Window};

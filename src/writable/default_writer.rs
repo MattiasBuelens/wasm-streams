@@ -2,8 +2,6 @@ use std::marker::PhantomData;
 
 use wasm_bindgen::{JsCast, JsValue, throw_val};
 
-use crate::util::promise_to_void_future;
-
 use super::{IntoAsyncWrite, IntoSink, WritableStream, sys};
 
 /// A [`WritableStreamDefaultWriter`](https://developer.mozilla.org/en-US/docs/Web/API/WritableStreamDefaultWriter)
@@ -39,7 +37,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// [released](https://streams.spec.whatwg.org/#release-a-lock) before the stream finishes
     /// closing.
     pub async fn closed(&self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().closed()).await
+        self.as_raw().closed().await.map(|_| ())
     }
 
     /// Returns the desired size to fill the stream's internal queue.
@@ -66,7 +64,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// [released](https://streams.spec.whatwg.org/#release-a-lock) before the stream finishes
     /// closing.
     pub async fn ready(&self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().ready()).await
+        self.as_raw().ready().await.map(|_| ())
     }
 
     /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream,
@@ -74,7 +72,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     ///
     /// Equivalent to [`WritableStream.abort`](WritableStream::abort).
     pub async fn abort(&mut self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().abort()).await
+        self.as_raw().abort().await.map(|_| ())
     }
 
     /// [Aborts](https://streams.spec.whatwg.org/#abort-a-writable-stream) the stream with the
@@ -82,7 +80,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     ///
     /// Equivalent to [`WritableStream.abort_with_reason`](WritableStream::abort_with_reason).
     pub async fn abort_with_reason(&mut self, reason: &JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().abort_with_reason(reason)).await
+        self.as_raw().abort_with_reason(reason).await.map(|_| ())
     }
 
     /// Writes the given `chunk` to the writable stream, by waiting until any previous writes
@@ -96,7 +94,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// that the chunk has been accepted, and not necessarily that it is safely saved to
     /// its ultimate destination.
     pub async fn write(&mut self, chunk: JsValue) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().write_with_chunk(&chunk)).await
+        self.as_raw().write_with_chunk(&chunk).await.map(|_| ())
     }
 
     /// Closes the stream.
@@ -108,7 +106,7 @@ impl<'stream> WritableStreamDefaultWriter<'stream> {
     /// This returns `Ok(())` if all remaining chunks are successfully written and the stream
     /// successfully closes, or `Err(error)` if an error is encountered during this process.
     pub async fn close(&mut self) -> Result<(), JsValue> {
-        promise_to_void_future(self.as_raw().close()).await
+        self.as_raw().close().await.map(|_| ())
     }
 
     /// [Releases](https://streams.spec.whatwg.org/#release-a-lock) this writer's lock on the
